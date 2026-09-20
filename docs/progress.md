@@ -2,6 +2,12 @@
 
 Updated: 2026-09-21. This is a dated report, not an automatically updated dashboard.
 
+## 2026-09-21: build language improvements from discovery / 从发现应用落实语言改进
+
+补充[总计划](towow-discovery-master-plan.zh-CN.md)：交付发现组件之外，必须产出已经实现、能被另一算法复用的J++构造改进，不能停在语言好不好用的评估。新增具体能力与源码对应表、L0～L4建设循环及改进前后验收。当前只有计划、代码依据和候选方向，尚未宣称改进已实现。另在本地按真实分叉边界保存43条用户原始提示词/界面回复，保留原话与推导的区分，未公开整段会话。
+
+The deliverable now includes implemented language/library/tooling improvements, before/after programs and cross-algorithm reuse, alongside the discovery component. The capability inventory distinguishes native source examples from the Python application. Original user prompts are archived locally with their source boundaries; no new model experiment or runtime change is claimed.
+
 ## 2026-09-21: discovery goal, evidence and parallel implementation plan / 发现目标、验收与并行实施总计划
 
 新增[通用发现能力总计划](towow-discovery-master-plan.zh-CN.md)，重新对齐通爻原始问题：接收方依局部上下文提出关系，中间问题与组合参与后续发现。分开J++语言、通爻协议、发现程序与展示的交付；整理已有真实语料、强基线、行为/质量/费用/动态验收及P0～P5依赖。核查并索引先前讨论记录，明确尚非完整逐字归档。当前成果是规划，没有新的模型运行或发现效果结论。
