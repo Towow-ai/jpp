@@ -2,6 +2,12 @@
 
 Updated: 2026-09-21. This is a dated report, not an automatically updated dashboard.
 
+## 2026-09-21: co-construct language capabilities and algorithms / 语言能力与算法共同构造
+
+修正[总计划](towow-discovery-master-plan.zh-CN.md)中的推进前提：不要求先用成熟工具实现完整算法再迁移J++。所需的构造能力可能正是语言建设要创造的部分，应与最小算法片段共同设计。已有工具按需复用，缺少完整旧实现时保留构造阻碍与新程序的对照。本轮保存两条原话续记和本地理解记录，只更新设计，不启动实现或模型实验。
+
+The plan no longer assumes a complete host-language algorithm must precede J++. Missing construction capabilities and algorithm fragments may be developed together. Existing tools remain available where useful; this update records the design correction and local prompt provenance, with no new runtime or model-performance claim.
+
 ## 2026-09-21: build language improvements from discovery / 从发现应用落实语言改进
 
 补充[总计划](towow-discovery-master-plan.zh-CN.md)：交付发现组件之外，必须产出已经实现、能被另一算法复用的J++构造改进，不能停在语言好不好用的评估。新增具体能力与源码对应表、L0～L4建设循环及改进前后验收。当前只有计划、代码依据和候选方向，尚未宣称改进已实现。另在本地按真实分叉边界保存43条用户原始提示词/界面回复，保留原话与推导的区分，未公开整段会话。
