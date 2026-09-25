@@ -1,0 +1,15 @@
+// 等价写法对 seq_wrapped（步 23c，B94 下半）的慢写法：同一份材料上四道题，每道题包在一个函数里
+// 各自 judge → cut → handle，直线段里顺序调用四次（探针 entity-align 非设计者版的形状）。
+// 23c 前每个包装立即要值、四次调用；23c 起直线段提升穿过函数调用，四道题同一状态、一次发出。
+budget {calls: 8, cost: 0.01, depth: 64};
+let m = mat("我上个月去了成都出差，顺便见了老朋友。");
+fn 问(s, 题面) !{judge} {
+    let e = cut(judge(s, test(题面, "seq-wrapped")));
+    handle(e, {act: fn() { "是" }, ignore: fn() { "否" }, unsure: fn(u) { {answer: "未决", pending: u} }})
+}
+let s = state(m);
+let a = 问(s, "这段话是否提到了成都？");
+let b = 问(s, "这段话是否提到了北京？");
+let c = 问(s, "这段话是否提到了出差？");
+let d = 问(s, "这段话是否提到了朋友？");
+[a, b, c, d]

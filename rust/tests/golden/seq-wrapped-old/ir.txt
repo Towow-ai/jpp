@@ -1,0 +1,86 @@
+ir v1
+budget calls=8 cost=0.01 depth=64 escalate=- unsure=- latency_p95=- absent=-
+block 388..944
+  let m : -
+    #0 call 438..502
+      callee:
+        #1 name mat
+      #2 text "我上个月去了成都出差，顺便见了老朋友。"
+  fn-stmt 问
+    #3 fn (s:-, 题面:-) -> - effects=[judge]
+      block 531..701
+        let e : -
+          #4 cut @0 545..587
+            reading:
+              #5 effect judge @1 549..586
+                state:
+                  #6 name s
+                questions:
+                  #7 construct test @2 558..585
+                    #8 name 题面
+                    #9 text "seq-wrapped"
+        result
+          #10 handle @3 593..699
+            exit:
+              #11 name e
+            arms:
+              #12 record 603..698
+                act:
+                  #14 fn () -> - effects=-
+                    block 614..623
+                      result
+                        #15 text "是"
+                ignore:
+                  #17 fn () -> - effects=-
+                    block 638..647
+                      result
+                        #18 text "否"
+                unsure:
+                  #20 fn (u:-) -> - effects=-
+                    block 663..697
+                      result
+                        #21 record 665..695
+                          answer:
+                            #22 text "未决"
+                          pending:
+                            #23 name u
+  let s : -
+    #24 state @4 710..718
+      on:
+        #25 name m
+  let a : -
+    #26 call 728..771
+      callee:
+        #27 name 问
+      #28 name s
+      #29 text "这段话是否提到了成都？"
+  let b : -
+    #30 call 781..824
+      callee:
+        #31 name 问
+      #32 name s
+      #33 text "这段话是否提到了北京？"
+  let c : -
+    #34 call 834..877
+      callee:
+        #35 name 问
+      #36 name s
+      #37 text "这段话是否提到了出差？"
+  let d : -
+    #38 call 887..930
+      callee:
+        #39 name 问
+      #40 name s
+      #41 text "这段话是否提到了朋友？"
+  result
+    #42 list 932..944
+      #43 name a
+      #44 name b
+      #45 name c
+      #46 name d
+sites 5
+  @0 #4 cut 545..587 fn=#3 in=-
+  @1 #5 effect:judge 549..586 fn=#3 in=-
+  @2 #7 construct:test 558..585 fn=#3 in=-
+  @3 #10 handle 593..699 fn=#3 in=-
+  @4 #24 state 710..718 fn=- in=-

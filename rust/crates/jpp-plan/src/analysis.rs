@@ -200,6 +200,42 @@ pub(crate) fn has_branch(e: &Expr) -> bool {
     found
 }
 
+/// 表达式里有没有短路运算（`&&`、`||`）：右侧不一定求值，直线段提升把它当分支，遇到即停
+/// （步 23c 审查修复 4，同 13a「不跨分支」，`12`:13）。块表达式里的语句也看，因为 `speculate::expr` 会进块。
+pub(crate) fn has_short_circuit(e: &Expr) -> bool {
+    let mut found = false;
+    walk(e, &mut |x| match x {
+        K::Binary { op, .. } if matches!(*op, "&&" | "||") => found = true,
+        K::Block(b) if block_has_short_circuit(b) => found = true,
+        _ => {}
+    });
+    found
+}
+
+/// 块里（含嵌套块）每个短路运算（`&&`、`||`）右侧子树的节点号：右侧不一定求值。直线段提升穿进
+/// 被调函数体时，这些节点上的站点不收（步 23c 复核修复 9，与 `has_short_circuit` 同一理由）。
+pub(crate) fn short_rhs_nodes(b: &Block) -> BTreeSet<jpp_ir::key::NodeId> {
+    let mut out = BTreeSet::new();
+    jpp_ir::ir::walk(b, &mut |e| {
+        if let K::Binary { op, right, .. } = kind(e)
+            && matches!(op, "&&" | "||")
+        {
+            jpp_ir::ir::walk_expr(right, &mut |x| {
+                out.insert(x.id);
+            });
+        }
+    });
+    out
+}
+
+fn block_has_short_circuit(b: &Block) -> bool {
+    b.statements.iter().any(|st| match st {
+        Stmt::Let { value, .. } => has_short_circuit(value),
+        Stmt::Expr(v) => has_short_circuit(v),
+        Stmt::Function { .. } => false,
+    }) || b.result.as_ref().is_some_and(|r| has_short_circuit(r))
+}
+
 pub(crate) fn names_in(e: &Expr, out: &mut BTreeSet<String>) {
     walk(e, &mut |x| {
         if let K::Name(n) = x {

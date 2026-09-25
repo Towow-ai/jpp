@@ -106,7 +106,7 @@ impl<'a> Interp<'a> {
     /// 「可达」= `State.parents`（槽材料的 sources ∪ 题的 sources），经账本 `Entry::Judge.parents` 传递（B84 补）。
     /// 祖先的等级从本趟出口表按账本键取（续接与重放从头重跑，祖先都在本趟重新切，B83）。
     /// 表里查不到的祖先键算「无法证明」：谱系断，并报 `W-lineage-unknown`（17b 解释登记 (b)，主会话改保守读法）。
-    pub(crate) fn 谱系(&mut self, e: &Exit) -> Option<String> {
+    pub(crate) fn 谱系(&mut self, e: &Exit) -> R<Option<String>> {
         let start = e.ledger_key.borrow().clone();
         let mut 待查: Vec<String> = self.parents_of(&start);
         let mut 见过: HashSet<String> = HashSet::new();
@@ -114,9 +114,13 @@ impl<'a> Interp<'a> {
             if !见过.insert(k.clone()) {
                 continue;
             }
+            // 惰性过桥（B94，审查修复 1）：这个读数切出的出口可能还没解析、放行表里还没有它的等级。
+            // 先解析同键的全部出口再查表。依据：B72-4。解析出错往上传（复核修复 7）：那次刷新已取出
+            // 别的待发判断，吞成「不放行」会丢掉它们；改前同样的错误在 `cut` 处报出并中止
+            self.解析同键出口(&k)?;
             match self.出口放行表.get(&k) {
                 Some((true, _)) => {}
-                Some((false, 说明)) => return Some(说明.clone()),
+                Some((false, 说明)) => return Ok(Some(说明.clone())),
                 None => {
                     // 依据：B72（地基/附注/2026-09-24-评估①裁定.md，B72-4 谱系放行）；缺键按不放行是主会话 2026-09-25 的保守读法
                     if self.谱系缺键已报.insert(k.clone()) {
@@ -125,14 +129,14 @@ impl<'a> Interp<'a> {
                             k
                         ));
                     }
-                    return Some(format!(
+                    return Ok(Some(format!(
                         "该材料的来源读数 {k} 本趟没有切出出口，谱系无法证明"
-                    ));
+                    )));
                 }
             }
             待查.extend(self.parents_of(&k));
         }
-        None
+        Ok(None)
     }
 
     fn parents_of(&self, key: &str) -> Vec<String> {

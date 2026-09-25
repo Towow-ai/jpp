@@ -1,0 +1,58 @@
+{
+ "description": "Synthetic fixed observations for seq-wrapped-*.jpp: one material, 4 questions (call-count comparison only; step 23c, B94).",
+ "calibrations": [
+  {
+   "key": "seq-wrapped",
+   "hi": 0.75,
+   "lo": 0.25,
+   "n": 1,
+   "status": "上岗", "delta": 0.05
+  }
+ ],
+ "observations": [
+  {
+   "on": [
+    "我上个月去了成都出差，顺便见了老朋友。"
+   ],
+   "op": "test",
+   "text": "这段话是否提到了成都？",
+   "calib": "seq-wrapped",
+   "answer": {
+    "Noul": 0.99
+   }
+  },
+  {
+   "on": [
+    "我上个月去了成都出差，顺便见了老朋友。"
+   ],
+   "op": "test",
+   "text": "这段话是否提到了北京？",
+   "calib": "seq-wrapped",
+   "answer": {
+    "Noul": 0.02
+   }
+  },
+  {
+   "on": [
+    "我上个月去了成都出差，顺便见了老朋友。"
+   ],
+   "op": "test",
+   "text": "这段话是否提到了出差？",
+   "calib": "seq-wrapped",
+   "answer": {
+    "Noul": 0.97
+   }
+  },
+  {
+   "on": [
+    "我上个月去了成都出差，顺便见了老朋友。"
+   ],
+   "op": "test",
+   "text": "这段话是否提到了朋友？",
+   "calib": "seq-wrapped",
+   "answer": {
+    "Noul": 0.5
+   }
+  }
+ ]
+}

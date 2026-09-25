@@ -25,7 +25,23 @@ type 框表 = BTreeMap<String, Vec<框行>>;
 /// 同一 `(状态, 题)` 只取第一条（`repeat` 的多次读数走含 n 的独立键，B28）。
 /// 是非题收 `Noul`；K 元（`select`/`measure`）收 `p_max` 与 argmax。
 fn 账本框(path: &std::path::Path) -> Result<(框表, String), String> {
-    let text = fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    let raw = fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    // PR35 评审修复（缺陷一）：此前直接逐行 `serde_json::from_str`，只跳过头行，从不检查版本、
+    // `seq` 序号与 `prev` 哈希链——改过某条 `Judge.answer` 但链没有重算的账本，仍会被当合法抽样框。
+    // 改成先用 `read_any` 解码整份文本（v3 校验链；v2 在内存迁移；链断、未知字段、完整行读不成报
+    // `E-ledger-corrupt`），出错直接返回错误、不往下走；再用解码出的 `Ledger::encode()` 得到的规范
+    // v3 文本，复用下面既有的逐行取值逻辑（末行半写的截断已经在 `read_any`/`decode` 里处理过）。
+    // 指纹仍对**原始文件文本**取哈希，不对重编码后的文本取——这个指纹是「这份账本文件」的身份。
+    // 参照 `crates/jpp/src/cli/run_io.rs:224` 的 `--replay`/`--resume` 路径同一处理。
+    let (ledger, truncated, note) = jpp::store::migrations::ledger_v2::read_any(&raw)
+        .map_err(|e| format!("{}: {e}", path.display()))?;
+    if let Some(n) = &note {
+        eprintln!("{}: {n}", path.display());
+    }
+    if let Some(t) = &truncated {
+        eprintln!("{}: {}", path.display(), t.render());
+    }
+    let text = ledger.encode();
     let mut out: 框表 = BTreeMap::new();
     for (i, line) in text.lines().enumerate().skip(1) {
         if line.trim().is_empty() {
@@ -75,7 +91,7 @@ fn 账本框(path: &std::path::Path) -> Result<(框表, String), String> {
             });
         }
     }
-    Ok((out, jpp::value::hash_of(&[&text])))
+    Ok((out, jpp::value::hash_of(&[&raw])))
 }
 
 /// 运行报告的 `questions` 表（B107、B120 (a)）：题哈希 → 该行（`template`、`fill`、`kind`）

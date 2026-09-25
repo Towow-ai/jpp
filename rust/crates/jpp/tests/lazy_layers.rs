@@ -252,6 +252,8 @@ fn 未落地的pass开关开着也不谎称在工作() {
         ledger: true,
         speculate: true,
         vectorize: true,
+        // 步 23c（B94）：惰性过桥的开关
+        lazy_cut: true,
     };
     // 9 个不是 7 个：12 §4 的表写 7 行，v0.1.1 修订记录 1（:610）另增两个（推测提升、循环向量化），
     // 表从没改过。按 9 个算，文档不一致记在 INTERFACE。
@@ -432,10 +434,22 @@ consume([e1, e2, e3], "drop");
     };
 
     let (开调用, 开层, 开题数) = 跑一次(Passes::default());
+    // 步 23c（B94）起 `cut` 惰性：三个 `cut` 都到最后一句才被检视，关掉 `lift` 也是一层。
+    // `lift` 自己的账要在 `cut` 当场刷新时量，所以这一臂连惰性过桥一起关
     let (关调用, 关层, 关题数) = 跑一次(Passes {
+        lift: false,
+        lazy_cut: false,
+        ..Passes::default()
+    });
+    let (惰性调用, 惰性层, _) = 跑一次(Passes {
         lift: false,
         ..Passes::default()
     });
+    assert_eq!(
+        (惰性调用, 惰性层),
+        (1, 1),
+        "只关 lift、留着惰性过桥：三次检视都在最后一句，一层一次调用"
+    );
 
     assert_eq!(
         (开调用, 开层),

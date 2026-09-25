@@ -150,7 +150,15 @@ fn 旧证书行为不变() {
         c.absorb("k", 样本(0.05, false)).unwrap();
     }
     c.set_delta("k", 0.04).unwrap();
-    c.commission_two_sided_split("k", 0.1, 0.1, 7).unwrap();
+    c.commission_legacy_seed_split_test_only(
+        "k",
+        0.1,
+        0.1,
+        7,
+        true,
+        jpp::effects::CertGrade::Formal,
+    )
+    .unwrap();
     assert!(
         c.records["k"]
             .选中的证书()
@@ -188,7 +196,15 @@ fn 旧证书不放行() {
         c.absorb("k", 样本(0.05, false)).unwrap();
     }
     c.set_delta("k", 0.05).unwrap();
-    c.commission_two_sided_split("k", 0.1, 0.1, 7).unwrap();
+    c.commission_legacy_seed_split_test_only(
+        "k",
+        0.1,
+        0.1,
+        7,
+        true,
+        jpp::effects::CertGrade::Formal,
+    )
+    .unwrap();
     let program = lower(&parse(路由).unwrap()).unwrap();
     let o = run(
         &program,

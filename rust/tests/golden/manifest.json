@@ -76,6 +76,16 @@
    "calib": "tests/golden/_calib/b24"
   },
   {
+   "name": "seq-wrapped-new",
+   "source": "examples/seq-wrapped-new.jpp",
+   "fixtures": "examples/fixtures/seq-wrapped.json"
+  },
+  {
+   "name": "seq-wrapped-old",
+   "source": "examples/seq-wrapped-old.jpp",
+   "fixtures": "examples/fixtures/seq-wrapped.json"
+  },
+  {
    "name": "sieve-batch-new",
    "source": "examples/sieve-batch-new.jpp",
    "fixtures": "examples/fixtures/sieve-batch.json"

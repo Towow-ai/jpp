@@ -14,6 +14,7 @@
 
 pub use jpp_check as check;
 pub use jpp_value::stat as conformal;
+pub mod actions;
 pub mod backends;
 pub mod effects;
 pub mod interp;

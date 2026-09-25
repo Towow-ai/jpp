@@ -35,6 +35,9 @@ pub struct Passes {
     /// 循环向量化：无 loop-carried 依赖、体内无 do/ask 的 for 体自动成一层
     /// （同上，证明不了要报 W-serial，**未落地**）
     pub vectorize: bool,
+    /// 惰性过桥（B94，步 23c）：`cut` 只把读数与线绑定，出口在第一次被检视时才解析、刷新。
+    /// 关掉即改前行为：`cut` 当场刷新并解析。
+    pub lazy_cut: bool,
 }
 
 impl Default for Passes {
@@ -50,6 +53,7 @@ impl Default for Passes {
             ledger: true,
             speculate: true,
             vectorize: true,
+            lazy_cut: true,
         }
     }
 }
@@ -67,6 +71,7 @@ impl Passes {
             ledger: false,
             speculate: false,
             vectorize: false,
+            lazy_cut: false,
         }
     }
     /// 这个 pass 现在真的会起作用吗。**未落地的一律 false**，不管开关怎么设——
@@ -79,12 +84,20 @@ impl Passes {
             "lift" => self.lift,
             "speculate" => self.speculate,
             "vectorize" => self.vectorize,
+            "lazy_cut" => self.lazy_cut,
             "fission" | "lower" | "schedule" | "plan" => false,
             _ => false,
         }
     }
     /// 已落地的 pass 名字（给 CLI 与诊断用）
     pub fn landed() -> &'static [&'static str] {
-        &["lift", "fuse", "ledger", "speculate", "vectorize"]
+        &[
+            "lift",
+            "fuse",
+            "ledger",
+            "speculate",
+            "vectorize",
+            "lazy_cut",
+        ]
     }
 }

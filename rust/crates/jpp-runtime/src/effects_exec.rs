@@ -137,6 +137,9 @@ impl<'a> Interp<'a> {
         iter_seq: i64,
         sp: Span,
     ) -> R<Value> {
+        // 惰性过桥（B94，审查修复 3a）：此前切出、还没检视的出口先解析，判断在这次效应之前计费，
+        // 与改前 `cut` 当场刷新的先后相同（预算紧时出口种类不变）
+        self.解析全部帧()?;
         let action = self.actions.actions.get(name).cloned().ok_or_else(|| {
             Fault::Error(RtError::new(
                 Some("J-11"),
@@ -274,6 +277,8 @@ impl<'a> Interp<'a> {
         retry_seq: i64,
         sp: Span,
     ) -> R<Value> {
+        // 审查修复 3a：同 `do_`
+        self.解析全部帧()?;
         let ctx_hash: Vec<&str> = ctx.iter().map(|m| m.hash.as_str()).collect();
         // 12:158「键：(site, prompt_hash, ctx_hash, n, retry_seq)」——site 排第一位。
         // 缺了它，同一段 prompt 在两个站点生成会撞键，第二个站点命中第一个的输出。
@@ -380,6 +385,8 @@ impl<'a> Interp<'a> {
         q: &Rc<Question>,
         sp: Span,
     ) -> R<Value> {
+        // 审查修复 3a：同 `do_`
+        self.解析全部帧()?;
         let key = self.effect_key_of(s.name, &[&state.hash, &q.hash]);
         // 已答的照答；已问未答的：重放照记的给出（Pending），续跑再问一次
         let recorded = match self.ledger.get(&key) {
@@ -541,6 +548,8 @@ impl<'a> Interp<'a> {
                     .collect(),
                 sp,
             )?;
+            // 惰性出口先解析（B94，审查修复 2）：闭包返回的出口要照改前报 J-11
+            let v = self.检视(v)?;
             if matches!(
                 v,
                 Value::Reading(_) | Value::Exit(_) | Value::Fn(_) | Value::State(_)
@@ -592,6 +601,8 @@ impl<'a> Interp<'a> {
                 .collect(),
             sp,
         )?;
+        // 惰性出口先解析（B94，审查修复 2）：闭包返回的出口要照改前报 J-11
+        let v = self.检视(v)?;
         if matches!(
             v,
             Value::Reading(_) | Value::Exit(_) | Value::Fn(_) | Value::State(_)

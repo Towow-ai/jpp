@@ -682,7 +682,8 @@ fn d1_替身判断器跑全部示例() {
         停["pair-team"]
     );
     assert!(停["partial"].contains("J-05"), "{}", 停["partial"]);
-    assert_eq!(跑完.len(), 23);
+    // 步 23c 新增两个金样用例（seq-wrapped-old/new），都跑得完：23 → 25
+    assert_eq!(跑完.len(), 25);
 }
 
 /// (D2) 校准不跨判断器（`12` B60：校准键含 `model`）：带 jev 校准记录的用例在替身判断器上跑，

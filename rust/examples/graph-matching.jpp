@@ -1,0 +1,15 @@
+// 比赛 R2b 夹具：graph:matching（二分图带权最大匹配）。纯宿主动作，不含判断，
+// 只验证 `do("graph:matching", …)` 在 `.jpp` 里能跑通、taint 继承、可逆、cost 0（附注 §五）。
+budget {calls: 1, cost: 0, depth: 8};
+
+let g = {
+    edges: [
+        {u: "req-a", v: "alice", w: 3},
+        {u: "req-a", v: "bob", w: 1},
+        {u: "req-b", v: "alice", w: 2},
+        {u: "req-b", v: "bob", w: 4}
+    ],
+    bipartite: true,
+    parts: [["req-a", "req-b"], ["alice", "bob"]]
+};
+content(do("graph:matching", [g], 0))

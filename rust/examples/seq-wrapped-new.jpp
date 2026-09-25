@@ -1,0 +1,7 @@
+// 等价写法对 seq_wrapped（步 23c，B94 下半）的快写法：同一份材料上四道题一次登记、一次发出。
+budget {calls: 8, cost: 0.01, depth: 64};
+let m = mat("我上个月去了成都出差，顺便见了老朋友。");
+let qs = map(["这段话是否提到了成都？", "这段话是否提到了北京？", "这段话是否提到了出差？", "这段话是否提到了朋友？"],
+             fn(t) { test(t, "seq-wrapped") });
+let es = cut(judge(state(m), qs));
+map(es, fn(e) { handle(e, {act: fn() { "是" }, ignore: fn() { "否" }, unsure: fn(u) { {answer: "未决", pending: u} }}) })

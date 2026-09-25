@@ -35,7 +35,11 @@ pub(crate) enum RefreshKind {
 
 /// 现有的全部刷新点：`flush(原因)` 的原因 → 种类与所在操作。
 pub(crate) const REFRESH_POINTS: &[(&str, RefreshKind, &str)] = &[
-    ("cut", RefreshKind::Criterion, "bridge.rs cut：读答案过线"),
+    (
+        "cut",
+        RefreshKind::Criterion,
+        "bridge.rs cut：构造内部（sieve、literalize 等）当场读答案过线；程序里的 cut 步 23c 起惰性，刷新在检视点",
+    ),
     (
         "fit",
         RefreshKind::Criterion,
@@ -63,6 +67,11 @@ pub(crate) const REFRESH_POINTS: &[(&str, RefreshKind, &str)] = &[
         "constructs/sieve.rs：三路分流读出口",
     ),
     ("content", RefreshKind::Criterion, "eval.rs：宿主读材料内容"),
+    (
+        "inspect",
+        RefreshKind::Criterion,
+        "bridge.rs 解析出口：惰性出口被检视（内置与构造的实参、if 条件、运算、取字段、函数与程序返回；B94）",
+    ),
     ("if", RefreshKind::Structural, "eval.rs：条件"),
     ("end", RefreshKind::Structural, "outcome.rs：程序结束"),
 ];

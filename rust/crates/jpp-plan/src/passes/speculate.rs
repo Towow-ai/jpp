@@ -79,13 +79,9 @@ fn branch_with(b: &Block, outer_born: &HashSet<String>, out: &mut Vec<TargetSite
     }
 }
 
-/// 原 `speculate_branch`：块表达式里另起一份 `born`（与搬家前同口径）
-fn branch(b: &Block, out: &mut Vec<TargetSite>, d: bool) {
-    branch_with(b, &HashSet::new(), out, d);
-}
-
 /// 原 `speculate_expr` 的「判」：遇到 `judge(状态, 题)` 记为候选并停；含副作用的调用整棵不推。
-fn expr(e: &Expr, born: &HashSet<String>, out: &mut Vec<TargetSite>, d: bool) {
+/// `d` 为真时对用户函数的调用也是候选（向量化与步 23c 的直线段提升共用）。
+pub(crate) fn expr(e: &Expr, born: &HashSet<String>, out: &mut Vec<TargetSite>, d: bool) {
     // 含副作用的调用：整棵子树都不推（不跨分支推测 do/gen/ask）
     if has_impure(e) {
         return;
@@ -148,7 +144,9 @@ fn expr(e: &Expr, born: &HashSet<String>, out: &mut Vec<TargetSite>, d: bool) {
             expr(left, born, out, d);
             expr(right, born, out, d);
         }
-        K::Block(b) => branch(b, out, d),
+        // 块表达式沿用外层的 `born`（步 23c 审查修复 5）：改前另起一份空集，块里用到外层刚绑定、此刻
+        // 还算不出的名字的站点也会被收进来
+        K::Block(b) => branch_with(b, born, out, d),
         _ => {}
     }
 }

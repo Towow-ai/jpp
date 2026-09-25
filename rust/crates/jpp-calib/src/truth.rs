@@ -208,8 +208,9 @@ pub enum CertifyMethod {
     Split,
     /// 序贯 e 过程（B87）：参数在 [`ImportOptions::sequential`]
     Sequential,
-    /// 代价线 `(fp, fn)`（B129）：`commission_costed_graded` 按 `fp·#误放行 + fn·#漏放行` 最小定线，证书按 α 判上岗、
-    /// 不按 δ 平移（`selection: None`）；只收 `test` 行；线下没有下侧证书（`lo = 0`）
+    /// 代价线 `(fp, fn)`（B129）：`commission_costed_graded` 在选线半上按 `fp·#误放行 + fn·#漏放行` 最小
+    /// 定线，证书只在认证半上判 α 够不够（B85 分层交替分半，PR35 评审修复缺陷二）；不按 δ 平移
+    /// （`selection` 显式记 `delta: Some(0.0)`，方法名前缀 `cost-`）；只收 `test` 行；线下没有下侧证书（`lo = 0`）
     Cost(f64, f64),
 }
 
@@ -858,9 +859,10 @@ pub fn import_labels(
                 }
                 let (c, s, seed) = (opt.conf_delta, opt.step, opt.seed);
                 match (opt.certify, kary) {
-                    // 依据：B129（代价线：代价定线、证书按 α 判上岗；等级按 B72 先正式后试用）。K 元行已在归组后拒收
+                    // 依据：B129（代价线：代价定线、证书按 α 判上岗；等级按 B72 先正式后试用）。K 元行已在归组后拒收。
+                    // PR35 评审修复（缺陷二）：代价线分支也要分半，seed 与 Split 分支用同一个 `opt.seed`
                     (CertifyMethod::Cost(fp, fn_), _) => {
-                        store.commission_costed_graded(&key, alpha, c, "条", (fp, fn_), grade)
+                        store.commission_costed_graded(&key, alpha, c, "条", (fp, fn_), seed, grade)
                     }
                     (CertifyMethod::FixedSequence, true) => {
                         store.commission_upper_fixed_sequence_graded(&key, alpha, c, s, grade)
@@ -1068,8 +1070,10 @@ pub fn import_labels(
             if r.status != "上岗" {
                 return None;
             }
-            // 代价线（B129，步 20a-2a）：报告这次导入认证的那张（代价证书没有 selection，按下面的回退会落到
-            // 按地址排第一的那张，同键再加一对代价时报错代价）；其余方式照旧
+            // 代价线（B129，步 20a-2a）：报告这次导入认证的那张——按地址直接取，不靠下面的回退。
+            // 代价证书现在也带 `selection`（B85 分层交替分半，PR35 评审修复缺陷二），下面的回退
+            // 链因此不会再跳过它，但「同键再加一对代价矩阵」时回退仍可能挑到另一张代价证书，
+            // 报的不是这次刚认的那张，所以这个直取分支仍然需要；其余方式照旧
             let 本次代价证书 = 新证书
                 .as_ref()
                 .filter(|_| matches!(opt.certify, CertifyMethod::Cost(..)))

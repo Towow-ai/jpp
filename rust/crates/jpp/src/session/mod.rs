@@ -170,11 +170,13 @@ impl<'a> Session<'a> {
                     (a.name.clone(), facts)
                 })
                 .collect(),
-            // `mat_shape`（B51-R2，步 24g）暂不接入这条真实路径：字段本身在 `Action` 上已公开
-            // 可读（`a.mat_shape.clone()` 即可，不需要新访问器——比预注册预计的更简单），但接入
-            // 属于跨 `jpp-check`/`jpp` 两轨的改动，按 24-0 先例先问主会话授权再动，消费者本身
-            // 已用手造的 `ActionTable{shapes: ...}` 测试验证过。
-            shapes: Default::default(),
+            // `mat_shape`（B51-R2，步 24g，接入步 24h，主会话已批准）：`Action.mat_shape` 字段
+            // 在 `jpp-runtime` 上本就公开可读，动作声明过形状的才进表；`W-diag-shape`（诊断层
+            // 静态消费者，`jpp-check/src/diag/b13.rs::shape_check`）据此在检查期判断材料形状
+            // 是否够回答。
+            shapes: (self.actions.actions.values())
+                .filter_map(|a| a.mat_shape.clone().map(|s| (a.name.clone(), s)))
+                .collect(),
         };
         let report = check::check_with_calib_actions(program, self.calib, &table);
         if !report.is_ok() {

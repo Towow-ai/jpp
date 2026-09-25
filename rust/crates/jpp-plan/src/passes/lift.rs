@@ -6,7 +6,7 @@
 //! K-075；被提的这一句能不能提前求值，K-069）留给运行期经 [`crate::Hooks::may_effect`] 逐句问，
 //! 因为前面被提的句子会改变环境。
 
-use crate::analysis::{has_branch, has_impure, judged_state, names_in};
+use crate::analysis::{has_branch, has_impure, has_short_circuit, judged_state, names_in};
 use jpp_effects::view::same_shape;
 use jpp_ir::ir::{Block, Stmt};
 use jpp_ir::plan::{LiftPlan, LiftStep};
@@ -52,4 +52,40 @@ pub fn plan(b: &Block, from: usize) -> Option<LiftPlan> {
         }
     }
     Some(LiftPlan { steps })
+}
+
+/// 直线段提升穿过函数调用（B94 下半，步 23c）的静态一半：块 `b` 从第 `from` 条语句起（含它自己）的
+/// 直线段里，`judge` 站点与「被调者是名字、实参只有名字或字面量」的用户函数调用（按 13b 的条件，运行期
+/// 由钩子判被调者是否方法值、实参会不会产生效应、形参与实参个数是否相等）。
+///
+/// 停在：本句之后第一条含副作用的语句（触世界，K-075）；任一句（含第 `from` 句）含分支、循环或短路
+/// 运算（`&&`、`||` 的右侧不一定求值）时停在这一句之前（步 23c 审查修复 4，同 13a）。`if` 分支体与方法字面量里的站点不收（不跨分支，
+/// `12`:13）；用到本段里才绑定的名字的站点不收（此刻算不出状态，含第 `from` 句自己绑定的名字）。
+/// 同一状态的站点运行期才判得出，由运行时按状态分组、只登记一组里有两处以上的（B94「同一状态的多次 judge」）。
+pub fn segment(b: &Block, from: usize) -> Vec<jpp_ir::plan::TargetSite> {
+    use std::collections::HashSet;
+    let mut out = vec![];
+    let mut born: HashSet<String> = HashSet::new();
+    for (j, st) in b.statements.iter().enumerate().skip(from) {
+        let (value, name) = match st {
+            Stmt::Let { name, value, .. } => (value, Some(name)),
+            Stmt::Expr(e) => (e, None),
+            Stmt::Function { name, .. } => {
+                born.insert(name.clone());
+                continue;
+            }
+        };
+        if j > from && has_impure(value) {
+            break;
+        }
+        // 审查修复 4：分支与短路右侧不一定走到，提前登记会多花调用、预算紧时多记缺席账
+        if has_branch(value) || has_short_circuit(value) {
+            break;
+        }
+        super::speculate::expr(value, &born, &mut out, true);
+        if let Some(n) = name {
+            born.insert(n.clone());
+        }
+    }
+    out
 }

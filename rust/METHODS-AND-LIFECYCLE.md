@@ -40,7 +40,7 @@ From this directory, build the CLI and copy the source tree into a scratch folde
 so the file actions have a disposable working directory:
 
 ```sh
-cargo build --locked -p jpp
+cargo build --locked -p jpp-cli
 demo=$(mktemp -d)
 cp -R examples lib "$demo/"
 cp target/debug/jpp "$demo/jpp"
@@ -100,7 +100,7 @@ second execution path.
 
 ```sh
 cargo test --locked --workspace
-cargo test --locked -p jpp --test library_lifecycle
+cargo test --locked -p jpp-cli --test library_lifecycle
 ```
 
 The live JEV backend (`--backend live`, which requires a capability profile) and

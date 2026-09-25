@@ -70,17 +70,58 @@ impl<'a> Interp<'a> {
         let mut order: Vec<String> = vec![];
         let mut groups: HashMap<String, Vec<PendingJudge>> = HashMap::new();
         let fuse = self.plan.fuse;
-        for (idx, p) in pending.into_iter().enumerate() {
-            // 不融合时每道题自成一组：键上带题序，保证互不合并
+        // 审查修复 3b（B94 下半）：组的先后按组内第一条非提升登记的位置；只有提升登记的组排在最后。
+        // 没有提升登记时与改前的「首次出现」逐字相同
+        let mut 首个非提升: HashMap<String, usize> = HashMap::new();
+        let 有提升 = pending.iter().any(|p| p.lifted);
+        // 复核修复 8：不融合时分组前按题拆开，每题继承原登记的状态、站点、推测与提升标记和登记位置
+        // （改前在 `flush_before_send` 里拆，余项丢了标记、排到最后）
+        let 逐条: Vec<(usize, PendingJudge)> = if fuse {
+            pending.into_iter().enumerate().collect()
+        } else {
+            pending
+                .into_iter()
+                .enumerate()
+                .flat_map(|(idx, p)| {
+                    let PendingJudge {
+                        state,
+                        items,
+                        site,
+                        speculative,
+                        lifted,
+                    } = p;
+                    items.into_iter().map(move |it| {
+                        let p = PendingJudge {
+                            state: state.clone(),
+                            items: vec![it],
+                            site,
+                            speculative,
+                            lifted,
+                        };
+                        (idx, p)
+                    })
+                })
+                .collect()
+        };
+        for (idx, p) in 逐条 {
+            // 不融合时逐题一组，键取账本键：同一个键的多条登记（真站点与提升、推测）合成一组、只问一次，
+            // 与融合开时组内去重同口径（复核修复 8）
             let h = if fuse {
                 p.state.hash.clone()
             } else {
-                format!("{}#{idx}", p.state.hash)
+                p.items[0].2.clone()
             };
             if !groups.contains_key(&h) {
                 order.push(h.clone());
             }
+            if !p.lifted {
+                首个非提升.entry(h.clone()).or_insert(idx);
+            }
             groups.entry(h).or_default().push(p);
+        }
+        if 有提升 {
+            // 稳定排序：有非提升登记的组按其位置，只有提升登记的组保持原相对次序排在后面
+            order.sort_by_key(|h| 首个非提升.get(h).copied().unwrap_or(usize::MAX));
         }
         // 超预算先丢推测的，再动真站点（推测本来就是可放弃的）
         if self.cost.calls + self.audit.calls >= self.budget.calls {
@@ -217,24 +258,19 @@ impl<'a> Interp<'a> {
         let state = group[0].state.clone();
         let site = group[0].site;
         let only_speculative = group.iter().all(|p| p.speculative);
-        let mut items: Vec<(Rc<Question>, Rc<Reading>, String)> =
+        // 审查修复 3b：真站点登记的键（预算停发只标它们；只按推测进组的键没走到，不记缺席账）
+        let 真键: HashSet<String> = group
+            .iter()
+            .filter(|p| !p.speculative)
+            .flat_map(|p| p.items.iter().map(|(_, _, k)| k.clone()))
+            .collect();
+        let items: Vec<(Rc<Question>, Rc<Reading>, String)> =
             group.into_iter().flat_map(|p| p.items).collect();
         if items.is_empty() {
             return Ok(发出前::跳过);
         }
-        // 关掉融合时，同一次 judge 登记的多道题也要逐题发——否则「一状态多题」这一条
-        // 仍然在融合，关掉的只是「跨登记合并」，量出来的省钱会偏小
-        if !self.plan.fuse && items.len() > 1 {
-            let rest = items.split_off(1);
-            for (q, r, k) in rest {
-                self.pending.push(PendingJudge {
-                    state: state.clone(),
-                    items: vec![(q, r, k)],
-                    site,
-                    speculative: false,
-                });
-            }
-        }
+        // 关掉融合时，同一次 judge 登记的多道题也要逐题发：`flush` 分组前已按题拆开（复核修复 8），
+        // 这里每组只剩同一个账本键
         // **同一个账本键只问一次。**
         //
         // 提前登记（`speculate` / `vectorize`）与真站点会登记同一个键：实测
@@ -339,6 +375,14 @@ impl<'a> Interp<'a> {
             // 只有推测登记的组发不起就放弃，不记缺席账、不计停发：推测本来就可放弃，站点若真走到，
             // 真站点登记时再按停发处置（审计重放同样跳过只剩推测的组）
             if only_speculative {
+                return Ok(发出前::跳过);
+            }
+            // 审查修复 3b：组里只按推测进来的键同理不标、不记（没走到）
+            let items: Vec<_> = items
+                .into_iter()
+                .filter(|(_, _, k)| 真键.contains(k))
+                .collect();
+            if items.is_empty() {
                 return Ok(发出前::跳过);
             }
             return Ok(发出前::停发(items, site, detail));

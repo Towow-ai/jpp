@@ -212,7 +212,14 @@ fn 拆分认证与行序无关() {
         for (p, l) in order {
             c.absorb("k", 样本(*p, *l, "noul", None)).unwrap();
         }
-        let r = c.commission_two_sided_split("k", 0.10, 0.10, 20260923);
+        let r = c.commission_legacy_seed_split_test_only(
+            "k",
+            0.10,
+            0.10,
+            20260923,
+            true,
+            jpp::effects::CertGrade::Formal,
+        );
         let rec = c.get("k");
         (format!("{r:?}"), rec.status, rec.hi, rec.lo)
     };

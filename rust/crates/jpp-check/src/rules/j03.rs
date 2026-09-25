@@ -5,6 +5,11 @@
 //! 未测（判断器的校准测量还没过检），报 `W-untested`，点名字段——代价比线不可用只用保形线这条
 //! 降级本身在运行期已生效（`bridge.rs` 代价线分支只取按代价矩阵认证过的证书），这里只是让作者
 //! 在检查期就知道「这份画像没告诉我校准过检没有」。
+//!
+//! 步 24h 补代价记录形状预检（K-143/B29）：`cut` 的字面记录参数（`{cost: [fp, fn]}`，第二或第三
+//! 位，取决于给没给 `calib_key`）里的 `cost` 字段不是恰好两个数字字面量的列表时报——运行期
+//! （`host_builtins.rs`）已严格校验这一形状（`E-rt-arg`），这里只做能静态确定时的编译期镜像，
+//! `cost` 字段值不是字面列表（名字/表达式）时判不出来，放过（静态报出 ⊆ 运行期拒绝）。
 
 #![allow(unused_imports)]
 use super::{CallSite, Cx, Hooks, Rule};
@@ -27,6 +32,7 @@ fn call(cx: &Cx, s: &CallSite) -> Vec<Diagnostic> {
             calib_literal(&mut out, s.name, s.args, 1);
             if s.name == "cut" {
                 h3_calibration(cx, s, &mut out);
+                cost_shape(&mut out, s.args);
             }
         }
         "measure" => calib_literal(&mut out, s.name, s.args, 2),
@@ -64,6 +70,37 @@ fn calib_literal(out: &mut Vec<Diagnostic>, name: &str, args: &[&Expr], idx: usi
             "J-03",
             format!("{name} 的第 {} 个参数是数字字面量：线不可字面，这一位只收校准记录的键（Text）。修法：{name}(…, \"校准键\")", idx + 1),
             a.span,
+        ));
+    }
+}
+
+/// 代价记录形状预检（步 24h，K-143/B29）：`cut(reading, {cost: [...]})` 或
+/// `cut(reading, calib_key, {cost: [...]})`——`cost` 记录可能在第二或第三个实参位，
+/// 看第一个是字面记录且含 `cost` 字段的那个（`calib_key` 位是 Text，不是 Record，两者不冲突）。
+fn cost_shape(out: &mut Vec<Diagnostic>, args: &[&Expr]) {
+    let Some(rec) = args.iter().skip(1).find_map(|a| match a.kind() {
+        ExprKind::Record(fields) => Some((a, fields)),
+        _ => None,
+    }) else {
+        return;
+    };
+    let (rec_expr, fields) = rec;
+    let Some((_, v)) = fields.iter().find(|(k, _)| k == "cost") else {
+        return;
+    };
+    let ExprKind::List(items) = v.kind() else {
+        return; // 不是字面列表：判不出来，放过
+    };
+    let 两数 = items.len() == 2
+        && items
+            .iter()
+            .all(|x| matches!(x.kind(), ExprKind::Integer(_) | ExprKind::Decimal));
+    if !两数 {
+        // 依据：12 §5 J-03（cost 参数形状；K-143/B29，步 24h）
+        out.push(Diagnostic::error(
+            "J-03",
+            "cost 要是两个数字字面量 [fp, fn]：放错一条（假放行）与漏掉一条（假拒绝）的代价。修法：cut(…, {cost: [数, 数]})",
+            rec_expr.span,
         ));
     }
 }

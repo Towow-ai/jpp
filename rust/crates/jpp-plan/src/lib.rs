@@ -32,6 +32,7 @@ pub fn plan(p: &Program, passes: &Passes) -> Plan {
     let mut out = Plan::empty();
     out.fuse = passes.enabled("fuse");
     out.vectorize = passes.enabled("vectorize");
+    out.lazy_cut = passes.enabled("lazy_cut");
     let cx = Cx {
         speculate: passes.enabled("speculate"),
         lift: passes.enabled("lift"),
@@ -67,6 +68,13 @@ fn visit_block(b: &Block, cx: &Cx, out: &mut Plan) {
                     && let Some(lp) = passes::lift::plan(b, i)
                 {
                     out.lifts.insert(value.id, lp);
+                }
+                // B94 下半（步 23c）：直线段提升穿过函数调用，随 `lift` 开关
+                if cx.lift {
+                    let seg = passes::lift::segment(b, i);
+                    if !seg.is_empty() {
+                        out.segments.insert(value.id, seg);
+                    }
                 }
                 visit_expr(value, cx, out);
             }
@@ -129,11 +137,15 @@ impl Hooks {
     /// `judge` 候选照 13a 核；调用候选满足三条才穿进去（见 `过程记录/工程-步13b.md` 预注册）：
     /// 被调者按环境是方法值且不在本路径上（防递归）；每个实参按严格口径不会产生效应；形参与实参个数相等。
     /// 被调函数体里的名字按「被调者的捕获环境 + 形参绑实参摘要」解析，与运行时真调用时的环境同构。
+    ///
+    /// `seg` 为真（直线段提升穿进函数体，步 23c）时，函数体里 `&&`、`||` 右侧的候选不收：右侧不一定
+    /// 求值（复核修复 9）。向量化（`instantiate`）传假，口径不变。
     fn targets_of(
         plan: &Plan,
         f: &Function,
         env: &dyn EnvView,
         seen: &mut BTreeSet<NodeId>,
+        seg: bool,
     ) -> Vec<Target> {
         let computed;
         let cands = match plan.bodies.get(&f.id) {
@@ -143,8 +155,16 @@ impl Hooks {
                 &computed
             }
         };
+        let 短路右侧 = if seg {
+            analysis::short_rhs_nodes(&f.body)
+        } else {
+            BTreeSet::new()
+        };
         let mut out = vec![];
         for t in cands {
+            if 短路右侧.contains(&t.node) {
+                continue;
+            }
             let Some(e) = find_expr(&f.body, t.node) else {
                 continue;
             };
@@ -154,7 +174,7 @@ impl Hooks {
                 }
                 continue;
             }
-            if let Some(inner) = Self::enter(plan, e, env, seen) {
+            if let Some(inner) = Self::enter(plan, e, env, seen, seg) {
                 out.push(Target::Enter {
                     call: t.node,
                     inner,
@@ -169,6 +189,7 @@ impl Hooks {
         call: &Expr,
         env: &dyn EnvView,
         seen: &mut BTreeSet<NodeId>,
+        seg: bool,
     ) -> Option<Vec<Target>> {
         let K::Call { callee, args } = kind(call) else {
             return None;
@@ -196,7 +217,7 @@ impl Hooks {
             parent: fv.env(),
         };
         seen.insert(callee_fn.id);
-        let inner = Self::targets_of(plan, callee_fn, &inner_env, seen);
+        let inner = Self::targets_of(plan, callee_fn, &inner_env, seen, seg);
         seen.remove(&callee_fn.id);
         if inner.is_empty() { None } else { Some(inner) }
     }
@@ -224,7 +245,7 @@ impl PlanHooks for Hooks {
         }
         let mut seen = BTreeSet::new();
         seen.insert(body.id);
-        Self::targets_of(plan, body, env, &mut seen)
+        Self::targets_of(plan, body, env, &mut seen, false)
     }
 
     fn speculate<'b>(
@@ -238,6 +259,32 @@ impl PlanHooks for Hooks {
             Some(t) => Self::resolve(&t.targets, block, env),
             None => vec![],
         }
+    }
+
+    fn segment(&self, plan: &Plan, at: NodeId, block: &Block, env: &dyn EnvView) -> Vec<Target> {
+        let Some(cands) = plan.segments.get(&at) else {
+            return vec![];
+        };
+        let mut out = vec![];
+        for t in cands {
+            let Some(e) = find_expr(block, t.node) else {
+                continue;
+            };
+            if !t.call {
+                if Self::permits(e, env) {
+                    out.push(Target::Site(t.node));
+                }
+                continue;
+            }
+            let mut seen = BTreeSet::new();
+            if let Some(inner) = Self::enter(plan, e, env, &mut seen, true) {
+                out.push(Target::Enter {
+                    call: t.node,
+                    inner,
+                });
+            }
+        }
+        out
     }
 
     fn may_effect(&self, e: &Expr, env: &dyn EnvView, reach: Reach) -> bool {

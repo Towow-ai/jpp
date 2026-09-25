@@ -48,7 +48,14 @@ fn 同批选线能过的样本拆分后停在待核() {
             .is_ok()
     );
     let mut 拆分 = 折入(60);
-    match 拆分.commission_two_sided_split("k", 0.10, 0.10, 20260923) {
+    match 拆分.commission_legacy_seed_split_test_only(
+        "k",
+        0.10,
+        0.10,
+        20260923,
+        true,
+        jpp::effects::CertGrade::Formal,
+    ) {
         Err(Refusal::跑不成(why)) => {
             assert!(why.starts_with("待核") && why.contains("样本不足"), "{why}")
         }
@@ -62,7 +69,14 @@ fn 同批选线能过的样本拆分后停在待核() {
 fn 拆分认证写明方式与两半条数() {
     let mut c = 折入(200);
     let cert = c
-        .commission_two_sided_split("k", 0.10, 0.10, 7)
+        .commission_legacy_seed_split_test_only(
+            "k",
+            0.10,
+            0.10,
+            7,
+            true,
+            jpp::effects::CertGrade::Formal,
+        )
         .expect("认证过");
     let sel = cert.selection.clone().expect("拆分证书带 selection");
     assert_eq!(sel.method, "split");

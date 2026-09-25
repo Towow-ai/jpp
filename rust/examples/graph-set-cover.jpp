@@ -1,0 +1,13 @@
+// 比赛 R2b 夹具：graph:set_cover（|U| ≤ 20 精确位掩码 DP，否则贪心）。
+budget {calls: 1, cost: 0, depth: 8};
+
+let g = {
+    universe: ["e1", "e2", "e3", "e4"],
+    sets: [
+        {id: "s1", elements: ["e1", "e2"], cost: 2},
+        {id: "s2", elements: ["e2", "e3"], cost: 2},
+        {id: "s3", elements: ["e3", "e4"], cost: 2},
+        {id: "s4", elements: ["e1", "e2", "e3", "e4"], cost: 5}
+    ]
+};
+content(do("graph:set_cover", [g], 0))

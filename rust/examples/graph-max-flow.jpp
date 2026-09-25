@@ -1,0 +1,14 @@
+// 比赛 R2b 夹具：graph:max_flow（Dinic）。
+budget {calls: 1, cost: 0, depth: 8};
+
+let g = {
+    edges: [
+        {u: "s", v: "a", cap: 3}, {u: "s", v: "b", cap: 2},
+        {u: "a", v: "t", cap: 2}, {u: "b", v: "t", cap: 3},
+        {u: "a", v: "b", cap: 1}
+    ],
+    nodes: ["s", "a", "b", "t"],
+    source: "s",
+    sink: "t"
+};
+content(do("graph:max_flow", [g], 0))

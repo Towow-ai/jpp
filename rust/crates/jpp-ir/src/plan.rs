@@ -37,12 +37,17 @@ pub struct Plan {
     pub fuse: bool,
     /// 高阶调用（`map`/`filter`）后续各轮的目标站点提前登记（`vectorize`）
     pub vectorize: bool,
+    /// 惰性过桥（B94，步 23c，`lazy_cut`）：`cut` 返回未解析出口，第一次被检视时才刷新、解析
+    pub lazy_cut: bool,
     /// 推测：`let` 值表达式的节点号 → 从这条语句起、`if` 两侧分支体里的候选站点（`speculate`）
     pub triggers: BTreeMap<NodeId, TriggerPlan>,
     /// 提升：`let` 值表达式（本身是一次 `judge`）的节点号 → 后续同状态语句的提升步（`lift`）
     pub lifts: BTreeMap<NodeId, LiftPlan>,
     /// 每个函数体的候选目标站点（静态一半；向量化时经 [`PlanHooks::instantiate`] 按运行期环境筛）
     pub bodies: BTreeMap<FnId, Vec<TargetSite>>,
+    /// 直线段提升穿过函数调用（B94，步 23c，随 `lift`）：`let` 值表达式的节点号 → 从这条语句起的
+    /// 直线段里的候选站点与调用（经 [`PlanHooks::segment`] 按运行期环境筛）
+    pub segments: BTreeMap<NodeId, Vec<TargetSite>>,
     /// 调用数、层数估计：`plan` pass 未落地，恒为未知
     pub calls_est: Estimate<u32>,
     pub layers_est: Estimate<u32>,
@@ -54,9 +59,11 @@ impl Plan {
         Plan {
             fuse: false,
             vectorize: false,
+            lazy_cut: false,
             triggers: BTreeMap::new(),
             lifts: BTreeMap::new(),
             bodies: BTreeMap::new(),
+            segments: BTreeMap::new(),
             calls_est: Estimate::Unknown("plan pass 未落地".into()),
             layers_est: Estimate::Unknown("plan pass 未落地".into()),
         }
@@ -166,6 +173,15 @@ pub trait PlanHooks {
         block: &'b crate::ir::Block,
         env: &dyn EnvView,
     ) -> Vec<&'b Expr>;
+    /// 触发点 `at`（`let` 值表达式的节点号，所在块 `block`）起的直线段里可提前登记的目标（B94 下半，
+    /// 步 23c）：`Site` 的节点号在 `block` 里，`Enter` 的调用节点在 `block` 里、内层在被调函数体里。
+    fn segment(
+        &self,
+        plan: &Plan,
+        at: NodeId,
+        block: &crate::ir::Block,
+        env: &dyn EnvView,
+    ) -> Vec<Target>;
     /// 表达式求值时会不会产生效应（`Reach::Strict`）或触世界（`Reach::World`）。提升逐句问它。
     fn may_effect(&self, e: &Expr, env: &dyn EnvView, reach: Reach) -> bool;
 }

@@ -21,6 +21,7 @@ use jpp_ir::ir::{Parameter, Span, Type, TypeName};
 
 mod analysis;
 pub mod diag;
+pub mod questions;
 mod rules;
 pub mod shapes;
 

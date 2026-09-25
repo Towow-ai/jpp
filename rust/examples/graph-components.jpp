@@ -1,0 +1,8 @@
+// 比赛 R2b 夹具：graph:components（并查集）。
+budget {calls: 1, cost: 0, depth: 8};
+
+let g = {
+    edges: [{u: "a", v: "b"}, {u: "c", v: "d"}],
+    nodes: ["a", "b", "c", "d", "e"]
+};
+content(do("graph:components", [g], 0))

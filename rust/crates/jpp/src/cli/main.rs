@@ -4,16 +4,17 @@ mod diag_json;
 mod fixture;
 mod options;
 mod profile_resolve;
+mod questions_out;
 mod run_io;
 mod runner;
 
-use options::{Command, HELP};
+use options::{Command, help};
 use std::{env, process::ExitCode};
 
-fn execute(command: Command) -> Result<(), String> {
+fn execute(command: Command, questions_out: Option<std::path::PathBuf>) -> Result<(), String> {
     let path = match &command {
         Command::Help => {
-            println!("{HELP}");
+            println!("{}", help());
             return Ok(());
         }
         Command::CalibImport(a) => return calib_import::run(a),
@@ -80,6 +81,15 @@ fn execute(command: Command) -> Result<(), String> {
             return Err(diag_json::render_all(&loaded, items).join("\n"));
         }
     };
+    // 步 20a-2b（B116 (5)）：`check --questions-out` 在降级成功之后、静态检查之前写字面题导出——
+    // 程序有检查错误也照写（导出只读语法与字面量），降级失败则走不到这里、不写
+    if let Some(out) = &questions_out {
+        let (标签, 题, 跳过) = questions_out::write(&program, &loaded, path, out)?;
+        eprintln!(
+            "题面导出（B116）：{标签} 个标签、{题} 道题、跳过 {跳过} 处 → {}",
+            out.display()
+        );
+    }
     // 画像只解析一次（B73）：静态检查、账本头 `profile_hash`、「档案：…」提示都用这一个结果。
     // 真机运行解析不到画像即报 `E-profile-missing`，在检查与初始化真机客户端之前。
     let 画像 = match &command {
@@ -103,7 +113,7 @@ fn execute(command: Command) -> Result<(), String> {
     let report = jpp::Session::explain_with_actions(
         &program,
         画像.as_ref().map(|p| &p.profile),
-        &runner::builtin_action_table(),
+        &jpp::actions::check_table(),
     );
     let items: Vec<_> = report
         .diagnostics
@@ -167,18 +177,25 @@ fn main() -> ExitCode {
     match options::take_json(&mut args) {
         Ok(on) => diag_json::set_json(on),
         Err(error) => {
-            eprintln!("{error}\n\n{HELP}");
+            eprintln!("{error}\n\n{}", help());
             return ExitCode::from(2);
         }
     }
-    let command = match options::parse(&args) {
-        Ok(command) => command,
+    let questions_out = match options::take_questions_out(&mut args) {
+        Ok(q) => q,
         Err(error) => {
-            eprintln!("{error}\n\n{HELP}");
+            eprintln!("{error}\n\n{}", help());
             return ExitCode::from(2);
         }
     };
-    match execute(command) {
+    let command = match options::parse(&args) {
+        Ok(command) => command,
+        Err(error) => {
+            eprintln!("{error}\n\n{}", help());
+            return ExitCode::from(2);
+        }
+    };
+    match execute(command, questions_out) {
         Ok(()) => ExitCode::SUCCESS,
         Err(error) => {
             // 空报文：诊断已按 `--json` 输出过

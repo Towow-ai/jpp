@@ -1,0 +1,7 @@
+{
+ "ratio": 1.0,
+ "detail": [
+  "examples/seq-wrapped-old.jpp 1 次 / examples/seq-wrapped-new.jpp 1 次（examples/fixtures/seq-wrapped.json）",
+  "同一材料四道是非题：四个包装函数直线段顺序调用、各自 judge → cut → handle（seq-wrapped-old，探针 entity-align 非设计者版的形状；步 23c 前 4 次，直线段提升穿过函数调用后 1 次）vs 一次登记四题（seq-wrapped-new）1 次。B94 下半。"
+ ]
+}
