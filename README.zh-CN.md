@@ -34,9 +34,9 @@ J++ 是一门正在开发的实验性编程语言。我们想让语义判断成�
 git clone https://github.com/towow-ai/jpp.git
 cd jpp/rust
 cargo build --locked --workspace
-cargo run -p jpp-cli -- run examples/composition.jpp
-cargo run -p jpp-cli -- run examples/adaptive.jpp --fixtures examples/fixtures/adaptive.json
-cargo run -p jpp-cli -- run examples/partial.jpp --fixtures examples/fixtures/partial.json
+cargo run -p jpp -- run examples/composition.jpp
+cargo run -p jpp -- run examples/adaptive.jpp --fixtures examples/fixtures/adaptive.json
+cargo run -p jpp -- run examples/partial.jpp --fixtures examples/fixtures/partial.json
 ```
 
 三个程序分别展示：组合方法再参与组合；自己选择十道问题，在 1,000 个候选里找到

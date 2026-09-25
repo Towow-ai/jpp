@@ -7,16 +7,23 @@
     "tokens": 0,
     "usd": 0.0
   },
+  "entry": [],
   "exits": [
     {
       "exit": "unsure(cold|untested:calib_line)",
       "grade": "Cold",
+      "index": 0,
+      "item": "879629aa4980",
+      "pos": 0,
       "releases": false,
       "site": 466
     },
     {
       "exit": "unsure(cold|untested:calib_line)",
       "grade": "Cold",
+      "index": 1,
+      "item": "c080400f9c81",
+      "pos": 1,
       "releases": false,
       "site": 466
     }
@@ -25,6 +32,17 @@
   "local_checks": [],
   "mode": "fixed observations; no model API requests",
   "pending": [],
+  "questions": [
+    {
+      "fill": {
+        "concept": "钢琴"
+      },
+      "form_hash": "237425f8b6d6c6670b12706f",
+      "kind": "attr",
+      "q": "c3ba62228369b670cc9b0c55",
+      "template": "这段话是否提到了{concept}？"
+    }
+  ],
   "replay": false,
   "resumed": false,
   "returned_unsure": [
@@ -58,6 +76,7 @@
       }
     ],
     "warnings": [
+      "W-window-untested: @466 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
       "W-form-pending: @466 题式级记录未上岗（待核：人工抽检一致率 0.78（39/50）< 门槛 0.90）；本题按冷键处理",
       "W-untested: @466 calib_line 在本次路径上没有被测量，按 J-15 取保守项（出口 cold）。修法【作者可改】：用 calib-import 从带真值样本为这道题或它的题式认证一条线（模式级记录不供线，B44）",
       "W-form-pending: @466 题式级记录未上岗（待核：人工抽检一致率 0.78（39/50）< 门槛 0.90）；本题按冷键处理",
@@ -72,47 +91,51 @@
     "pending": [
       {
         "cause": "cold",
-        "element": {
-          "cause": "cold",
-          "exit": {
-            "consumed": true,
-            "exit": "unsure(cold|untested:calib_line)",
-            "id": 0,
-            "q": "c3ba62228369b670cc9b0c55"
-          },
-          "index": 0,
-          "item": "那台立式乐器占了客厅一角，搬家时最费劲。",
-          "source": "那台立式乐器占了客厅一角，搬家时最费劲。",
-          "trail": []
-        },
         "exit": {
           "consumed": true,
           "exit": "unsure(cold|untested:calib_line)",
           "id": 0,
           "q": "c3ba62228369b670cc9b0c55"
-        }
+        },
+        "fill": {
+          "concept": "钢琴"
+        },
+        "index": 0,
+        "item": "那台立式乐器占了客厅一角，搬家时最费劲。",
+        "key": "f742504ac754174a740c0b83",
+        "pos": 0,
+        "q": {
+          "calib": "form-concept",
+          "op": "noul",
+          "question": "c3ba62228369b670cc9b0c55",
+          "text": "这段话是否提到了钢琴？"
+        },
+        "qi": 0,
+        "trail": []
       },
       {
         "cause": "cold",
-        "element": {
-          "cause": "cold",
-          "exit": {
-            "consumed": true,
-            "exit": "unsure(cold|untested:calib_line)",
-            "id": 1,
-            "q": "c3ba62228369b670cc9b0c55"
-          },
-          "index": 1,
-          "item": "他背起吉他，坐在公园长椅上弹唱了一下午。",
-          "source": "他背起吉他，坐在公园长椅上弹唱了一下午。",
-          "trail": []
-        },
         "exit": {
           "consumed": true,
           "exit": "unsure(cold|untested:calib_line)",
           "id": 1,
           "q": "c3ba62228369b670cc9b0c55"
-        }
+        },
+        "fill": {
+          "concept": "钢琴"
+        },
+        "index": 1,
+        "item": "他背起吉他，坐在公园长椅上弹唱了一下午。",
+        "key": "c6382fb2e46f34173a3be548",
+        "pos": 1,
+        "q": {
+          "calib": "form-concept",
+          "op": "noul",
+          "question": "c3ba62228369b670cc9b0c55",
+          "text": "这段话是否提到了钢琴？"
+        },
+        "qi": 0,
+        "trail": []
       }
     ],
     "unsure": [

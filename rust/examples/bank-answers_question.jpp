@@ -1,0 +1,22 @@
+// 题库条目 answers_question 的用法（步 27a）：问题与回答按宿主给的配对成对，一对问一道关系题。
+// 线从条目目录 bank/entries/1d77f7a203b4258048dfefea/calib/ 取。材料取自认证集，夹具读数是真机原读数。
+// 第四对（「默认密码印在标签上」，读数 0.54）落在带内，出 unsure(band)：条目「标注口径」栏写明
+// 只指出答案在哪里查不算给出信息（B119），判断器在这里拿不准，未决随返回值交出。
+import "../lib/outcome.jpp";
+import "../lib/bank/answers_question.jpp";
+budget {calls: 4, cost: 0.01, depth: 16};
+
+let asks = ["这款手机防水吗？", "你们的健身房有淋浴吗？", "路由器的默认密码是多少？"];
+let replies = ["它是 IP68 级防水，可以在 1.5 米水下待 30 分钟。", "有，男女更衣室里都有淋浴间。",
+               "路由器的问题我们建议您重启试试。", "默认密码印在路由器底部的标签上。"];
+let links = [[asks[0], replies[0]], [asks[1], replies[1]], [asks[2], replies[2]], [asks[2], replies[3]]];
+
+let linked = pair(asks, replies, fn(a, b) { contains(links, [a, b]) });
+let o = sieve(linked, fill(answers_question, {}));
+
+fn row(e) { {ask: e.left, reply: e.right} }
+
+{answered: map(accepted(o), row),
+ not_answered: map(ignored(o), row),
+ pending: undecided(o),
+ unobserved: unobserved(o)}

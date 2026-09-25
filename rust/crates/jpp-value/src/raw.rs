@@ -34,13 +34,17 @@ pub struct MatRaw {
     /// 来源出口键（B59，步 17a）；不进哈希，缺省为空。
     #[serde(default)]
     pub from_key: BTreeSet<String>,
+    /// 值依赖边（B92，步 18c）；缺省为空。
+    #[serde(default)]
+    pub value_q: std::collections::BTreeMap<String, String>,
 }
 
 impl TryFrom<MatRaw> for Mat {
     type Error = String;
     fn try_from(r: MatRaw) -> Result<Mat, String> {
-        let m = Mat::new(r.content, &r.addr, r.origin, r.taint, r.derived_from)
+        let mut m = Mat::new(r.content, &r.addr, r.origin, r.taint, r.derived_from)
             .with_from_key(r.from_key);
+        m.value_q = r.value_q;
         // 依据：I6（20 §2.4 `bypass/i6_raw`）：哈希只由内容与地址算，文件里的不作数
         if m.hash != r.hash {
             return Err(format!(

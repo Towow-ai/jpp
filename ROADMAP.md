@@ -6,7 +6,7 @@ Updated 2026-09-21. Milestones describe observable results, without speculative 
 |---|---|---|
 | Reproducible Python reference / 可复现 Python 对照 | Delivered / 已交付 | Installable package, examples and CI; retained for experiments |
 | Standalone source on Rust / 独立源码与 Rust 执行 | Delivered / 已交付 | `.jpp` → shared checking → execution; complete algorithms, native installation and replay. [PR #12](https://github.com/Towow-ai/jpp/pull/12) |
-| Method contracts / 方法契约 | Delivered subset / 已交付可用子集 | Explicit type-position effect rows lower to `Type::Method`; old syntax remains compatible; parameter, returned-method and record use are covered. Remaining dynamic limits stay documented in the [core interface](rust/crates/jpp-core/INTERFACE.md) |
+| Method contracts / 方法契约 | Delivered subset / 已交付可用子集 | Explicit type-position effect rows lower to `Type::Method`; old syntax remains compatible; parameter, returned-method and record use are covered. Remaining dynamic limits stay documented in the [core interface](rust/crates/jpp/INTERFACE.md) |
 | Reusable source methods / 可复用源码方法 | Initial library delivered / 初版库已交付 | Relative imports load shared method declarations once; two programs reuse the method library. Broader search/selection/continuation library migration remains next |
 | External capabilities and lifecycle / 外部能力与运行生命周期 | Fixed path delivered / 固定后端路径已交付 | `judge/gen/do/ask`, JSON file actions, pending → resume → replay share the existing core. [Runnable guide / 运行指南](rust/METHODS-AND-LIFECYCLE.md) |
 | Application using standalone source / 用独立源码构造应用 | Next, after library integration / 组合库贯通后 | Move a bounded discovery task onto `.jpp`, show inputs, intermediate results and output, and compare against the existing application |

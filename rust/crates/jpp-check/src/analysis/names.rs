@@ -7,6 +7,16 @@ use crate::*;
 impl Checker<'_> {
     pub(crate) fn names_and_readings(&mut self, p: &Program) {
         let mut scopes = vec![];
+        // 宿主入口参数（B106：读 `Program.entry`，由 `Session::compile` 写入）：最外层之外的一层，
+        // 已定义、类别 Other。依据：B106（地基/附注/2026-09-25-B105-B106裁定.md §三）
+        if !p.entry.is_empty() {
+            let mut host = Scope::new();
+            for e in &p.entry.params {
+                host.declared.insert(e.name.clone(), Kind::Other);
+                host.defined.insert(e.name.clone());
+            }
+            scopes.push(host);
+        }
         self.scan_block(&p.body, &mut scopes, 0);
     }
 
@@ -325,9 +335,16 @@ impl Checker<'_> {
                 match builtin {
                     Some(n) => {
                         self.on_scan_call(scopes, &n, &arguments);
+                        // 效应按 `EffectSpec.output_shape` 定类别（步 15a）：读数 → 读数；人的回答 → 出口
+                        let effect_kind =
+                            jpp_effects::by_name(&n).and_then(|s| match s.output_shape {
+                                jpp_effects::OutputShape::Readings => Some(Kind::Reading),
+                                jpp_effects::OutputShape::Answer => Some(Kind::Exit),
+                                _ => None,
+                            });
                         match n.as_str() {
-                            "judge" => Kind::Reading,
-                            "cut" | "unsure" | "ask" => Kind::Exit,
+                            _ if effect_kind.is_some() => effect_kind.expect("刚判过"),
+                            "cut" | "unsure" => Kind::Exit,
                             "test" | "select" | "measure" | "fill" => Kind::Question,
                             "form" => Kind::Form,
                             "pair" | "tally" | "first_k" | "iterate" | "outcome" => Kind::Outcome,

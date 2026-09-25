@@ -1,0 +1,11 @@
+{
+  "about": "共享前提题库（B21、B48）。条目以 form_hash 为身份，目录 entries/<form_hash>/ 存条目说明、校准记录（calib/）与认证用标注集（labels.jsonl）；题式定义在 lib/bank/<slug>.jpp。规范：地基/题库/规范.md（v2）；变更：地基/题库/变更记录.md。status 取值按规范 §三：已认证·未复用 / 共享。本文件由人经 PR 维护；使用统计由步 27 的 jpp bank-stats 从账本生成，不写在这里。",
+  "version": 1,
+  "entries": [
+    {"form_hash": "ceb097176786d327fe1a0ba3", "slug": "json_field", "op": "test", "kind": "attr", "status": "已认证·未复用", "grade": "formal", "batch": "27a-F1"},
+    {"form_hash": "1d77f7a203b4258048dfefea", "slug": "answers_question", "op": "test", "kind": "rel", "status": "已认证·未复用", "grade": "formal", "batch": "27a-F2"},
+    {"form_hash": "e49770913911a79525896988", "slug": "which_named", "op": "select", "kind": "class", "status": "已认证·未复用", "grade": "formal", "batch": "27a-F3"},
+    {"form_hash": "f4886dabf4e089bbdfd9f432", "slug": "same_name", "op": "select", "kind": "cmp", "status": "已认证·未复用", "grade": "formal", "batch": "27a-F4"},
+    {"form_hash": "e4d4be39383a1eb88f75af2c", "slug": "amount_left", "op": "measure", "kind": "degree", "status": "已认证·未复用", "grade": "formal", "batch": "27a-F5"}
+  ]
+}

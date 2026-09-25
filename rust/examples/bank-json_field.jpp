@@ -1,0 +1,20 @@
+// 题库条目 json_field 的用法（步 27a）：一道填好的题问一批 JSON，按线分成有、无、未决三份。
+// 题式从 lib/bank/ 取，线从条目目录 bank/entries/ceb097176786d327fe1a0ba3/calib/ 取（金样用例以 --calib 装载）。
+// 材料是认证集里同一字段 order_no 的四条（范围指纹之内）；夹具读数是真机账本里的原读数。
+import "../lib/outcome.jpp";
+import "../lib/bank/json_field.jpp";
+budget {calls: 4, cost: 0.01, depth: 16};
+
+let docs = [
+    "{\"title\": \"办公椅\", \"zip_code\": \"310012\", \"status\": \"shipped\"}",
+    "{\"order_no\": \"A52858\", \"currency\": \"CNY\", \"ok\": true}",
+    "{\"email\": \"zhao@example.com\", \"ok\": false, \"user_id\": \"A97065\", \"phone\": \"13886530188\"}",
+    "{\"count\": 4, \"order_no\": \"C48989\", \"address\": \"武侯区人民南路 4 段\", \"title\": \"保温杯\"}"
+];
+let o = sieve(docs, fill(json_field, {F: "order_no"}));
+
+{has: map(accepted(o), fn(e) { e.index }),
+ lacks: map(ignored(o), fn(e) { e.index }),
+ // 未决条目本身带 exit 与 cause，整体返回即转交（J-05）
+ pending: undecided(o),
+ unobserved: unobserved(o)}

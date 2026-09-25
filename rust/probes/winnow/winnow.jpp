@@ -1,7 +1,7 @@
 // 探针 1 · 复现 winnow（GhalebDweikat/winnow）的核心能力：
 // 编码代理的工具输出先切块，逐块判断「与当前任务相关吗」，不相关的块折叠成一行存根，原文存进缓存可再展开；
 // 输出里疑似有报错时整份保留；省下的比例太小时不折叠。
-// 只用 rust-jpp 的公开能力写成。输入来自 input.json（外部数据，J++ 视为不可信材料）。
+// 只用 rust-jpp 的公开能力写成。输入经 `jpp run --input baseline/materials.json` 交给程序（名字 input，外部数据，J++ 视为不可信材料）。
 import "../../lib/outcome.jpp";
 budget {calls: 12, cost: 0.2, depth: 256};
 
@@ -12,8 +12,6 @@ let has_error = test("这段工具输出里是否含有报错、失败或异常�
 // 宿主策略：省下的字符比例低于它就不折叠。这是产品取舍，不是读数的线。
 let min_prune_percent = 20;
 
-let input = content(do("read_json", ["input.json"], 0));
-
 fn chars(xs) { sum(map(xs, fn(e) { len(e.item) })) }
 fn stub(t) { "[winnow 已折叠 " + text(len(t)) + " 字 · 展开键 " + mat(t).hash + "]" }
 
@@ -21,7 +19,7 @@ fn stub(t) { "[winnow 已折叠 " + text(len(t)) + " 字 · 展开键 " + mat(t)
 fn winnow(result) {
     let whole = join(result.chunks, "\n");
     let err = cut(judge(state(mat(whole)), has_error));
-    let r = sieve(result.chunks, relevant, [{concept: input.task}])[0];
+    let r = sieve(result.chunks, relevant, [{concept: input.tool_outputs.task}]);
     let pruned = ignored(r);
     let total = sum(map(result.chunks, fn(c) { len(c) }));
     let keep_all = fn(reason) {
@@ -43,13 +41,12 @@ fn winnow(result) {
                  text: map(range(0, len(result.chunks)), fn(i) {
                      if contains(folded, i) { stub(result.chunks[i]) } else { result.chunks[i] } }),
                  pruned: folded,
-                 uncertain: map(undecided(r), fn(p) { p.element.index }),
-                 archive: cache,
-                 pending: r.pending}
+                 uncertain: undecided(r), unobserved: unobserved(r),
+                 archive: cache}
             }
         }
     })
 }
 
-let out = map(range(0, len(input.results)), fn(i) { winnow(input.results[i]) });
-{task: input.task, results: out}
+let out = map(range(0, len(input.tool_outputs.results)), fn(i) { winnow(input.tool_outputs.results[i]) });
+{task: input.tool_outputs.task, results: out}

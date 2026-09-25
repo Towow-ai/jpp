@@ -7,75 +7,96 @@
     "tokens": 0,
     "usd": 0.0
   },
+  "entry": [],
   "exits": [
     {
       "exit": "act",
       "grade": "Form",
+      "item": "bc57fcc1b279",
       "key": "\u001fform\u001f8817cd3762f5ed6078db2ad3",
-      "releases": true,
+      "releases": false,
+      "scope_unknown": true,
       "site": 779
     },
     {
       "exit": "ignore",
       "grade": "Form",
+      "item": "bc57fcc1b279",
       "key": "\u001fform\u001f8817cd3762f5ed6078db2ad3",
-      "releases": true,
+      "releases": false,
+      "scope_unknown": true,
       "site": 779
     },
     {
       "exit": "ignore",
       "grade": "Form",
+      "item": "bc57fcc1b279",
       "key": "\u001fform\u001f8817cd3762f5ed6078db2ad3",
-      "releases": true,
+      "releases": false,
+      "scope_unknown": true,
       "site": 779
     },
     {
       "exit": "unsure(band)",
       "grade": "Form",
+      "item": "bc57fcc1b279",
       "key": "\u001fform\u001f8817cd3762f5ed6078db2ad3",
-      "releases": true,
+      "releases": false,
+      "scope_unknown": true,
       "site": 779
     },
     {
       "exit": "unsure(band)",
       "grade": "Form",
+      "item": "bc57fcc1b279",
       "key": "\u001fform\u001f8817cd3762f5ed6078db2ad3",
-      "releases": true,
+      "releases": false,
+      "scope_unknown": true,
       "site": 779
     },
     {
       "exit": "act",
       "grade": "Form",
+      "item": "b2e853f9aec2",
       "key": "\u001fform\u001f76c41c46bdffcdc9fe71e049",
-      "releases": true,
+      "releases": false,
+      "scope_unknown": true,
       "site": 779
     },
     {
       "exit": "act",
       "grade": "Form",
+      "item": "b2e853f9aec2",
       "key": "\u001fform\u001f76c41c46bdffcdc9fe71e049",
-      "releases": true,
+      "releases": false,
+      "scope_unknown": true,
       "site": 779
     },
     {
       "exit": "ignore",
       "grade": "Form",
+      "item": "b2e853f9aec2",
       "key": "\u001fform\u001f76c41c46bdffcdc9fe71e049",
-      "releases": true,
+      "releases": false,
+      "scope_unknown": true,
       "site": 779
     },
     {
       "exit": "act",
       "grade": "Form",
+      "item": "b2e853f9aec2",
       "key": "\u001fform\u001f76c41c46bdffcdc9fe71e049",
-      "releases": true,
+      "releases": false,
+      "scope_unknown": true,
       "site": 779
     },
     {
       "exit": "unsure(band)",
       "grade": "Form",
+      "item": "b2e853f9aec2",
       "key": "\u001fform\u001f76c41c46bdffcdc9fe71e049",
-      "releases": true,
+      "releases": false,
+      "scope_unknown": true,
       "site": 779
     }
   ],
@@ -83,6 +104,98 @@
   "local_checks": [],
   "mode": "replay; no model API requests",
   "pending": [],
+  "questions": [
+    {
+      "fill": {
+        "city": "成都"
+      },
+      "form_hash": "8817cd3762f5ed6078db2ad3",
+      "kind": "attr",
+      "q": "fe110bdf799f05a9c379af93",
+      "template": "这段话是否提到了{city}？"
+    },
+    {
+      "fill": {
+        "city": "北京"
+      },
+      "form_hash": "8817cd3762f5ed6078db2ad3",
+      "kind": "attr",
+      "q": "e85bdf01f404ebd6f33037a3",
+      "template": "这段话是否提到了{city}？"
+    },
+    {
+      "fill": {
+        "city": "上海"
+      },
+      "form_hash": "8817cd3762f5ed6078db2ad3",
+      "kind": "attr",
+      "q": "51dfa814189d09afd9d63da9",
+      "template": "这段话是否提到了{city}？"
+    },
+    {
+      "fill": {
+        "city": "杭州"
+      },
+      "form_hash": "8817cd3762f5ed6078db2ad3",
+      "kind": "attr",
+      "q": "c50b398094fecd0e5a1a57aa",
+      "template": "这段话是否提到了{city}？"
+    },
+    {
+      "fill": {
+        "city": "西安"
+      },
+      "form_hash": "8817cd3762f5ed6078db2ad3",
+      "kind": "attr",
+      "q": "b2bea2367f63ccb55abcbc2e",
+      "template": "这段话是否提到了{city}？"
+    },
+    {
+      "fill": {
+        "item": "面包"
+      },
+      "form_hash": "76c41c46bdffcdc9fe71e049",
+      "kind": "attr",
+      "q": "c51a31df6f7079fa5bde39ac",
+      "template": "清单里是否有{item}？"
+    },
+    {
+      "fill": {
+        "item": "酱油"
+      },
+      "form_hash": "76c41c46bdffcdc9fe71e049",
+      "kind": "attr",
+      "q": "be822ef5e05fa0d762d96aa1",
+      "template": "清单里是否有{item}？"
+    },
+    {
+      "fill": {
+        "item": "咖啡"
+      },
+      "form_hash": "76c41c46bdffcdc9fe71e049",
+      "kind": "attr",
+      "q": "f672a91e3a90c9f2dcefdcea",
+      "template": "清单里是否有{item}？"
+    },
+    {
+      "fill": {
+        "item": "牛奶"
+      },
+      "form_hash": "76c41c46bdffcdc9fe71e049",
+      "kind": "attr",
+      "q": "ee97fa0398ea64c98045806c",
+      "template": "清单里是否有{item}？"
+    },
+    {
+      "fill": {
+        "item": "盐"
+      },
+      "form_hash": "76c41c46bdffcdc9fe71e049",
+      "kind": "attr",
+      "q": "f7d96e73ddd5b286c877f43e",
+      "template": "清单里是否有{item}？"
+    }
+  ],
   "replay": true,
   "resumed": false,
   "returned_unsure": [
@@ -205,22 +318,22 @@
       }
     ],
     "warnings": [
+      "W-window-untested: @783 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
       "W-form-line: @779 题级校准键 form-mention 无上岗记录，用题式级线 form:8817cd3762f5ed6078db2ad3（n=569）；出口带 line_source=题式级",
+      "W-scope-unknown: @779 键 \u001fform\u001f8817cd3762f5ed6078db2ad3 的记录没有认证范围指纹（认证集没有材料文本），出口照常路由，不作放行不可逆 do 的可信合取项（B104）。修法【宿主】：带 text 重新导入，或经 B91 扩展并入范围",
       "W-form-line: @779 题级校准键 form-mention 无上岗记录，用题式级线 form:8817cd3762f5ed6078db2ad3（n=569）；出口带 line_source=题式级",
       "W-form-line: @779 题级校准键 form-mention 无上岗记录，用题式级线 form:8817cd3762f5ed6078db2ad3（n=569）；出口带 line_source=题式级",
       "W-form-line: @779 题级校准键 form-mention 无上岗记录，用题式级线 form:8817cd3762f5ed6078db2ad3（n=569）；出口带 line_source=题式级",
       "W-untyped-transfer: verdict 把 unsure(band) 装在返回值里交了出去，但返回类型没提 Exit，调用者从签名上看不出自己收到了一份未决。修法：把返回类型标为含 Exit（如 `-> Exit`、`-> Record<Exit>`）",
-      "W-untyped-transfer: <fn> 把 unsure(band) 装在返回值里交了出去，但返回类型没提 Exit，调用者从签名上看不出自己收到了一份未决。修法：把返回类型标为含 Exit（如 `-> Exit`、`-> Record<Exit>`）",
       "W-form-line: @779 题级校准键 form-mention 无上岗记录，用题式级线 form:8817cd3762f5ed6078db2ad3（n=569）；出口带 line_source=题式级",
       "W-untyped-transfer: verdict 把 unsure(band) 装在返回值里交了出去，但返回类型没提 Exit，调用者从签名上看不出自己收到了一份未决。修法：把返回类型标为含 Exit（如 `-> Exit`、`-> Record<Exit>`）",
-      "W-untyped-transfer: <fn> 把 unsure(band) 装在返回值里交了出去，但返回类型没提 Exit，调用者从签名上看不出自己收到了一份未决。修法：把返回类型标为含 Exit（如 `-> Exit`、`-> Record<Exit>`）",
       "W-form-line: @779 题级校准键 form-listed 无上岗记录，用题式级线 form:76c41c46bdffcdc9fe71e049（n=800）；出口带 line_source=题式级",
+      "W-scope-unknown: @779 键 \u001fform\u001f76c41c46bdffcdc9fe71e049 的记录没有认证范围指纹（认证集没有材料文本），出口照常路由，不作放行不可逆 do 的可信合取项（B104）。修法【宿主】：带 text 重新导入，或经 B91 扩展并入范围",
       "W-form-line: @779 题级校准键 form-listed 无上岗记录，用题式级线 form:76c41c46bdffcdc9fe71e049（n=800）；出口带 line_source=题式级",
       "W-form-line: @779 题级校准键 form-listed 无上岗记录，用题式级线 form:76c41c46bdffcdc9fe71e049（n=800）；出口带 line_source=题式级",
       "W-form-line: @779 题级校准键 form-listed 无上岗记录，用题式级线 form:76c41c46bdffcdc9fe71e049（n=800）；出口带 line_source=题式级",
       "W-form-line: @779 题级校准键 form-listed 无上岗记录，用题式级线 form:76c41c46bdffcdc9fe71e049（n=800）；出口带 line_source=题式级",
       "W-untyped-transfer: verdict 把 unsure(band) 装在返回值里交了出去，但返回类型没提 Exit，调用者从签名上看不出自己收到了一份未决。修法：把返回类型标为含 Exit（如 `-> Exit`、`-> Record<Exit>`）",
-      "W-untyped-transfer: <fn> 把 unsure(band) 装在返回值里交了出去，但返回类型没提 Exit，调用者从签名上看不出自己收到了一份未决。修法：把返回类型标为含 Exit（如 `-> Exit`、`-> Record<Exit>`）",
       "returned_unsure: unsure(band), unsure(band), unsure(band)"
     ]
   },

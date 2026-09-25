@@ -4,22 +4,10 @@
 import "../../lib/outcome.jpp";
 budget {calls: 12, cost: 0.2, depth: 256};
 
-let catalog_a = [
-    {name: "Hazy Little Thing IPA", brewery: "Sierra Nevada", style: "New England IPA", abv: 6.7},
-    {name: "Guinness Draught", brewery: "Guinness", style: "Irish Dry Stout", abv: 4.2},
-    {name: "Two Hearted Ale", brewery: "Bell's Brewery", style: "American IPA", abv: 7.0},
-    {name: "Pliny the Elder", brewery: "Russian River", style: "Double IPA", abv: 8.0}
-];
-let catalog_b = [
-    {name: "Sierra Nevada Hazy Little Thing", brewery: "Sierra Nevada Brewing Co.", style: "Hazy IPA", abv: 6.7},
-    {name: "Guinness Extra Stout", brewery: "Guinness", style: "Foreign Extra Stout", abv: 5.6},
-    {name: "Bell's Two Hearted IPA", brewery: "Bell's", style: "IPA", abv: 7.0},
-    {name: "Pliny the Younger", brewery: "Russian River Brewing", style: "Triple IPA", abv: 10.25}
-];
-
+// 两份目录经 `jpp run --input` 交给程序（input.catalog_a / input.catalog_b，不可信材料）。
 // 候选对：宿主侧的粗筛（酒精度差 ≤ 1.5 度，算术不交给判断器）
 fn close_abv(a, b) { abs(a.abv - b.abv) <= 1.5 }
-let candidates = pair(catalog_a, catalog_b, close_abv);
+let candidates = pair(input.catalog_a, input.catalog_b, close_abv);
 
 let link = measure("两条实体描述作为产品是什么关系？",
     ["它们描述的是两种不同的产品。",
@@ -31,18 +19,18 @@ let same_style = test("两条实体描述的是同一种啤酒风格吗？", "al
 
 let outcome_of = ["leave unlinked", "curator queue", "assert sameAs"];
 
-// 字段题只给人工复核看：读成是/否/拿不准，拿不准的显式丢弃并记账（它们不参与路由）
+// 字段题只给人工复核看：读成是/否/拿不准；判过而拿不准的显式丢弃并记账（不参与路由），没观察到的（预算、缺席、超时）不能丢（B95），带出口交出
 fn hint(exit) {
     handle(exit, {act: fn() { "是" }, ignore: fn() { "否" },
-                  unsure: fn(u) { consume(u, "drop"); "未决" }})
+                  unsure: fn(u) { let c = unsure_cause(u); if unobserved_cause(c) { {未决: c, exit: u} } else { consume(u, "drop"); "未决" } }})
 }
 
 fn route(e) {
     // 一对上的四道题同一状态：融合成一次调用
-    let rs = judge(state(e.item), [link, same_name, same_brewery, same_style]);
-    let hints = {name: hint(cut(rs[1])), brewery: hint(cut(rs[2])), style: hint(cut(rs[3]))};
+    let ex = cut(judge(state(e.item), [link, same_name, same_brewery, same_style]));
+    let hints = {name: hint(ex[1]), brewery: hint(ex[2]), style: hint(ex[3])};
     let who = {a: e.left.name, b: e.right.name};
-    handle(cut(rs[0]), {
+    handle(ex[0], {
         at: fn(level) { {pair: who, outcome: outcome_of[level], hints: hints} },
         // 关系拿不准：也送人工队列，未决责任随记录交给调用者（J-05）
         unsure: fn(u) { {pair: who, outcome: "curator queue", hints: hints, duty: u} }
@@ -51,6 +39,6 @@ fn route(e) {
 
 let routed = map(candidates.value, route);
 fn count(o) { len(filter(routed, fn(r) { r.outcome == o })) }
-{candidates: len(candidates.value),
+{candidates: len(candidates.value), pending: candidates.pending,
  tally: {sameAs: count("assert sameAs"), curator: count("curator queue"), unlinked: count("leave unlinked")},
  routed: routed}

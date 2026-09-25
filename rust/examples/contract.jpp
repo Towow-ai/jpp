@@ -23,12 +23,12 @@ let relations = pair(needs, engineers);
 // 3. 过滤关系：又一个契约值（带着第 1 步的未决）
 let matched = sieve(relations, fits);
 // 4. 调用者自己构造契约值：已接受的关系是产出；拿不准的关系留在未决清单；续接方法换一道更严的题补判
-fn is_relation(p) { has(p.element.source, "left") }
+fn is_relation(p) { has(p, "left") }
 let shortlist = outcome({
     value: accepted(matched),
     pending: matched.pending,
     evidence: key_of(matched),
-    resume: fn(q) { sieve(map(filter(undecided(matched), is_relation), fn(p) { p.element }), q) },
+    resume: fn(q) { sieve(filter(undecided(matched), is_relation), q) },
     purpose: "已接受的需求—成员关系；拿不准的关系可用更严的题续判"
 });
 // 5. 封闭性：调用者构造的契约值与内置构造同一类型，直接交给 pair 做第二轮组合
@@ -40,7 +40,7 @@ let summary = tally(recheck);
 
 let stages = [engineers, relations, matched, shortlist, second, recheck, summary];
 fn shape(o) { {kind: o.kind, fields: keys(o), pending: len(o.pending), evidence: len(o.evidence), calls: o.spent.calls} }
-fn relation(e) { {need: e.source.left, person: e.source.right.item.name} }
+fn relation(e) { {need: e.left, person: e.right.item.name} }
 
 {stages: map(stages, shape),
  same_type: fold(stages, true, fn(ok, o) { ok && keys(o) == keys(engineers) }),
@@ -48,8 +48,8 @@ fn relation(e) { {need: e.source.left, person: e.source.right.item.name} }
  matched: map(accepted(matched), relation),
  unsure_in_matched: map(undecided(matched), fn(p) { {cause: p.cause, relation: is_relation(p)} }),
  second_round: {checked: "第二轮问的是「已接受的关系 + 新成员」作为一个整体能否更好地完成需求；没有从两两关系推定",
-                act: map(accepted(second), fn(e) { e.source.left.source.right.item.name }),
-                ignore: map(ignored(second), fn(e) { e.source.left.source.right.item.name })},
+                act: map(accepted(second), fn(e) { e.left.right.item.name }),
+                ignore: map(ignored(second), fn(e) { e.left.right.item.name })},
  recheck: {asked: recheck.detail.question.text, act: len(accepted(recheck)), ignore: len(ignored(recheck)),
            count: summary.value.count, exists: summary.value.exists},
  // 未决清单随返回值交给调用者（J-05 / 13 §3）：second 带着 shortlist 与第 1、3 步的未决

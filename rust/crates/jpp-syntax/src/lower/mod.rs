@@ -47,6 +47,7 @@ pub fn lower(program: &a::Program, names: &dyn NameTable) -> Result<Program, Vec
             body,
             sites: SiteTable { sites: cx.sites },
             span,
+            entry: Default::default(),
         }),
         Ok(_) => Err(cx.errors),
         Err(d) => Err(std::iter::once(d).chain(cx.errors).collect()),

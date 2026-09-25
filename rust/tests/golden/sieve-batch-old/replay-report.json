@@ -7,10 +7,12 @@
     "tokens": 0,
     "usd": 0.0
   },
+  "entry": [],
   "exits": [
     {
       "exit": "act",
       "grade": "Fixture",
+      "item": "bc57fcc1b279",
       "key": "form-mention",
       "releases": false,
       "site": 566
@@ -18,6 +20,7 @@
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "item": "bc57fcc1b279",
       "key": "form-mention",
       "releases": false,
       "site": 566
@@ -25,6 +28,7 @@
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "item": "bc57fcc1b279",
       "key": "form-mention",
       "releases": false,
       "site": 566
@@ -32,6 +36,7 @@
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "item": "bc57fcc1b279",
       "key": "form-mention",
       "releases": false,
       "site": 566
@@ -39,6 +44,7 @@
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "item": "bc57fcc1b279",
       "key": "form-mention",
       "releases": false,
       "site": 566
@@ -46,6 +52,7 @@
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "item": "bc57fcc1b279",
       "key": "form-mention",
       "releases": false,
       "site": 566
@@ -53,6 +60,7 @@
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "item": "bc57fcc1b279",
       "key": "form-mention",
       "releases": false,
       "site": 566
@@ -60,6 +68,7 @@
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "item": "bc57fcc1b279",
       "key": "form-mention",
       "releases": false,
       "site": 566
@@ -67,6 +76,7 @@
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "item": "bc57fcc1b279",
       "key": "form-mention",
       "releases": false,
       "site": 566
@@ -74,6 +84,7 @@
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "item": "bc57fcc1b279",
       "key": "form-mention",
       "releases": false,
       "site": 566
@@ -81,6 +92,7 @@
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "item": "bc57fcc1b279",
       "key": "form-mention",
       "releases": false,
       "site": 566
@@ -88,6 +100,7 @@
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "item": "bc57fcc1b279",
       "key": "form-mention",
       "releases": false,
       "site": 566
@@ -95,6 +108,7 @@
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "item": "bc57fcc1b279",
       "key": "form-mention",
       "releases": false,
       "site": 566
@@ -102,6 +116,7 @@
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "item": "bc57fcc1b279",
       "key": "form-mention",
       "releases": false,
       "site": 566
@@ -111,6 +126,134 @@
   "local_checks": [],
   "mode": "replay; no model API requests",
   "pending": [],
+  "questions": [
+    {
+      "fill": {
+        "city": "成都"
+      },
+      "form_hash": "38e0207a4cbe0a56b8b472b7",
+      "kind": "attr",
+      "q": "fe110bdf799f05a9c379af93",
+      "template": "这段话是否提到了{city}？"
+    },
+    {
+      "fill": {
+        "city": "北京"
+      },
+      "form_hash": "38e0207a4cbe0a56b8b472b7",
+      "kind": "attr",
+      "q": "e85bdf01f404ebd6f33037a3",
+      "template": "这段话是否提到了{city}？"
+    },
+    {
+      "fill": {
+        "city": "上海"
+      },
+      "form_hash": "38e0207a4cbe0a56b8b472b7",
+      "kind": "attr",
+      "q": "51dfa814189d09afd9d63da9",
+      "template": "这段话是否提到了{city}？"
+    },
+    {
+      "fill": {
+        "city": "杭州"
+      },
+      "form_hash": "38e0207a4cbe0a56b8b472b7",
+      "kind": "attr",
+      "q": "c50b398094fecd0e5a1a57aa",
+      "template": "这段话是否提到了{city}？"
+    },
+    {
+      "fill": {
+        "city": "西安"
+      },
+      "form_hash": "38e0207a4cbe0a56b8b472b7",
+      "kind": "attr",
+      "q": "b2bea2367f63ccb55abcbc2e",
+      "template": "这段话是否提到了{city}？"
+    },
+    {
+      "fill": {
+        "city": "南京"
+      },
+      "form_hash": "38e0207a4cbe0a56b8b472b7",
+      "kind": "attr",
+      "q": "79efee9f65b229ff6e684695",
+      "template": "这段话是否提到了{city}？"
+    },
+    {
+      "fill": {
+        "city": "武汉"
+      },
+      "form_hash": "38e0207a4cbe0a56b8b472b7",
+      "kind": "attr",
+      "q": "77ff9eca3552f6b975e49583",
+      "template": "这段话是否提到了{city}？"
+    },
+    {
+      "fill": {
+        "city": "重庆"
+      },
+      "form_hash": "38e0207a4cbe0a56b8b472b7",
+      "kind": "attr",
+      "q": "809d18279acabd188d1a8e86",
+      "template": "这段话是否提到了{city}？"
+    },
+    {
+      "fill": {
+        "city": "天津"
+      },
+      "form_hash": "38e0207a4cbe0a56b8b472b7",
+      "kind": "attr",
+      "q": "0767ecdb0398352549a3d7ae",
+      "template": "这段话是否提到了{city}？"
+    },
+    {
+      "fill": {
+        "city": "苏州"
+      },
+      "form_hash": "38e0207a4cbe0a56b8b472b7",
+      "kind": "attr",
+      "q": "6f75dd026c211c2af0c76184",
+      "template": "这段话是否提到了{city}？"
+    },
+    {
+      "fill": {
+        "city": "长沙"
+      },
+      "form_hash": "38e0207a4cbe0a56b8b472b7",
+      "kind": "attr",
+      "q": "1d53c22d8c9ca699ca23f0b2",
+      "template": "这段话是否提到了{city}？"
+    },
+    {
+      "fill": {
+        "city": "郑州"
+      },
+      "form_hash": "38e0207a4cbe0a56b8b472b7",
+      "kind": "attr",
+      "q": "5af302af5b3c78209856b959",
+      "template": "这段话是否提到了{city}？"
+    },
+    {
+      "fill": {
+        "city": "青岛"
+      },
+      "form_hash": "38e0207a4cbe0a56b8b472b7",
+      "kind": "attr",
+      "q": "01198f762dbf67c698736aa4",
+      "template": "这段话是否提到了{city}？"
+    },
+    {
+      "fill": {
+        "city": "厦门"
+      },
+      "form_hash": "38e0207a4cbe0a56b8b472b7",
+      "kind": "attr",
+      "q": "c4b3f7386b288240ba17f163",
+      "template": "这段话是否提到了{city}？"
+    }
+  ],
   "replay": true,
   "resumed": false,
   "returned_unsure": [],
@@ -273,6 +416,7 @@
       }
     ],
     "warnings": [
+      "W-window-untested: @570 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
       "W-fixture-line: @566 键 form-mention 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线"
     ]
   },

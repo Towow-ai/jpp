@@ -1,305 +1,444 @@
 ir v1
 budget calls=30 cost=0.01 depth=256 escalate=- unsure=- latency_p95=- absent=-
-block 163..2271
+block 163..2228
   fn-stmt accepted
     #0 fn (o:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
-      block 2674..2685
+      block 2631..2642
         result
           #1 field .value
             #2 name o
   fn-stmt ignored
     #3 fn (o:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
-      block 2757..2776
+      block 2714..2733
         result
           #4 field .ignore
             #5 field .detail
               #6 name o
+  fn-stmt unobserved_cause
+    #7 fn (c:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
+      block 3041..3093
+        result
+          #8 binary ||
+            #9 binary ||
+              #10 binary ==
+                #11 name c
+                #12 text "budget"
+              #13 binary ==
+                #14 name c
+                #15 text "absent"
+            #16 binary ==
+              #17 name c
+              #18 text "latency"
   fn-stmt undecided
-    #7 fn (o:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
-      block 2845..2897
+    #19 fn (o:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
+      block 3162..3221
         result
-          #8 call @0 2847..2895
+          #20 call @0 3164..3219
             callee:
-              #9 name filter
-            #10 field .pending
-              #11 name o
-            #13 fn (p:-) -> - effects=-
-              block 2871..2894
+              #21 name filter
+            #22 field .pending
+              #23 name o
+            #25 fn (p:-) -> - effects=-
+              block 3188..3218
                 result
-                  #14 binary !=
-                    #15 field .cause
-                      #16 name p
-                    #17 text "budget"
-  fn-stmt unobserved
-    #18 fn (o:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
-      block 2990..3042
-        result
-          #19 call @1 2992..3040
-            callee:
-              #20 name filter
-            #21 field .pending
-              #22 name o
-            #24 fn (p:-) -> - effects=-
-              block 3016..3039
-                result
-                  #25 binary ==
-                    #26 field .cause
-                      #27 name p
-                    #28 text "budget"
-  fn-stmt stopped
-    #29 fn (o:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
-      block 3105..3169
-        result
-          #30 if @2 3107..3167
-            cond:
-              #31 call 3110..3133
-                callee:
-                  #32 name has
-                #33 field .resume
-                  #34 name o
-                #35 text "detail"
-            block 3134..3153
-              result
-                #36 field .detail
-                  #37 field .resume
-                    #38 name o
-            block 3159..3167
-              result
-                #39 unit
-  let needs : -
-    #40 list 220..338
-      #41 text "做一个带登录的网页后台"
-      #42 text "搭建订单数据库"
-      #43 text "写一篇产品发布稿"
-      #44 text "给安卓应用做界面"
-  let people : -
-    #45 list 353..504
-      #46 record 359..402
-        name:
-          #47 text "王工"
-        skills:
-          #48 list 384..401
-            #49 text "web"
-            #50 text "后端"
-      #51 record 408..457
-        name:
-          #52 text "李工"
-        skills:
-          #53 list 433..456
-            #54 text "数据库"
-            #55 text "后端"
-      #56 record 463..502
-        name:
-          #57 text "赵老师"
-        skills:
-          #58 list 491..501
-            #59 text "写作"
-  let fits : -
-    #60 construct test @3 517..579
-      #61 text "成员 b 的技能能完成需求 a 吗？"
-      #62 text "fit-pair"
-  let relations : -
-    #63 construct pair @4 663..682
-      #64 name needs
-      #65 name people
-  let first : -
-    #66 construct sieve @5 696..718
-      #67 name relations
-      #68 name fits
-  let summary : -
-    #69 construct tally @6 734..746
-      #70 name first
-  fn-stmt show
-    #71 fn (e:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
-      block 759..813
-        result
-          #72 record 761..811
-            need:
-              #73 field .left
-                #74 field .source
-                  #75 name e
-            person:
-              #76 field .name
-                #77 field .right
-                  #78 field .source
-                    #79 name e
-  let combo : -
-    #80 index
-      #81 call 939..954
-        callee:
-          #82 name accepted
-        #83 name first
-      #84 int 0
-  let newcomers : -
-    #85 list 975..1070
-      #86 record 976..1025
-        name:
-          #87 text "李工"
-        skills:
-          #88 list 1001..1024
-            #89 text "数据库"
-            #90 text "后端"
-      #91 record 1027..1069
-        name:
-          #92 text "钱设计"
-        skills:
-          #93 list 1055..1068
-            #94 text "UI 设计"
-  let grows : -
-    #95 construct test @7 1084..1230
-      #96 text "已有组合 a（需求 a.a 与承接成员 a.b）加入新成员 b 后，这个组合整体能更好地完成该需求吗？"
-      #97 text "fit-group"
-  let second : -
-    #98 construct sieve @8 1245..1283
-      #99 construct pair @9 1251..1275
-        #100 list 1256..1263
-          #101 name combo
-        #102 name newcomers
-      #103 name grows
-  let summary2 : -
-    #104 construct tally @10 1300..1313
-      #105 name second
-  result
-    #106 record 1316..2271
-      round1:
-        #107 record 1325..1581
-          pairs:
-            #108 call 1333..1353
-              callee:
-                #109 name len
-              #110 field .value
-                #111 name relations
-          act:
-            #112 call @11 1370..1396
-              callee:
-                #113 name map
-              #114 call 1374..1389
-                callee:
-                  #115 name accepted
-                #116 name first
-              #117 name show
-          unsure:
-            #118 call @12 1416..1488
-              callee:
-                #119 name map
-              #120 call 1420..1436
-                callee:
-                  #121 name undecided
-                #122 name first
-              #124 fn (p:-) -> - effects=-
-                block 1444..1487
-                  result
-                    #125 record 1446..1485
-                      pair:
-                        #126 call 1453..1468
-                          callee:
-                            #127 name show
-                          #128 field .element
-                            #129 name p
-                      cause:
-                        #130 field .cause
-                          #131 name p
-          count:
-            #132 field .count
-              #133 field .value
-                #134 name summary
-          exists:
-            #135 field .exists
-              #136 field .value
-                #137 name summary
-          all:
-            #138 field .all
-              #139 field .value
-                #140 name summary
-      round2:
-        #141 record 1592..2089
-          checked:
-            #142 text "第二轮问的是「已成组合 + 新成员」作为一个整体能否完成需求；没有从两两关系推定整体成立"
-          combo:
-            #143 call 1749..1760
-              callee:
-                #144 name show
-              #145 name combo
-          act:
-            #146 call @13 1777..1829
-              callee:
-                #147 name map
-              #148 call 1781..1797
-                callee:
-                  #149 name accepted
-                #150 name second
-              #152 fn (e:-) -> - effects=-
-                block 1805..1828
-                  result
-                    #153 field .name
-                      #154 field .right
-                        #155 field .source
-                          #156 name e
-          ignore:
-            #157 call @14 1849..1900
-              callee:
-                #158 name map
-              #159 call 1853..1868
-                callee:
-                  #160 name ignored
-                #161 name second
-              #163 fn (e:-) -> - effects=-
-                block 1876..1899
-                  result
-                    #164 field .name
-                      #165 field .right
-                        #166 field .source
-                          #167 name e
-          count:
-            #168 field .count
-              #169 field .value
-                #170 name summary2
-          exists:
-            #171 field .exists
-              #172 field .value
-                #173 name summary2
-          all:
-            #174 field .all
-              #175 field .value
-                #176 name summary2
-          combo_round1_exit:
-            #177 call @15 2026..2088
-              callee:
-                #178 name map
-              #179 call 2030..2046
-                callee:
-                  #180 name accepted
-                #181 name second
-              #183 fn (e:-) -> - effects=-
-                block 2054..2087
-                  result
-                    #184 call 2056..2085
+                  #26 unary !
+                    #27 call 3191..3216
                       callee:
-                        #185 name exit_kind
-                      #186 field .exit
-                        #187 field .left
-                          #188 field .source
-                            #189 name e
+                        #28 name unobserved_cause
+                      #29 field .cause
+                        #30 name p
+  fn-stmt unobserved
+    #31 fn (o:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
+      block 3315..3373
+        result
+          #32 call @1 3317..3371
+            callee:
+              #33 name filter
+            #34 field .pending
+              #35 name o
+            #37 fn (p:-) -> - effects=-
+              block 3341..3370
+                result
+                  #38 call 3343..3368
+                    callee:
+                      #39 name unobserved_cause
+                    #40 field .cause
+                      #41 name p
+  fn-stmt stopped
+    #42 fn (o:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
+      block 3436..3500
+        result
+          #43 if @2 3438..3498
+            cond:
+              #44 call 3441..3464
+                callee:
+                  #45 name has
+                #46 field .resume
+                  #47 name o
+                #48 text "detail"
+            block 3465..3484
+              result
+                #49 field .detail
+                  #50 field .resume
+                    #51 name o
+            block 3490..3498
+              result
+                #52 unit
+  fn-stmt by_q
+    #53 fn (o:-, k:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
+      block 3986..4509
+        let keep : -
+          #55 fn (e:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
+            block 4009..4038
+              result
+                #56 binary &&
+                  #57 call 4011..4023
+                    callee:
+                      #58 name has
+                    #59 name e
+                    #60 text "qi"
+                  #61 binary ==
+                    #62 field .qi
+                      #63 name e
+                    #64 name k
+        let 键表 : -
+          #65 call @3 4057..4144
+            callee:
+              #66 name map
+            #67 call @4 4061..4126
+              callee:
+                #68 name filter
+              #69 call 4068..4119
+                callee:
+                  #70 name concat
+                #71 call 4075..4107
+                  callee:
+                    #72 name concat
+                  #73 field .value
+                    #74 name o
+                  #75 field .ignore
+                    #76 field .detail
+                      #77 name o
+                #78 field .pending
+                  #79 name o
+              #80 name keep
+            #82 fn (e:-) -> - effects=-
+              block 4134..4143
+                result
+                  #83 field .key
+                    #84 name e
+        result
+          #85 construct outcome @5 4150..4507
+            #86 record 4158..4506
+              value:
+                #87 call @6 4166..4187
+                  callee:
+                    #88 name filter
+                  #89 field .value
+                    #90 name o
+                  #91 name keep
+              pending:
+                #92 call @7 4198..4221
+                  callee:
+                    #93 name filter
+                  #94 field .pending
+                    #95 name o
+                  #96 name keep
+              evidence:
+                #97 call @8 4246..4295
+                  callee:
+                    #98 name filter
+                  #99 field .evidence
+                    #100 name o
+                  #102 fn (x:-) -> - effects=-
+                    block 4271..4294
+                      result
+                        #103 call 4273..4292
+                          callee:
+                            #104 name contains
+                          #105 name 键表
+                          #106 name x
+              resume:
+                #107 field .resume
+                  #108 name o
+              detail:
+                #109 record 4336..4505
+                  question:
+                    #110 if @9 4347..4429
+                      cond:
+                        #111 call 4350..4376
+                          callee:
+                            #112 name has
+                          #113 field .detail
+                            #114 name o
+                          #115 text "questions"
+                      block 4377..4402
+                        result
+                          #116 index
+                            #117 field .questions
+                              #118 field .detail
+                                #119 name o
+                            #120 name k
+                      block 4408..4429
+                        result
+                          #121 field .question
+                            #122 field .detail
+                              #123 name o
+                  ignore:
+                    #124 call @10 4461..4490
+                      callee:
+                        #125 name filter
+                      #126 field .ignore
+                        #127 field .detail
+                          #128 name o
+                      #129 name keep
+                  shared:
+                    #130 bool true
+  fn-stmt by_fill
+    #131 fn (o:-, k:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
+      block 4527..4541
+        result
+          #132 call 4529..4539
+            callee:
+              #133 name by_q
+            #134 name o
+            #135 name k
+  let needs : -
+    #136 list 220..338
+      #137 text "做一个带登录的网页后台"
+      #138 text "搭建订单数据库"
+      #139 text "写一篇产品发布稿"
+      #140 text "给安卓应用做界面"
+  let people : -
+    #141 list 353..504
+      #142 record 359..402
+        name:
+          #143 text "王工"
+        skills:
+          #144 list 384..401
+            #145 text "web"
+            #146 text "后端"
+      #147 record 408..457
+        name:
+          #148 text "李工"
+        skills:
+          #149 list 433..456
+            #150 text "数据库"
+            #151 text "后端"
+      #152 record 463..502
+        name:
+          #153 text "赵老师"
+        skills:
+          #154 list 491..501
+            #155 text "写作"
+  let fits : -
+    #156 construct test @11 517..579
+      #157 text "成员 b 的技能能完成需求 a 吗？"
+      #158 text "fit-pair"
+  let relations : -
+    #159 construct pair @12 663..682
+      #160 name needs
+      #161 name people
+  let first : -
+    #162 construct sieve @13 696..718
+      #163 name relations
+      #164 name fits
+  let summary : -
+    #165 construct tally @14 734..746
+      #166 name first
+  fn-stmt show
+    #167 fn (e:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
+      block 759..799
+        result
+          #168 record 761..797
+            need:
+              #169 field .left
+                #170 name e
+            person:
+              #171 field .name
+                #172 field .right
+                  #173 name e
+  let combo : -
+    #174 index
+      #175 call 925..940
+        callee:
+          #176 name accepted
+        #177 name first
+      #178 int 0
+  let newcomers : -
+    #179 list 961..1056
+      #180 record 962..1011
+        name:
+          #181 text "李工"
+        skills:
+          #182 list 987..1010
+            #183 text "数据库"
+            #184 text "后端"
+      #185 record 1013..1055
+        name:
+          #186 text "钱设计"
+        skills:
+          #187 list 1041..1054
+            #188 text "UI 设计"
+  let grows : -
+    #189 construct test @15 1070..1216
+      #190 text "已有组合 a（需求 a.a 与承接成员 a.b）加入新成员 b 后，这个组合整体能更好地完成该需求吗？"
+      #191 text "fit-group"
+  let second : -
+    #192 construct sieve @16 1231..1269
+      #193 construct pair @17 1237..1261
+        #194 list 1242..1249
+          #195 name combo
+        #196 name newcomers
+      #197 name grows
+  let summary2 : -
+    #198 construct tally @18 1286..1299
+      #199 name second
+  result
+    #200 record 1302..2228
+      round1:
+        #201 record 1311..1559
+          pairs:
+            #202 call 1319..1339
+              callee:
+                #203 name len
+              #204 field .value
+                #205 name relations
+          act:
+            #206 call @19 1356..1382
+              callee:
+                #207 name map
+              #208 call 1360..1375
+                callee:
+                  #209 name accepted
+                #210 name first
+              #211 name show
+          unsure:
+            #212 call @20 1402..1466
+              callee:
+                #213 name map
+              #214 call 1406..1422
+                callee:
+                  #215 name undecided
+                #216 name first
+              #218 fn (p:-) -> - effects=-
+                block 1430..1465
+                  result
+                    #219 record 1432..1463
+                      pair:
+                        #220 call 1439..1446
+                          callee:
+                            #221 name show
+                          #222 name p
+                      cause:
+                        #223 field .cause
+                          #224 name p
+          count:
+            #225 field .count
+              #226 field .value
+                #227 name summary
+          exists:
+            #228 field .exists
+              #229 field .value
+                #230 name summary
+          all:
+            #231 field .all
+              #232 field .value
+                #233 name summary
+      round2:
+        #234 record 1570..2046
+          checked:
+            #235 text "第二轮问的是「已成组合 + 新成员」作为一个整体能否完成需求；没有从两两关系推定整体成立"
+          combo:
+            #236 call 1727..1738
+              callee:
+                #237 name show
+              #238 name combo
+          act:
+            #239 call @21 1755..1800
+              callee:
+                #240 name map
+              #241 call 1759..1775
+                callee:
+                  #242 name accepted
+                #243 name second
+              #245 fn (e:-) -> - effects=-
+                block 1783..1799
+                  result
+                    #246 field .name
+                      #247 field .right
+                        #248 name e
+          ignore:
+            #249 call @22 1820..1864
+              callee:
+                #250 name map
+              #251 call 1824..1839
+                callee:
+                  #252 name ignored
+                #253 name second
+              #255 fn (e:-) -> - effects=-
+                block 1847..1863
+                  result
+                    #256 field .name
+                      #257 field .right
+                        #258 name e
+          count:
+            #259 field .count
+              #260 field .value
+                #261 name summary2
+          exists:
+            #262 field .exists
+              #263 field .value
+                #264 name summary2
+          all:
+            #265 field .all
+              #266 field .value
+                #267 name summary2
+          combo_round1_exit:
+            #268 call @23 1990..2045
+              callee:
+                #269 name map
+              #270 call 1994..2010
+                callee:
+                  #271 name accepted
+                #272 name second
+              #274 fn (e:-) -> - effects=-
+                block 2018..2044
+                  result
+                    #275 call 2020..2042
+                      callee:
+                        #276 name exit_kind
+                      #277 field .exit
+                        #278 field .left
+                          #279 name e
       pending:
-        #190 list 2235..2270
-          #191 field .pending
-            #192 name summary
-          #193 field .pending
-            #194 name summary2
-sites 16
-  @0 #8 hof:filter 2847..2895 fn=#7 in=-
-  @1 #19 hof:filter 2992..3040 fn=#18 in=-
-  @2 #30 if 3107..3167 fn=#29 in=-
-  @3 #60 construct:test 517..579 fn=- in=-
-  @4 #63 construct:pair 663..682 fn=- in=-
-  @5 #66 construct:sieve 696..718 fn=- in=-
-  @6 #69 construct:tally 734..746 fn=- in=-
-  @7 #95 construct:test 1084..1230 fn=- in=-
-  @8 #98 construct:sieve 1245..1283 fn=- in=-
-  @9 #99 construct:pair 1251..1275 fn=- in=@8
-  @10 #104 construct:tally 1300..1313 fn=- in=-
-  @11 #112 hof:map 1370..1396 fn=- in=-
-  @12 #118 hof:map 1416..1488 fn=- in=-
-  @13 #146 hof:map 1777..1829 fn=- in=-
-  @14 #157 hof:map 1849..1900 fn=- in=-
-  @15 #177 hof:map 2026..2088 fn=- in=-
+        #280 list 2192..2227
+          #281 field .pending
+            #282 name summary
+          #283 field .pending
+            #284 name summary2
+sites 24
+  @0 #20 hof:filter 3164..3219 fn=#19 in=-
+  @1 #32 hof:filter 3317..3371 fn=#31 in=-
+  @2 #43 if 3438..3498 fn=#42 in=-
+  @3 #65 hof:map 4057..4144 fn=#53 in=-
+  @4 #67 hof:filter 4061..4126 fn=#53 in=@3
+  @5 #85 construct:outcome 4150..4507 fn=#53 in=-
+  @6 #87 hof:filter 4166..4187 fn=#53 in=@5
+  @7 #92 hof:filter 4198..4221 fn=#53 in=@5
+  @8 #97 hof:filter 4246..4295 fn=#53 in=@5
+  @9 #110 if 4347..4429 fn=#53 in=@5
+  @10 #124 hof:filter 4461..4490 fn=#53 in=@5
+  @11 #156 construct:test 517..579 fn=- in=-
+  @12 #159 construct:pair 663..682 fn=- in=-
+  @13 #162 construct:sieve 696..718 fn=- in=-
+  @14 #165 construct:tally 734..746 fn=- in=-
+  @15 #189 construct:test 1070..1216 fn=- in=-
+  @16 #192 construct:sieve 1231..1269 fn=- in=-
+  @17 #193 construct:pair 1237..1261 fn=- in=@16
+  @18 #198 construct:tally 1286..1299 fn=- in=-
+  @19 #206 hof:map 1356..1382 fn=- in=-
+  @20 #212 hof:map 1402..1466 fn=- in=-
+  @21 #239 hof:map 1755..1800 fn=- in=-
+  @22 #249 hof:map 1820..1864 fn=- in=-
+  @23 #268 hof:map 1990..2045 fn=- in=-

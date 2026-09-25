@@ -1,21 +1,4 @@
 {
- "count": 16,
- "detail": [
-  "crates/jpp-core/src/check.rs:332",
-  "crates/jpp-core/src/check.rs:333",
-  "crates/jpp-core/src/check.rs:334",
-  "crates/jpp-core/src/check.rs:335",
-  "crates/jpp-core/src/check.rs:347",
-  "crates/jpp-core/src/check.rs:1003",
-  "crates/jpp-core/src/check.rs:1004",
-  "crates/jpp-core/src/check.rs:1037",
-  "crates/jpp-core/src/interp.rs:1058",
-  "crates/jpp-core/src/interp.rs:1383",
-  "crates/jpp-core/src/interp.rs:2638",
-  "crates/jpp-core/src/interp.rs:3073",
-  "crates/jpp-core/src/interp.rs:3080",
-  "crates/jpp-core/src/interp.rs:3087",
-  "crates/jpp-core/src/interp.rs:3093",
-  "crates/jpp-core/src/interp.rs:3976"
- ]
+ "count": 0,
+ "detail": []
 }

@@ -23,15 +23,16 @@ fn step(acc, i) !{judge} {
 // 另一种合法去向：显式丢弃未决并记账（consume "drop" 会留痕）。
 fn step_drop(acc, i) !{judge} {
     let r = sieve(acc, layers[i]);
-    consume(r, "drop");
-    map(accepted(r), fn(e) { e.item })
+    consume(map(undecided(r), fn(p) { p.exit }), "drop");
+    concat(map(accepted(r), fn(e) { e.item }), unobserved(r))
 }
+// 判过而拿不准的项（undecided）才能丢；没观察到的（unobserved：预算停机、缺席、超时）不能丢（B95）：留在累积值里下一轮重判，随返回值交出
 let byCount = iterate(5, {items: notes, pending: []}, step, fn(acc) { len(acc.items) });
 let byTokens = iterate(5, notes, step_drop, "tokens");
 let short = iterate(1, {items: notes, pending: []}, step, fn(acc) { len(acc.items) });
 
 // 停止原因、轮次与度量在续接 resume 里（B17 取舍）；产出 value 是最后的累积值
 {by_count: {reason: byCount.resume.reason, rounds: byCount.resume.rounds, measures: byCount.resume.measures, left: byCount.value.items},
- by_tokens: {reason: byTokens.resume.reason, rounds: byTokens.resume.rounds, measures: byTokens.resume.measures},
+ by_tokens: {reason: byTokens.resume.reason, rounds: byTokens.resume.rounds, measures: byTokens.resume.measures, left: byTokens.value},
  bound_only: {reason: short.resume.reason, rounds: short.resume.rounds},
  pending: [byCount.value.pending, short.value.pending]}

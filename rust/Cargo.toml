@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/jpp-ir", "crates/jpp-value", "crates/jpp-effects", "crates/jpp-ledger", "crates/jpp-calib", "crates/jpp-check", "crates/jpp-plan", "crates/jpp-core", "crates/jpp-syntax", "crates/jpp-cli"]
+members = ["crates/jpp-ir", "crates/jpp-value", "crates/jpp-effects", "crates/jpp-ledger", "crates/jpp-calib", "crates/jpp-check", "crates/jpp-plan", "crates/jpp-runtime", "crates/jpp-syntax", "crates/jpp"]
 
 [workspace.package]
 edition = "2024"

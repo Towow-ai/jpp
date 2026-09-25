@@ -7,214 +7,305 @@
     "tokens": 0,
     "usd": 0.0
   },
+  "entry": [],
   "exits": [
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 0,
+      "item": "bc57fcc1b279",
       "key": "form-mention",
+      "pos": 0,
       "releases": false,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 1,
+      "item": "f24b09a37905",
       "key": "form-mention",
+      "pos": 1,
       "releases": false,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 2,
+      "item": "27797d537af7",
       "key": "form-mention",
+      "pos": 2,
       "releases": false,
       "site": 968
     },
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 3,
+      "item": "8cbee367f561",
       "key": "form-mention",
+      "pos": 3,
       "releases": false,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 4,
+      "item": "f69e588a5f5c",
       "key": "form-mention",
+      "pos": 4,
       "releases": false,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 5,
+      "item": "0709db4927c6",
       "key": "form-mention",
+      "pos": 5,
       "releases": false,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 6,
+      "item": "868e02657e69",
       "key": "form-mention",
+      "pos": 6,
       "releases": false,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 7,
+      "item": "5671a0b0776f",
       "key": "form-mention",
+      "pos": 7,
       "releases": false,
       "site": 968
     },
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 8,
+      "item": "312540cfc316",
       "key": "form-mention",
+      "pos": 8,
       "releases": false,
       "site": 968
     },
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 9,
+      "item": "bc57fcc1b279",
       "key": "form-mention",
+      "pos": 9,
       "releases": false,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 0,
+      "item": "bc57fcc1b279",
       "key": "form-mention",
+      "pos": 0,
       "releases": false,
       "site": 968
     },
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 1,
+      "item": "f24b09a37905",
       "key": "form-mention",
+      "pos": 1,
       "releases": false,
       "site": 968
     },
     {
       "exit": "unsure(band)",
       "grade": "Fixture",
+      "index": 2,
+      "item": "27797d537af7",
       "key": "form-mention",
+      "pos": 2,
       "releases": false,
       "site": 968
     },
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 3,
+      "item": "8cbee367f561",
       "key": "form-mention",
+      "pos": 3,
       "releases": false,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 4,
+      "item": "f69e588a5f5c",
       "key": "form-mention",
+      "pos": 4,
       "releases": false,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 5,
+      "item": "0709db4927c6",
       "key": "form-mention",
+      "pos": 5,
       "releases": false,
       "site": 968
     },
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 6,
+      "item": "868e02657e69",
       "key": "form-mention",
+      "pos": 6,
       "releases": false,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 7,
+      "item": "5671a0b0776f",
       "key": "form-mention",
+      "pos": 7,
       "releases": false,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 8,
+      "item": "312540cfc316",
       "key": "form-mention",
+      "pos": 8,
       "releases": false,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 9,
+      "item": "bc57fcc1b279",
       "key": "form-mention",
+      "pos": 9,
       "releases": false,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 0,
+      "item": "bc57fcc1b279",
       "key": "form-mention",
+      "pos": 0,
       "releases": false,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 1,
+      "item": "f24b09a37905",
       "key": "form-mention",
+      "pos": 1,
       "releases": false,
       "site": 968
     },
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 2,
+      "item": "27797d537af7",
       "key": "form-mention",
+      "pos": 2,
       "releases": false,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 3,
+      "item": "8cbee367f561",
       "key": "form-mention",
+      "pos": 3,
       "releases": false,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 4,
+      "item": "f69e588a5f5c",
       "key": "form-mention",
+      "pos": 4,
       "releases": false,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 5,
+      "item": "0709db4927c6",
       "key": "form-mention",
+      "pos": 5,
       "releases": false,
       "site": 968
     },
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 6,
+      "item": "868e02657e69",
       "key": "form-mention",
+      "pos": 6,
       "releases": false,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 7,
+      "item": "5671a0b0776f",
       "key": "form-mention",
+      "pos": 7,
       "releases": false,
       "site": 968
     },
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 8,
+      "item": "312540cfc316",
       "key": "form-mention",
+      "pos": 8,
       "releases": false,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 9,
+      "item": "bc57fcc1b279",
       "key": "form-mention",
+      "pos": 9,
       "releases": false,
       "site": 968
     }
@@ -223,6 +314,35 @@
   "local_checks": [],
   "mode": "replay; no model API requests",
   "pending": [],
+  "questions": [
+    {
+      "fill": {
+        "city": "成都"
+      },
+      "form_hash": "38e0207a4cbe0a56b8b472b7",
+      "kind": "attr",
+      "q": "fe110bdf799f05a9c379af93",
+      "template": "这段话是否提到了{city}？"
+    },
+    {
+      "fill": {
+        "city": "北京"
+      },
+      "form_hash": "38e0207a4cbe0a56b8b472b7",
+      "kind": "attr",
+      "q": "e85bdf01f404ebd6f33037a3",
+      "template": "这段话是否提到了{city}？"
+    },
+    {
+      "fill": {
+        "city": "杭州"
+      },
+      "form_hash": "38e0207a4cbe0a56b8b472b7",
+      "kind": "attr",
+      "q": "c50b398094fecd0e5a1a57aa",
+      "template": "这段话是否提到了{city}？"
+    }
+  ],
   "replay": true,
   "resumed": false,
   "returned_unsure": [
@@ -563,6 +683,7 @@
       }
     ],
     "warnings": [
+      "W-window-untested: @968 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
       "W-fixture-line: @968 键 form-mention 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
       "W-fixture-line: @968 键 form-mention 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
       "W-fixture-line: @968 键 form-mention 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
@@ -582,25 +703,27 @@
       [
         {
           "cause": "band",
-          "element": {
-            "cause": "band",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(band)",
-              "id": 12,
-              "q": "e85bdf01f404ebd6f33037a3"
-            },
-            "index": 2,
-            "item": "这家公司的总部设在杭州。",
-            "source": "这家公司的总部设在杭州。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
             "id": 12,
             "q": "e85bdf01f404ebd6f33037a3"
-          }
+          },
+          "fill": {
+            "city": "北京"
+          },
+          "index": 2,
+          "item": "这家公司的总部设在杭州。",
+          "key": "ebb1e668fc0a382910faa8e2",
+          "pos": 2,
+          "q": {
+            "calib": "form-mention",
+            "op": "noul",
+            "question": "e85bdf01f404ebd6f33037a3",
+            "text": "这段话是否提到了北京？"
+          },
+          "qi": 1,
+          "trail": []
         }
       ],
       []

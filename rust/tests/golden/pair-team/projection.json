@@ -14,114 +14,86 @@
     "pending": [
       [
         {
+          "at": [
+            0,
+            1
+          ],
           "cause": "band",
-          "element": {
-            "cause": "band",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(band)",
-              "id": 1,
-              "q": "615a0f8ed47fa7d6f0e1784d"
-            },
-            "index": 1,
-            "item": {
-              "a": "做一个带登录的网页后台",
-              "b": {
-                "name": "李工",
-                "skills": [
-                  "数据库",
-                  "后端"
-                ]
-              }
-            },
-            "source": {
-              "at": [
-                0,
-                1
-              ],
-              "item": {
-                "a": "做一个带登录的网页后台",
-                "b": {
-                  "name": "李工",
-                  "skills": [
-                    "数据库",
-                    "后端"
-                  ]
-                }
-              },
-              "left": "做一个带登录的网页后台",
-              "right": {
-                "name": "李工",
-                "skills": [
-                  "数据库",
-                  "后端"
-                ]
-              },
-              "trail": []
-            },
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
             "id": 1,
             "q": "615a0f8ed47fa7d6f0e1784d"
-          }
+          },
+          "item": {
+            "a": "做一个带登录的网页后台",
+            "b": {
+              "name": "李工",
+              "skills": [
+                "数据库",
+                "后端"
+              ]
+            }
+          },
+          "key": "64b58f62e6949622832a4389",
+          "left": "做一个带登录的网页后台",
+          "pos": 1,
+          "q": {
+            "calib": "fit-pair",
+            "op": "noul",
+            "question": "615a0f8ed47fa7d6f0e1784d",
+            "text": "成员 b 的技能能完成需求 a 吗？"
+          },
+          "qi": 0,
+          "right": {
+            "name": "李工",
+            "skills": [
+              "数据库",
+              "后端"
+            ]
+          },
+          "trail": []
         },
         {
+          "at": [
+            3,
+            0
+          ],
           "cause": "band",
-          "element": {
-            "cause": "band",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(band)",
-              "id": 9,
-              "q": "615a0f8ed47fa7d6f0e1784d"
-            },
-            "index": 9,
-            "item": {
-              "a": "给安卓应用做界面",
-              "b": {
-                "name": "王工",
-                "skills": [
-                  "web",
-                  "后端"
-                ]
-              }
-            },
-            "source": {
-              "at": [
-                3,
-                0
-              ],
-              "item": {
-                "a": "给安卓应用做界面",
-                "b": {
-                  "name": "王工",
-                  "skills": [
-                    "web",
-                    "后端"
-                  ]
-                }
-              },
-              "left": "给安卓应用做界面",
-              "right": {
-                "name": "王工",
-                "skills": [
-                  "web",
-                  "后端"
-                ]
-              },
-              "trail": []
-            },
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
             "id": 9,
             "q": "615a0f8ed47fa7d6f0e1784d"
-          }
+          },
+          "item": {
+            "a": "给安卓应用做界面",
+            "b": {
+              "name": "王工",
+              "skills": [
+                "web",
+                "后端"
+              ]
+            }
+          },
+          "key": "136790a2a30e0c03740b8543",
+          "left": "给安卓应用做界面",
+          "pos": 9,
+          "q": {
+            "calib": "fit-pair",
+            "op": "noul",
+            "question": "615a0f8ed47fa7d6f0e1784d",
+            "text": "成员 b 的技能能完成需求 a 吗？"
+          },
+          "qi": 0,
+          "right": {
+            "name": "王工",
+            "skills": [
+              "web",
+              "后端"
+            ]
+          },
+          "trail": []
         }
       ],
       []

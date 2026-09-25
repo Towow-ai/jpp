@@ -3,30 +3,17 @@
 //   A「单路」：每层在直接子类里 K 选一（原仓库每层一道 Choice 的写法），拿不准就停，未决随结果交出；
 //   B「多路」：每层对每个子类问一道是非题，所有被接受的子类都往下走（原仓库用 beam 保留多条路）；
 //      同一层所有题都落在同一份文书上，同状态融合成一次调用。
-// 本体是一棵缩小的 FOLIO 式合同/文书树；原仓库从 OWL 文件解析，这里直接写成数据。
+// 本体是一棵缩小的 FOLIO 式合同/文书树；原仓库从 OWL 文件解析，这里与文书一起经 `jpp run --input` 交给程序（名字 input，不可信材料）。
 import "../../../lib/outcome.jpp";
 budget {calls: 12, cost: 0.2, depth: 256};
 
-let tree = {
-    "法律文书": ["合同与协议", "诉讼文书", "公司治理文件", "知识产权文件"],
-    "合同与协议": ["租赁合同", "买卖合同", "劳动合同"],
-    "租赁合同": ["住宅租赁合同", "商铺租赁合同", "设备租赁合同"],
-    "买卖合同": ["房屋买卖合同", "货物买卖合同"],
-    "劳动合同": ["全日制劳动合同", "劳务派遣协议"],
-    "诉讼文书": ["起诉状", "答辩状", "判决书"],
-    "公司治理文件": ["公司章程", "股东会决议"],
-    "知识产权文件": ["专利许可合同", "商标转让合同"]
-};
-fn children(node) { if has(tree, node) { tree[node] } else { [] } }
+fn children(node) { if has(input.tree, node) { input.tree[node] } else { [] } }
 // 深度上限写成字面量 6（loop 的 bound 要字面量才静态可估，W-bound）
-
-// 原仓库把 OCR 文本截到约 500 token 再问；这里直接给一段文书
-let doc = mat("房屋租赁合同\n出租方（甲方）：王建国  承租方（乙方）：李敏\n第一条 甲方将位于杭州市西湖区文三路 88 号 3 单元 502 室的住房出租给乙方居住使用，建筑面积 89 平方米。\n第二条 租赁期限自 2026 年 3 月 1 日起至 2027 年 2 月 28 日止。\n第三条 月租金人民币 4500 元，押一付三，乙方应于每季度首月 5 日前支付。\n第四条 租赁期间乙方不得将房屋转租或改作经营用途。");
 
 // —— 策略 A：单路 K 选一 ——
 let which = select("这份法律文书最应归入下列哪一类？", "folio-level");
 fn descend_one(d) {
-    loop(6, {node: "法律文书", path: [], stopped: "depth", open: []}, fn(s, i) {
+    loop(6, {node: input.root, path: [], stopped: "depth", open: []}, fn(s, i) {
         let options = children(s.node);
         if len(options) == 0 { stop(with(s, "stopped", "leaf")) } else {
             let exit = cut(judge(state(d, {over: options}), which));
@@ -42,29 +29,29 @@ fn descend_one(d) {
 // —— 策略 B：多路逐子类是非题 ——
 let about = form("test", "这段话的内容是否与「{concept}」这个话题相关？", {calib: "form-topic"});
 fn descend_all(d) {
-    loop(6, {frontier: ["法律文书"], leaves: [], dead: [], open: [], layers: 0, unobserved: []}, fn(s, i) {
+    loop(6, {frontier: [input.root], leaves: [], dead: [], open: [], layers: 0, unobserved: []}, fn(s, i) {
         let inner = filter(s.frontier, fn(n) { len(children(n)) > 0 });
         let done = filter(s.frontier, fn(n) { len(children(n)) == 0 });
         if len(inner) == 0 { stop(with(s, "leaves", concat(s.leaves, done))) } else {
             // 本层所有「节点 × 子类」一次登记：同一份文书上的题融合成一次调用
-            let asked = fold(inner, [], fn(acc, n) { concat(acc, map(children(n), fn(c) { {parent: n, child: c} })) });
-            let rs = sieve([d], about, map(asked, fn(a) { {concept: a.child} }));
+            let asked = fold(inner, [], fn(acc, n) { concat(acc, map(children(n), fn(c) { {parent: n, concept: c} })) });
+            let rs = sieve([d], about, asked);
             // T1 (b)：预算停下时这一轮没问到的子类；有就停，这一轮不计层、不记死路
-            let missed = filter(range(0, len(asked)), fn(k) { len(unobserved(rs[k])) == 1 });
-            let open_all = fold(rs, s.open, fn(acc, r) { concat(acc, r.pending) });
-            if len(missed) > 0 { stop(with(with(s, "open", open_all), "unobserved", map(missed, fn(k) { asked[k].child }))) } else {
-            let picked = filter(range(0, len(asked)), fn(k) { len(accepted(rs[k])) == 1 });
-            let next = map(picked, fn(k) { asked[k].child });
+            let missed = map(unobserved(rs), fn(e) { e.fill.concept });
+            let open_all = concat(s.open, rs.pending);
+            if len(missed) > 0 { stop(with(with(s, "open", open_all), "unobserved", missed)) } else {
+            let next = map(accepted(rs), fn(e) { e.fill.concept });
             // 一个内部节点的子类全被否决：这条路走到头，记为 dead（原仓库没有这个去向）
-            let dead_here = filter(inner, fn(n) { len(filter(picked, fn(k) { asked[k].parent == n })) == 0 });
+            let dead_here = filter(inner, fn(n) { len(filter(accepted(rs), fn(e) { e.fill.parent == n })) == 0 });
             {frontier: next, leaves: concat(s.leaves, done), dead: concat(s.dead, dead_here),
              open: open_all, layers: s.layers + 1, unobserved: []}
         } }
     })
 }
 
-let a = descend_one(doc);
-let b = descend_all(doc);
+// 原仓库把 OCR 文本截到约 500 token 再问；这里给一段文书（input.document）
+let a = descend_one(mat(input.document));
+let b = descend_all(mat(input.document));
 {single_path: {leaf: a.node, path: a.path, stopped: a.stopped, unobserved: [], pending: a.open},
  multi_path: {leaves: b.leaves, dead_ends: b.dead, layers: b.layers,
               undecided: map(filter(b.open, fn(p) { p.cause != "budget" }), fn(p) { p.exit }),

@@ -1,0 +1,33 @@
+// 试写 2（阶段评估 ①，Fable，2026-09-24）：为一组候选人按条件配对面试官。
+// 探针副本（步 14b-0）：由 评估/2026-09-24-试写/ 下同名程序复制，材料改经 `jpp run --input baseline/materials.json` 交给程序（名字 input，不可信材料）；原件留作评估记录与真机账本的重放源。
+// 硬条件（面试官可面的级别）由宿主算术过滤；软条件（专长是否覆盖候选人方向）由判断器判。
+// 配对 → 三路过滤 → 宿主分配（每位面试官最多两场），拿不准的关系交人工，没配上的候选人单列。
+import "../../lib/outcome.jpp";
+budget {calls: 40, cost: 0.05, depth: 256};
+
+let covers = test("面试官 b 的专长是否覆盖候选人 a 的技术方向，足以对其进行技术面试？", "iv-cover");
+let max_per_interviewer = 2;
+
+// 硬条件先过：级别不匹配的对根本不问
+let allowed = pair(input.candidates, input.interviewers, fn(c, i) { contains(i.levels, c.level) });
+// 软条件交判断器：每对一次判断，同一层发出
+let fits = sieve(allowed, covers);
+
+// 宿主分配：按候选人顺序，取第一位仍有余量、且关系被接受的面试官
+fn assigned_to(acc, iv) { len(filter(acc, fn(a) { a.interviewer == iv })) }
+fn assign(acc, e) {
+    let c = e.left.name;
+    let iv = e.right.name;
+    let already = len(filter(acc, fn(a) { a.candidate == c })) > 0;
+    if already || assigned_to(acc, iv) >= max_per_interviewer { acc } else { append(acc, {candidate: c, interviewer: iv}) }
+}
+let plan = fold(accepted(fits), [], assign);
+let placed = map(plan, fn(a) { a.candidate });
+let unplaced = filter(map(input.candidates, fn(c) { c.name }), fn(n) { !contains(placed, n) });
+
+{plan: plan,
+ unplaced: unplaced,
+ // 拿不准的关系交人工定夺，责任随记录交出（J-05）
+ review: map(undecided(fits), fn(p) { {candidate: p.left.name, interviewer: p.right.name, exit: p.exit} }),
+ rejected: map(ignored(fits), fn(e) { {candidate: e.left.name, interviewer: e.right.name} }),
+ pairs_asked: len(allowed.value), unobserved: unobserved(fits)}

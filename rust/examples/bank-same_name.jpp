@@ -1,0 +1,26 @@
+// 题库条目 same_name 的用法（步 27a）：几段候选材料里，哪一段也写出了这段话里那个名字。
+// 线从条目目录 bank/entries/f4886dabf4e089bbdfd9f432/calib/ 取，是在两序读数上认证的，题式带 permute: true。
+// 材料取自认证集（地基/评估/27a-置换重跑/F4-同一个），夹具读数与置换测量是真机账本的原值。
+import "../lib/bank/same_name.jpp";
+budget {calls: 3, cost: 0.01, depth: 16};
+
+let cases = [
+    {text: "这次比赛的决赛放在北京举行。", kind: "城市",
+     over: ["他的新工作在南京，下个月入职。", "听说北京最近在修新的机场。", "这家连锁店总部设在上海。"]},
+    {text: "公司准备明年在重庆开分店。", kind: "城市",
+     over: ["物流单显示包裹已经到了重庆。", "这家连锁店总部设在南京。", "有朋友推荐我去北京看看博物馆。"]},
+    {text: "我在楼下碰到了王强，聊了几句。", kind: "人",
+     over: ["吴霞刚换了新手机号。", "昨天的培训是李娜主讲的。", "王强的方案被选上了。"]}
+];
+
+fn one(c) !{judge} {
+    handle(cut(judge(state(mat(c.text), {over: c.over}), fill(same_name, {kind: c.kind}))), {
+        pick: fn(k) { {text: c.text, same: c.over[k], open: []} },
+        unsure: fn(u) { {text: c.text, same: unit, open: [u]} }
+    })
+}
+
+let rows = map(cases, fn(c) !{judge} { one(c) });
+
+{same: map(rows, fn(r) { {text: r.text, same: r.same} }),
+ pending: fold(rows, [], fn(acc, r) { concat(acc, r.open) })}

@@ -51,11 +51,11 @@ For these examples the fixed observation files supply exact answers. They do not
 choose questions, enumerate combinations or decide continuation policy. The host
 action only records checks whose values have already been computed in source.
 Behavior expectations are recorded in `examples/expected/`; end-to-end assertions
-are in `crates/jpp-cli/tests/source_execution.rs`.
+are in `crates/jpp/tests/source_execution.rs`.
 
 The core implementation also has directly constructed algorithm programs in
-[`adaptive.rs`](crates/jpp-core/tests/adaptive.rs) and
-[`partial.rs`](crates/jpp-core/tests/partial.rs). These make the lower-level
+[`adaptive.rs`](crates/jpp/tests/adaptive.rs) and
+[`partial.rs`](crates/jpp/tests/partial.rs). These make the lower-level
 construction visible next to the `.jpp` examples. Their final joint test result is
 recorded in the delivery report, separately from the source CLI assertions.
 

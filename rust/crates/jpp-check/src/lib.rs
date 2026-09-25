@@ -156,6 +156,55 @@ pub fn check_with_calib(program: &Program, calib: &dyn CalibView) -> Report {
     check_with2(program, profile, Some(calib))
 }
 
+/// 宿主动作的两项静态事实（B108，步 24-0）：J-08 静态子面据此分 error / 不报，并认出输出不可信的动作。
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ActionFacts {
+    /// 登记为可逆（J-08 只管不可逆动作）
+    pub reversible: bool,
+    /// 登记的输出 taint 为不可信（`TaintOut::Untrusted`，例如 CLI 的 `read_json`）
+    pub output_untrusted: bool,
+}
+
+/// 宿主动作表的静态投影：动作名 → [`ActionFacts`]。检查器不依赖运行时，宿主从自己的动作登记表建它。
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct ActionTable {
+    pub actions: std::collections::BTreeMap<String, ActionFacts>,
+    /// 动作声明的输出形状（B51-R2，步 24g）：动作名 → `mat_shape`。与 `actions` 并列而不是
+    /// `ActionFacts` 的字段——`MatShape` 带 `Vec<String>`，进 `ActionFacts` 会去掉 `Copy` 并破坏
+    /// 全部既有的 `ActionFacts { .. }` 字面量构造点（`runner.rs`、`session/mod.rs`、多个测试）。
+    /// 没有声明的动作不在此表，诊断层按此判「判不出来源」。
+    pub shapes: std::collections::BTreeMap<String, jpp_effects::MatShape>,
+}
+
+/// 静态检查一个程序，带整本校准记录与**宿主动作表**（B108，步 24-0）：与 [`check_with_calib`] 相同，
+/// 另让 J-08 静态子面在不可逆动作上报 error（不带动作表时只报 `W-guard-untrusted`）。
+/// `Session` 执行前那次检查走这里，于是必然被 J-08 拦下的程序在花调用之前停下。
+pub fn check_with_calib_actions(
+    program: &Program,
+    calib: &dyn CalibView,
+    actions: &ActionTable,
+) -> Report {
+    let profile = if calib.profile().hash.is_none() {
+        None
+    } else {
+        Some(calib.profile())
+    };
+    check_annotated_with(program, profile, Some(calib), Some(actions)).0
+}
+
+/// [`Session::explain`] 的动作表增强版（步 24c，B108 已知限制的收口）：不带整本校准记录（`explain`
+/// 本就不带，`Session::run`/`resume`/`replay` 执行前才走 [`check_with_calib_actions`]），
+/// 只多一份宿主动作表。**不改 `explain` 本身**（24-0 定的边界），CLI 用它给 `check`（不带
+/// `--input` 也照样有）与 `run` 的预跑诊断同一份已知动作表，J-08 静态子面就能对可逆动作不报、
+/// 对不可逆动作报 error（而不是没有表时一律降成 `W-guard-untrusted`）。
+pub fn explain_with_actions(
+    program: &Program,
+    profile: Option<&jpp_effects::Profile>,
+    actions: &ActionTable,
+) -> Report {
+    check_annotated_with(program, profile, None, Some(actions)).0
+}
+
 /// 已注册的规则单元号，按发出顺序（`rules::RULES` 是唯一注册处）。
 pub fn rule_codes() -> Vec<&'static str> {
     rules::RULES.iter().map(|r| r.code).collect()
@@ -182,12 +231,22 @@ pub fn check_annotated(
     profile: Option<&jpp_effects::Profile>,
     calib: Option<&dyn CalibView>,
 ) -> (Report, jpp_ir::ir::AnnotTable) {
+    check_annotated_with(program, profile, calib, None)
+}
+
+fn check_annotated_with(
+    program: &Program,
+    profile: Option<&jpp_effects::Profile>,
+    calib: Option<&dyn CalibView>,
+    actions: Option<&ActionTable>,
+) -> (Report, jpp_ir::ir::AnnotTable) {
     let sites = &rules::SiteFacts::of(&program.body, &program.sites);
     let cx = rules::Cx {
         p: program,
         sites,
         profile,
         calib,
+        actions,
         names: None,
     };
     let mut c = Checker::new(cx);

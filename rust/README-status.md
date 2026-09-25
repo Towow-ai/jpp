@@ -55,8 +55,9 @@ untagged observations; host-side `commission` remains the certification step.
 
 ## Layout
 
-- `crates/jpp-core` — AST, checker, interpreter, effects, ledger, conformal
+- `crates/jpp` — the `jpp` binary plus its lib target: AST, checker, interpreter,
+  effects, ledger, conformal, and the CLI (`crates/jpp-core` and `crates/jpp-cli`
+  merged into this single crate on 2026-09-25)
 - `crates/jpp-frontend` — lexer, parser, lowering, source loader
-- `crates/jpp-cli` — the `jpp` binary
 - `examples/` — runnable `.jpp` programs with fixtures
-- `crates/jpp-core/INTERFACE.md` — kernel interface, including what is *not* implemented
+- `crates/jpp/INTERFACE.md` — kernel interface, including what is *not* implemented

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""效应名只许出现在效应注册处（20 §11.1；21 §九·1：步 15a 起失败模式）。
+"""效应名只许出现在效应注册处（20 §11.1；21 §九·1：步 15a 起失败模式，ci.sh 以 hard 调用，基线 0）。
 
 目标：`EffectId::(Judge|Gen|Do|Ask|Transform)` 只许在 jpp-effects/src/kinds/、builtin_ports/。
 现行代码没有 EffectId；本脚本同时报告现行代码按效应名分支的点（字符串 "judge"/"gen"/"do"/"ask"

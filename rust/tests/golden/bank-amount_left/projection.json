@@ -1,0 +1,27 @@
+{
+  "asks": 0,
+  "calls": 3,
+  "effects": [],
+  "judge_registrations": 5,
+  "pending": [],
+  "returned_unsure": [],
+  "status": "returned",
+  "usd": 0.0,
+  "value": {
+    "left": [
+      {
+        "left": "还有很多",
+        "text": "电池全部断货了，胶带倒是够用好几个月。"
+      },
+      {
+        "left": "只剩一点",
+        "text": "胶带所剩无几，不过纸杯多得是。"
+      },
+      {
+        "left": "已经没有了",
+        "text": "盘点结果：大米堆满了半个仓库；胶带早就用光了。"
+      }
+    ],
+    "pending": []
+  }
+}

@@ -5,70 +5,10 @@ use jpp_value::value::Op;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-/// 字面模式（`12`:136 的 `calib_key` 第五维）：`literal_mode ∈ {判执行输出, 判代码字面,
-/// 判文档段落, …}`。
-///
-/// **它是校准键的一维，不是标签。** 同一道题问「这段代码字面上写了什么」和
-/// 「这份文档这一段说了什么」，模型的可靠性完全不同——线自然也不同。
-/// 缺这一维的后果与 `judge_key` 缺 `site` **同族**：不同模式下的值合进同一格、
-/// 第二个覆盖第一个，**而它长得像一次观察**。
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum LiteralMode {
-    /// 未分档：老接口写进来的就是这一档，键就是裸键名（老账本读得回来）
-    #[default]
-    Unspecified,
-    /// 判执行输出
-    ExecOutput,
-    /// 判代码字面
-    CodeLiteral,
-    /// 判文档段落
-    DocSection,
-}
-
-impl LiteralMode {
-    /// 键里的后缀。默认档**不加后缀**——这是老账本还读得回来的原因。
-    pub fn suffix(&self) -> &'static str {
-        match self {
-            LiteralMode::Unspecified => "",
-            LiteralMode::ExecOutput => "\u{1f}exec",
-            LiteralMode::CodeLiteral => "\u{1f}code",
-            LiteralMode::DocSection => "\u{1f}doc",
-        }
-    }
-}
-
-/// 一条运行期观察（`12`:347 标为「未定」的**运行期写入口**的载荷）。
-///
-/// **与 Python `CalibRecord.samples` 的 `[[p, label]]` 同族，但带上了记账要的几样。**
-/// 总控立的规矩在这里落地：**`mode_share` 不许裸记——必须和 `perms` 一起**进账本和
-/// 校准记录。一个没有 `perms` 的一致率不是测量结果，是一个孤零零的小数。
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Sample {
-    /// 标量概率。**`None` = 这个物理形式没有定义好的标量 `p`**（select / measure）：
-    /// 强给它一个标量就是造一个不同尺的数，而「不同尺不可比」是本项目自己的判据。
-    pub p: Option<f64>,
-    /// 真值。**`None` = 还没有**——`cut` 切出来的读数本身从不携带真值。
-    /// 这一位是 `n` 与 `observations` 分家的全部理由。
-    pub label: Option<u8>,
-    /// 用了几个置换（0 = 没测）
-    pub perms: usize,
-    /// 置换众数占比；与 `perms` 成对
-    pub mode_share: Option<f64>,
-    /// 字面模式（`12`:136 第五维）
-    pub mode: LiteralMode,
-    /// 物理形式：noul / choice / score
-    pub phys: String,
-    /// 这条观察属于哪个**簇**（通常是对象段）。**可交换性在我们这里不是被时间打破的，
-    /// 是被材料复用打破的**——同一段落的多条读数不是多次独立观察。
-    /// `None` = 这条没有簇 id，**于是它只能参与「按条」的认证**；
-    /// 声明按对象段却没有簇 id 是**错，不是降级**。
-    #[serde(default)]
-    pub cluster: Option<String>,
-    /// **分层**（B75 混合样本）：这条样本来自哪个来源（题式键，无题式的手写题取题面哈希）。
-    /// 带分层的样本在拆分认证时按来源各自分半后合并。`None` 时不序列化，旧记录逐字节不变。
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub stratum: Option<String>,
-}
+// 步 14a：`LiteralMode` 搬到 `jpp-ir::key`（`20` §2.3 `CalibKey` 的一维），`Sample` 搬到
+// `jpp-effects::views`（运行时交给校准侧的载荷，运行时不依赖本 crate）；原路径重导出，定义不改。
+pub use jpp_effects::views::Sample;
+pub use jpp_ir::key::LiteralMode;
 
 /// 记录里的证据是哪来的。**它是算出来的，不是填出来的。**
 ///
@@ -234,6 +174,27 @@ pub struct Cert {
     /// 不进地址（α 已在地址里）。
     #[serde(default, skip_serializing_if = "CertGrade::is_formal")]
     pub grade: CertGrade,
+    /// **有效 α 与真值基准**（B89）：只在进线真值有模型标注时写；`computed` / `human` 真值的证书为空、
+    /// 不序列化（逐字节不变），不进地址。旧证书为空时由视图按真值账补算（见 `CalibStore::alpha_eff_of`）。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub eff: Option<AlphaEff>,
+}
+
+/// 模型真值记录的有效 α（B89）：P(T 错 | A) ≤ P(L 错 | A) + P(L ≠ T | A)。
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct AlphaEff {
+    /// 相对复核基准的假放行率上界
+    pub alpha_eff: f64,
+    /// 这个上界的置信：复核全覆盖 1 − δ；部分覆盖 1 − δ − (1 − 复核下界置信)
+    pub conf: f64,
+    /// 真值基准：`model:<复核者>`（以、连接）或 `human`
+    pub truth_baseline: String,
+    /// 怎么算的：`full-review` / `review-in-A` / `review-over-c`
+    pub basis: String,
+    /// 导入时的试用 α（B89 解读 (b)，步 20c）：alpha_eff 超过它即 `Provisional`。为空（旧证书）时按
+    /// `stat::ALPHA_TRIAL_DEFAULT`；为空不序列化，旧证书逐字节不变。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub trial_alpha: Option<f64>,
 }
 
 /// 证书的认证等级（B72）。20a 并入 `LineGrade`（`Trial` 一行）。
@@ -253,20 +214,70 @@ impl CertGrade {
     }
 }
 
-/// 选线与认证的方式（B24）。
+/// 选线与认证的方式（B24；B85、B86 加方法）。
+///
+/// `method` 的取值：`split` / `split-strata`（B24 / B75 的种子分半，旧证书）、
+/// `split-stratified` / `split-strata-stratified`（B85 分层交替分半）、`fixed-sequence`（B86 固定序，
+/// 不拆分）。步 20c 的 `load` 按这个名字重跑对应过程，所以重跑要用的输入都写在这里。
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Selection {
-    /// 目前只有一个取值：`split`（拆分样本）
     pub method: String,
     /// 分半用的种子：样本按 `(p, 真值)` 排成规范序后，`splitmix64(seed ^ 规范序下标)` 的最低位定归属
-    /// （与行序无关；2026-09-23 前用的是插入下标）
+    /// （与行序无关；2026-09-23 前用的是插入下标）。B85 只用它定各段的起点；固定序不用（记 0）
     pub seed: u64,
-    /// 选线半的条数
+    /// 选线半的条数（固定序记 0）
     pub n_select: usize,
-    /// 认证半的条数
+    /// 认证半的条数（固定序记全部带标注条数）
     pub n_certify: usize,
-    /// 选线半上满足条件的候选线对数（只作记录，认证不依赖它）
+    /// 选线半上满足条件的候选线对数；固定序为两侧通过前缀里的合法线对数（只作记录，认证不依赖它）
     pub candidates: usize,
+    /// 候选规则与平局规则的版本名（`fixed-sequence/v1`、`split-stratified/v1`）。为空 = 旧证书，
+    /// 不序列化、不进地址，旧记录逐字节不变
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rule: Option<String>,
+    /// 固定序的步长 s（解析后的整数，不是「缺省」：池大小变了缺省也会变，重跑要当时那个数）
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub step: Option<usize>,
+    /// 生成候选与判区用的带宽 δ（与 `cut` 同源：记录的 `delta` 或画像的 δ）
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub delta: Option<f64>,
+    /// 固定序两侧生成的候选数 `(上, 下)`；K 元单侧线下侧记 0
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub generated: Option<(usize, usize)>,
+    /// 固定序两侧通过前缀的长度 `(上, 下)`，即第一个不通过的候选的下标（全部通过时等于生成数）。
+    /// 检验过的候选数 = min(stop_index + 1, generated)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stop_index: Option<(usize, usize)>,
+    /// 序贯认证（B87）的过程记录；其余方法为空，不序列化
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sequential: Option<SeqCert>,
+}
+
+/// 序贯认证（B87，步 20h）写进证书的全部输入与停时状态：步 20c 的 `load` 凭它与标注集重跑。
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct SeqCert {
+    /// 到达顺序：`random`（带标注样本规范序后按种子置换）或 `two-ends`（B88 待标清单的顺序）
+    pub order: String,
+    /// 置换或组内随机用的种子
+    pub seed: u64,
+    /// 每批条数：每批后过一遍固定序
+    pub batch: usize,
+    /// 混合 e 过程的权重，对应备择 p₁ ∈ {0, α/4, α/2, 3α/4}
+    pub weights: [f64; 4],
+    /// 覆盖目标 τ；为空 = `settled`（停在再标也不会更宽处）
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub coverage_target: Option<f64>,
+    /// 停时已处理的到达条数（之后到达的已标样本不参与判定）
+    pub stopped_at: usize,
+    /// 抽样框读数（排序后）：候选由它生成，覆盖按它算
+    pub pool: Vec<f64>,
+    /// 到达顺序：每条是规范序（按 `(p, 真值)`）带标注样本的下标
+    pub arrival: Vec<usize>,
+    /// 停时上侧、下侧各候选的混合 E 与已处理条数（K 元单侧线下侧为空）
+    pub e_upper: Vec<f64>,
+    pub n_upper: Vec<usize>,
+    pub e_lower: Vec<f64>,
+    pub n_lower: Vec<usize>,
 }
 
 /// 标注集指纹：`(p, label)` 对的**规范形**，排序后取 `canon` 再 sha256 前 16 位。
@@ -331,7 +342,11 @@ pub(super) fn 经验unsure率(
             let d = delta?;
             按条
                 .iter()
-                .filter(|(p, _)| !(*p >= hi + d) && !(*p <= lo - d))
+                // 与 cut 同一边界比较（步 15d-2）
+                .filter(|(p, _)| {
+                    !jpp_value::stat::decided_up(*p, hi, d)
+                        && !jpp_value::stat::decided_down(*p, lo, d)
+                })
                 .count()
         }
         // 依据：B63（K 元划分出口 p_max ≥ hi + δ；与 `cut` 同一判据）
@@ -341,14 +356,17 @@ pub(super) fn 经验unsure率(
                 .iter()
                 .enumerate()
                 .filter(|(i, (p, _))| match 众数.get(*i).copied().flatten() {
-                    Some(ms) if ms >= 1.0 => *p < hi + d,
+                    Some(ms) if ms >= 1.0 => !jpp_value::stat::decided_up(*p, hi, d),
                     _ => true,
                 })
                 .count()
         }
         Op::Measure => {
             let d = delta.unwrap_or(0.0);
-            按条.iter().filter(|(p, _)| *p < hi + d).count()
+            按条
+                .iter()
+                .filter(|(p, _)| !jpp_value::stat::decided_up(*p, hi, d))
+                .count()
         }
     };
     Some((u as f64 / 按条.len() as f64 * 10000.0).round() / 10000.0)
@@ -454,6 +472,22 @@ pub struct CalibRecord {
     /// 只有类记录写；空时不序列化，旧记录哈希不变。
     #[serde(default, skip_serializing_if = "std::collections::BTreeMap::is_empty")]
     pub sources: std::collections::BTreeMap<String, u64>,
+    /// **带标注样本的材料指纹**（B68；PR #31 P1）：真值通道导入带 `text` 的行时逐条追加。
+    /// 条数等于带标注样本数时，认证范围指纹才由它们算出（与认证用同一批样本）；不等说明有样本
+    /// 没有文本（旧样本或本批部分行缺文本），不写指纹。只是一个多重集，与 `samples` 不按位置对应。
+    /// 空时不序列化，旧记录哈希不变。
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub material_fps: Vec<[f64; 7]>,
+    /// **题类**（B76；步 12e-2 移到 20a-1）：认证集进线行的基础题类（`question_kind(op, request,
+    /// 未知槽形, 题式声明)`），各行一致时由 `calib-import` 写，不一致（混合来源的类记录）时不写。
+    /// 分类字段，与 `sources` 并列：**不进键，不进 `calib_hash`**（它是 `op`、`request`、槽声明的函数，
+    /// 不携带新信息，B76）。为空时不序列化，旧记录逐字节不变。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kind: Option<jpp_ir::question_kind::QuestionKind>,
+    /// **被重跑写回替换下来的旧证书**（B117 (b)，步 20c）：`load` 重跑复现后把新证书写回，旧证书（含下侧证书）
+    /// 原样追加在这里，不删（「后来改声明不追改已发的证书」的形式要求）。为空时不序列化，旧记录逐字节不变。
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub certs_history: Vec<Cert>,
 }
 
 /// 真值通道对一个校准键的结论（B19 / B13）。
@@ -506,10 +540,32 @@ pub struct CalibScope {
     /// 按来源计的带真值条数
     pub sources: std::collections::BTreeMap<String, u64>,
     pub note: String,
-    /// 认证集的材料指纹范围（B68）。`None` = 认证集没带材料文本：按范围内处理、不报警
-    /// （缺指纹不是范围外）。为空时不序列化，旧记录哈希不变。
+    /// 认证集的材料指纹范围（B68）。`None` = 认证集没带材料文本：范围未知，出口照常路由、不放行
+    /// （B104-2，步 20h-1 起；此前按范围内处理）。为空时不序列化，旧记录哈希不变。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub fingerprint: Option<jpp_value::stat::ScopeRanges>,
+    /// 指纹由认证集里多少条带文本的样本给出（B104-2）；全部带文本时为空、不序列化
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub n_text: Option<usize>,
+    /// **范围扩展**（B91，步 20d-2）：新风格材料上只验已有线对、按 α 分档认证过的风格指纹。落在扩展范围内的
+    /// 材料不算范围外；出口等级取记录等级与扩展等级之低者。为空时不序列化，旧记录逐字节不变。
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub extensions: Vec<ScopeExtension>,
+}
+
+/// 一条范围扩展（B91）：字段集照裁定 `{fingerprint, n_up, n_down, alpha, batch}`。
+/// 扩展等级不另存：`alpha` 大于记录选中证书的 α 即试用，否则与记录同级。
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ScopeExtension {
+    pub fingerprint: jpp_value::stat::ScopeRanges,
+    /// 上侧已决条数（零错或上界 ≤ α）
+    pub n_up: usize,
+    /// 下侧已决条数（K 元记录没有下侧，记 0）
+    pub n_down: usize,
+    /// 所过的 α（正式或试用）
+    pub alpha: f64,
+    /// 扩展批次（标注文件名）
+    pub batch: String,
 }
 
 impl Cert {
@@ -530,10 +586,22 @@ impl Cert {
         // （后者含 `判据: String`，现值「两个模型都同意」）。**文本里若含 `\u{1f}` 就撞地址。**
         // 所以自由文本那两段先哈成定长，**分隔符就再也不可能出现在段内**。
         let sel = match &self.selection {
-            Some(x) => format!(
-                "\u{1f}sel({},{},{},{})",
-                x.method, x.seed, x.n_select, x.n_certify
-            ),
+            Some(x) => {
+                // 规则版本、步长、δ 只在有值时追加（B85/B86 的新证书），旧证书地址不变
+                let rule = match &x.rule {
+                    Some(r) => format!(
+                        "\u{1f}rule({},step={:?},δ={:?})",
+                        hash16(&json!(r)),
+                        x.step,
+                        x.delta
+                    ),
+                    None => String::new(),
+                };
+                format!(
+                    "\u{1f}sel({},{},{},{}){rule}",
+                    x.method, x.seed, x.n_select, x.n_certify
+                )
+            }
             None => String::new(),
         };
         format!(

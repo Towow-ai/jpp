@@ -3,23 +3,8 @@
 use std::collections::HashMap;
 use std::rc::Rc;
 
-/// `fit` 注册表（`12`:319「每个 `FitRef` 的训练集 id、特征键、指纹种类、错误率、版本；
-/// 注册约束见 §2.9」，:314「**只能训练产生**」）。
-///
-/// `fit` 是第七种形式之外的**桥**：它把跨题的多个读数合成**一个仍然是读数的东西**，
-/// 因而仍要过线。作者不用它也能合并两道题（`cut` 出两个出口再写 `if`），
-/// 但那样一来**合并这一步的不确定性就消失了**——两个 `act` 合出来的结论看着和一个 `act`
-/// 一样确定，而它其实经过了一个没有校准过的函数。
-pub struct FitRecord {
-    /// 特征：`(校准键, 指纹种类)`，**逐项**要与输入读数相同（J-04）
-    pub features: Vec<(String, String)>,
-    /// 训练样本数（J-16：`n ≥ max(50, 20×特征数)`）
-    pub n: u64,
-    /// 训练集 id（J-16：训练集 ≠ 保形集）
-    pub trained_from: String,
-    #[allow(clippy::type_complexity)]
-    pub f: Rc<dyn Fn(&[f64]) -> f64>,
-}
+// 步 14a：`FitRecord` 搬到 `jpp-effects::views`（运行时经 `FitView` 读，不依赖本 crate）；原路径重导出。
+pub use jpp_effects::views::FitRecord;
 
 #[derive(Default)]
 pub struct FitRegistry {
@@ -72,5 +57,13 @@ impl FitRegistry {
         }
         self.register(name, features, n, trained_from, f);
         Ok(())
+    }
+}
+
+/// `FitRegistry` 是运行时读的 `fit` 视图（`20` §2.3 `Ports.fits`；步 14a 起运行时经它读，不依赖本 crate）。
+impl jpp_effects::views::FitView for FitRegistry {
+    type Record = Rc<FitRecord>;
+    fn get(&self, fit_ref: &str) -> Option<&Rc<FitRecord>> {
+        self.fits.get(fit_ref)
     }
 }

@@ -1,0 +1,8 @@
+{
+  "model_version": "stub-0",
+  "provenance": "替身，按构造，非测量：步 15g 的第二判断器 stub（crates/jpp/src/backends/stub/）。不是任何模型的测量，不放发行目录 profiles/（主会话 2026-09-25 确认）。",
+  "cost": {
+    "price_usd_per_input_token": 0,
+    "note": "按构造：替身不发请求、不收费"
+  }
+}

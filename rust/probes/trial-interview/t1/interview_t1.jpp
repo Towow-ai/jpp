@@ -4,45 +4,32 @@
 import "../../../lib/outcome.jpp";
 budget {calls: 40, cost: 0.05, depth: 256};
 
-let candidates = [
-    {name: "周同学", level: "初级", direction: "前端页面开发，用过 React 和 Vue"},
-    {name: "吴工", level: "高级", direction: "分布式存储与数据库内核"},
-    {name: "郑工", level: "中级", direction: "后端服务开发，Go 与微服务"},
-    {name: "冯博士", level: "高级", direction: "机器学习模型训练与推理优化"},
-    {name: "陈同学", level: "初级", direction: "移动端 iOS 开发"}
-];
-let interviewers = [
-    {name: "李老师", levels: ["初级", "中级"], expertise: "Web 前端与交互，十年 JavaScript 经验"},
-    {name: "王总监", levels: ["中级", "高级"], expertise: "数据库与存储系统，主导过分布式 KV 存储"},
-    {name: "赵架构", levels: ["中级", "高级"], expertise: "后端架构、微服务与 Go 语言"},
-    {name: "孙研究员", levels: ["高级"], expertise: "深度学习与推荐系统"}
-];
 let covers = test("面试官 b 的专长是否覆盖候选人 a 的技术方向，足以对其进行技术面试？", "iv-cover");
 let max_per_interviewer = 2;
 
 // 硬条件先过：级别不匹配的对根本不问
-let allowed = pair(candidates, interviewers, fn(c, i) { contains(i.levels, c.level) });
+let allowed = pair(input.candidates, input.interviewers, fn(c, i) { contains(i.levels, c.level) });
 // 软条件交判断器：每对一次判断，同一层发出
 let fits = sieve(allowed, covers);
 
 // 宿主分配：按候选人顺序，取第一位仍有余量、且关系被接受的面试官
 fn assigned_to(acc, iv) { len(filter(acc, fn(a) { a.interviewer == iv })) }
 fn assign(acc, e) {
-    let c = e.source.left.name;
-    let iv = e.source.right.name;
+    let c = e.left.name;
+    let iv = e.right.name;
     let already = len(filter(acc, fn(a) { a.candidate == c })) > 0;
     if already || assigned_to(acc, iv) >= max_per_interviewer { acc } else { append(acc, {candidate: c, interviewer: iv}) }
 }
 let plan = fold(accepted(fits), [], assign);
 let placed = map(plan, fn(a) { a.candidate });
-let unplaced = filter(map(candidates, fn(c) { c.name }), fn(n) { !contains(placed, n) });
+let unplaced = filter(map(input.candidates, fn(c) { c.name }), fn(n) { !contains(placed, n) });
 
 {plan: plan,
  unplaced: unplaced,
  // 拿不准的关系交人工定夺，责任随记录交出（J-05）
- review: map(undecided(fits), fn(p) { {candidate: p.element.source.left.name, interviewer: p.element.source.right.name, cause: p.cause} }),
- rejected: map(ignored(fits), fn(e) { {candidate: e.source.left.name, interviewer: e.source.right.name} }),
+ review: map(undecided(fits), fn(p) { {candidate: p.left.name, interviewer: p.right.name, cause: p.cause} }),
+ rejected: map(ignored(fits), fn(e) { {candidate: e.left.name, interviewer: e.right.name} }),
  pairs_asked: len(allowed.value),
- unobserved: map(unobserved(fits), fn(p) { {candidate: p.element.source.left.name, interviewer: p.element.source.right.name} }),
- spent: fits.spent,
+ unobserved: map(unobserved(fits), fn(p) { {candidate: p.left.name, interviewer: p.right.name} }),
+ // review 与 unobserved 都是投影（不带出口），责任靠这一行交出（B81 (c)）
  pending: fits.pending}

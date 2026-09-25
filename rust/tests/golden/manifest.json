@@ -128,6 +128,36 @@
    "fixtures": "examples/fixtures/unsure-causes.json"
   },
   {
+   "name": "bank-json_field",
+   "source": "examples/bank-json_field.jpp",
+   "fixtures": "examples/fixtures/bank-json_field.json",
+   "calib": "bank/entries/ceb097176786d327fe1a0ba3/calib"
+  },
+  {
+   "name": "bank-answers_question",
+   "source": "examples/bank-answers_question.jpp",
+   "fixtures": "examples/fixtures/bank-answers_question.json",
+   "calib": "bank/entries/1d77f7a203b4258048dfefea/calib"
+  },
+  {
+   "name": "bank-which_named",
+   "source": "examples/bank-which_named.jpp",
+   "fixtures": "examples/fixtures/bank-which_named.json",
+   "calib": "bank/entries/e49770913911a79525896988/calib"
+  },
+  {
+   "name": "bank-same_name",
+   "source": "examples/bank-same_name.jpp",
+   "fixtures": "examples/fixtures/bank-same_name.json",
+   "calib": "bank/entries/f4886dabf4e089bbdfd9f432/calib"
+  },
+  {
+   "name": "bank-amount_left",
+   "source": "examples/bank-amount_left.jpp",
+   "fixtures": "examples/fixtures/bank-amount_left.json",
+   "calib": "bank/entries/e4d4be39383a1eb88f75af2c/calib"
+  },
+  {
    "name": "error-missing-budget",
    "source": "examples/errors/missing-budget.jpp",
    "expect": "error"

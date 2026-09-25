@@ -2,15 +2,17 @@
   "backend": "fixed-0",
   "cost": {
     "asks": 0,
-    "calls": 6,
+    "calls": 9,
     "replayed": 0,
     "tokens": 0,
     "usd": 0.0
   },
+  "entry": [],
   "exits": [
     {
       "exit": "act",
       "grade": "Fixture",
+      "item": "bc5bf19db3d2",
       "key": "fixture",
       "releases": false,
       "site": 186
@@ -18,6 +20,7 @@
     {
       "exit": "act",
       "grade": "Fixture",
+      "item": "2bdc4c4f3458",
       "key": "fixture",
       "releases": false,
       "site": 186
@@ -25,6 +28,7 @@
     {
       "exit": "unsure(band)",
       "grade": "Fixture",
+      "item": "b2c0c86d9c36",
       "key": "fixture",
       "releases": false,
       "site": 186
@@ -32,6 +36,7 @@
     {
       "exit": "unsure(band)",
       "grade": "Fixture",
+      "item": "e8befae3e763",
       "key": "fixture",
       "releases": false,
       "site": 186
@@ -39,6 +44,7 @@
     {
       "exit": "act",
       "grade": "Fixture",
+      "item": "180515f79b4c",
       "key": "fixture",
       "releases": false,
       "site": 186
@@ -46,6 +52,7 @@
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "item": "994e14b91f7a",
       "key": "fixture",
       "releases": false,
       "site": 186
@@ -81,6 +88,12 @@
   ],
   "mode": "fixed observations; no model API requests",
   "pending": [],
+  "questions": [
+    {
+      "kind": "attr",
+      "q": "c7a73a263dd9acdb5e28c842"
+    }
+  ],
   "replay": false,
   "resumed": false,
   "returned_unsure": [],
@@ -210,6 +223,7 @@
       }
     ],
     "warnings": [
+      "W-window-untested: @190 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
       "W-fixture-line: @186 键 fixture 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
       "W-fixture-line: @186 键 fixture 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
       "W-untyped-transfer: observe 把 unsure(band) 装在返回值里交了出去，但返回类型没提 Exit，调用者从签名上看不出自己收到了一份未决。修法：把返回类型标为含 Exit（如 `-> Exit`、`-> Record<Exit>`）",

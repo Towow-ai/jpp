@@ -32,10 +32,23 @@ impl Refusal {
 /// 合法状态：Python `calib.py:13` 的四个，加 B25 的「停岗候选」（自动标记、待人确认）
 pub const STATUSES: [&str; 5] = ["冷", "上岗", "停岗", "待真值", "停岗候选"];
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct CalibStore {
     pub records: HashMap<String, CalibRecord>,
     pub profile: Profile,
+    /// 装载时重跑认证的报告（步 20c）：降级与改写各一行，复现的记录不列。不进 `calib_hash`。
+    pub load_report: Vec<String>,
+}
+
+impl Default for CalibStore {
+    /// 空库；画像全部未测（步 15d-2：`Profile` 没有 `Default`，唯一默认是 `Profile::untested()`）
+    fn default() -> CalibStore {
+        CalibStore {
+            records: HashMap::new(),
+            profile: Profile::untested(),
+            load_report: vec![],
+        }
+    }
 }
 
 impl CalibStore {
@@ -47,7 +60,21 @@ impl CalibStore {
     /// 宿主经这里写的一律是 `fixture: true` 的测试记录，凭它得到的出口带 `W-fixture-line`，
     /// 不算放行不可逆 `do` 的可信合取项。原注释「宿主能在这里写线，这是设计意图」
     /// 把 J-03 解释为只拦程序，已由 `12` J-03 B29 条取代。
-    pub fn put(&mut self, key: &str, hi: f64, lo: f64, n: u64, status: &str) -> Result<(), String> {
+    ///
+    /// `delta`：这条线的 δ（步 15d-2：δ 只从记录取，夹具线要显式给；`None` 的上岗线出口 `Unsure(untested)`，
+    /// 载体 `Delta`，`20` §3.9）。
+    pub fn put(
+        &mut self,
+        key: &str,
+        hi: f64,
+        lo: f64,
+        n: u64,
+        status: &str,
+        delta: Option<f64>,
+    ) -> Result<(), String> {
+        if delta.is_some_and(|d| !(0.0..1.0).contains(&d)) {
+            return Err("δ 必须在 [0, 1) 内".into());
+        }
         if !STATUSES.contains(&status) {
             return Err(format!("status 只能是 {STATUSES:?}，收到 {status:?}"));
         }
@@ -146,6 +173,11 @@ impl CalibStore {
         let lower = self.records.get(key).and_then(|r| r.lower.clone());
         let old_scope = self.records.get(key).and_then(|r| r.scope.clone());
         let old_rerun = self.records.get(key).and_then(|r| r.rerun_independent);
+        let old_fps = self
+            .records
+            .get(key)
+            .map(|r| r.material_fps.clone())
+            .unwrap_or_default();
         let old_sources = self
             .records
             .get(key)
@@ -159,7 +191,7 @@ impl CalibStore {
                 lo,
                 n,
                 status: status.into(),
-                delta: None,
+                delta,
                 unsure_rate: None,
                 unsure_rate_delta: None,
                 set_id: String::new(),
@@ -175,6 +207,13 @@ impl CalibStore {
                 fixture: true,
                 rerun_independent: old_rerun,
                 sources: old_sources,
+                material_fps: old_fps,
+                kind: self.records.get(key).and_then(|r| r.kind),
+                certs_history: self
+                    .records
+                    .get(key)
+                    .map(|r| r.certs_history.clone())
+                    .unwrap_or_default(),
             },
         );
         Ok(())
@@ -221,6 +260,9 @@ impl CalibStore {
                 fixture: false,
                 rerun_independent: None,
                 sources: Default::default(),
+                material_fps: vec![],
+                kind: None,
+                certs_history: vec![],
             });
         let 有标注 = s.label.is_some();
         rec.samples.push(s);

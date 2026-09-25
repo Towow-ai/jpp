@@ -4,4 +4,5 @@ budget {calls: 20, cost: 0.01, depth: 256};
 let mention = form("test", "这段话是否提到了{city}？", {calib: "form-mention"});
 let cities = ["成都", "北京", "上海", "杭州", "西安", "南京", "武汉", "重庆", "天津", "苏州", "长沙", "郑州", "青岛", "厦门"];
 let rs = sieve(["我上个月去了成都出差，顺便见了老朋友。"], mention, map(cities, fn(c) { {city: c} }));
-{answers: map(rs, fn(r) { {asked: r.detail.question.text, act: len(accepted(r)) == 1} }), pending: map(rs, fn(r) { r.pending })}
+{answers: map(range(0, len(cities)), fn(k) { let r = by_q(rs, k); {asked: r.detail.question.text, act: len(accepted(r)) == 1} }),
+ pending: map(range(0, len(cities)), fn(k) { by_q(rs, k).pending })}

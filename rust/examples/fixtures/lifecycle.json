@@ -1,6 +1,6 @@
 {
   "description": "Fixed generation and judgment; ask remains pending until a response is supplied.",
-  "calibrations": [{"key":"fixture","hi":0.8,"lo":0.2,"n":100,"status":"上岗"}],
+  "calibrations": [{"key":"fixture","hi":0.8,"lo":0.2,"n":100,"status":"上岗", "delta": 0.05}],
   "generations": [{"prompt":"Suggest a plan","retry_seq":0,"output":[{"name":"shared plan","cost":2}]}],
   "observations": [{"on":[{"name":"shared plan","cost":2}],"op":"test","text":"Fits the request?","calib":"fixture","answer":{"Noul":0.95}}]
 }

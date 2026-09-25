@@ -25,6 +25,16 @@ pub struct CertView {
     pub trial: bool,
     /// 认证半上的已决条数（上侧；`W-trial-line` 文本用）
     pub n_accepted: usize,
+    /// 认证时用的带宽 δ（证书 `selection.delta`；候选 B104）。`None` = 旧证书，`cut` 用运行期 δ
+    pub delta: Option<f64>,
+    /// 这张证书的线是否按认证带宽平移过（hi = h − δ）：拆分、固定序、序贯认证是，`certify` / 代价线不是
+    /// （它们的线就是被检验区的边，任何 δ ≥ 0 的判区都在被检验区内）。平移过而 `delta` 缺 → δ 未知（B104-1）
+    pub delta_shifted: bool,
+    /// 有效 α（B89）：模型真值记录相对复核基准的假放行率上界；非模型真值等于 `alpha`。
+    /// 大于 `alpha` 时 `trial` 为真（不放行不可逆 `do`）
+    pub alpha_eff: f64,
+    /// 有效 α 超过试用 α（B89 解读 (b)，步 20c）：等级 `Provisional`（路由、不放行），此时 `trial` 为假
+    pub provisional: bool,
 }
 
 /// 一条校准记录的只读视图：`cut` 判序与告警需要的全部字段（步 11b 定全，`20` §2.3）。
@@ -53,6 +63,10 @@ pub struct Lookup {
     pub rerun_independent: Option<bool>,
     /// 认证范围的材料指纹（B68）；`None` = 不核范围
     pub scope: Option<jpp_value::stat::ScopeRanges>,
+    /// 指纹只由这么多条带文本样本给出（B104-2 子集指纹）；全部带文本时为空
+    pub scope_n_text: Option<usize>,
+    /// 范围扩展（B91，步 20d-2）：（扩展指纹，是否试用级）。主指纹外的材料落进某条扩展即不算范围外
+    pub scope_extensions: Vec<(jpp_value::stat::ScopeRanges, bool)>,
 }
 
 impl Lookup {
@@ -76,14 +90,21 @@ pub trait CalibView {
     fn hash(&self) -> String;
     /// 该键可用于 J-10 的未决率（只认上岗、且认证时的 δ 与现在一致）
     fn unsure_rate(&self, key: &str) -> Option<f64>;
-    /// 这条记录在这种题型上的 δ：记录自带优先，否则取画像的
-    fn delta_for(&self, rec: &Lookup, op: jpp_ir::key::Op) -> f64 {
-        let p = self.profile();
-        rec.delta.unwrap_or(match op {
-            jpp_ir::key::Op::Test => p.delta.0,
-            jpp_ir::key::Op::Select => p.delta.1,
-            jpp_ir::key::Op::Measure => p.delta.2,
-        })
+    /// **`cut` 用的 δ**（步 15d-2，`20` §3.9「桥用的 δ 只从校准记录取」；B104 max 分支与 `W-delta-mismatch` 退役）：
+    /// 1. 选中证书记了认证带宽（`selection.delta`）→ 它；
+    /// 2. 选中证书不按 δ 平移（`certify` 线、代价线：线就是检验区的边）→ 0（批量裁定解读 (a) 的直接推论）；
+    /// 3. 记录自带 δ（夹具线、`set_delta`、`load` 写回）→ 它；
+    /// 4. 否则 `None`：出口 `Unsure(untested)`，载体 `Delta`。
+    fn line_delta(&self, rec: &Lookup) -> Option<f64> {
+        if let Some(c) = rec.selected.as_ref() {
+            if let Some(d) = c.delta {
+                return Some(d);
+            }
+            if !c.delta_shifted {
+                return Some(0.0);
+            }
+        }
+        rec.delta
     }
     /// 这次运行加载的能力画像
     fn profile(&self) -> &crate::profile::Profile;
@@ -138,4 +159,62 @@ pub struct CachedReading {
 /// 跨运行读数查找（步 19 由 `jpp-store` 实现）。
 pub trait CacheLookup {
     fn get(&self, k: &CacheKey) -> Option<CachedReading>;
+}
+
+// 步 14a 自 `jpp-calib::calib::record` 原样搬来：运行时产出、校准侧吸收的样本（`Outcome.evidence`）。
+use jpp_ir::key::LiteralMode;
+use serde::{Deserialize, Serialize};
+
+/// 一条运行期观察（`12`:347 标为「未定」的**运行期写入口**的载荷）。
+///
+/// **与 Python `CalibRecord.samples` 的 `[[p, label]]` 同族，但带上了记账要的几样。**
+/// 总控立的规矩在这里落地：**`mode_share` 不许裸记——必须和 `perms` 一起**进账本和
+/// 校准记录。一个没有 `perms` 的一致率不是测量结果，是一个孤零零的小数。
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Sample {
+    /// 标量概率。**`None` = 这个物理形式没有定义好的标量 `p`**（select / measure）：
+    /// 强给它一个标量就是造一个不同尺的数，而「不同尺不可比」是本项目自己的判据。
+    pub p: Option<f64>,
+    /// 真值。**`None` = 还没有**——`cut` 切出来的读数本身从不携带真值。
+    /// 这一位是 `n` 与 `observations` 分家的全部理由。
+    pub label: Option<u8>,
+    /// 用了几个置换（0 = 没测）
+    pub perms: usize,
+    /// 置换众数占比；与 `perms` 成对
+    pub mode_share: Option<f64>,
+    /// 字面模式（`12`:136 第五维）
+    pub mode: LiteralMode,
+    /// 物理形式：noul / choice / score
+    pub phys: String,
+    /// 这条观察属于哪个**簇**（通常是对象段）。**可交换性在我们这里不是被时间打破的，
+    /// 是被材料复用打破的**——同一段落的多条读数不是多次独立观察。
+    /// `None` = 这条没有簇 id，**于是它只能参与「按条」的认证**；
+    /// 声明按对象段却没有簇 id 是**错，不是降级**。
+    #[serde(default)]
+    pub cluster: Option<String>,
+    /// **分层**（B75 混合样本）：这条样本来自哪个来源（题式键，无题式的手写题取题面哈希）。
+    /// 带分层的样本在拆分认证时按来源各自分半后合并。`None` 时不序列化，旧记录逐字节不变。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stratum: Option<String>,
+}
+
+// 步 14a 自 `jpp-calib::fit` 原样搬来：`fit` 记录（运行时经 `FitView` 读）。
+use std::rc::Rc;
+
+/// `fit` 注册表（`12`:319「每个 `FitRef` 的训练集 id、特征键、指纹种类、错误率、版本；
+/// 注册约束见 §2.9」，:314「**只能训练产生**」）。
+///
+/// `fit` 是第七种形式之外的**桥**：它把跨题的多个读数合成**一个仍然是读数的东西**，
+/// 因而仍要过线。作者不用它也能合并两道题（`cut` 出两个出口再写 `if`），
+/// 但那样一来**合并这一步的不确定性就消失了**——两个 `act` 合出来的结论看着和一个 `act`
+/// 一样确定，而它其实经过了一个没有校准过的函数。
+pub struct FitRecord {
+    /// 特征：`(校准键, 指纹种类)`，**逐项**要与输入读数相同（J-04）
+    pub features: Vec<(String, String)>,
+    /// 训练样本数（J-16：`n ≥ max(50, 20×特征数)`）
+    pub n: u64,
+    /// 训练集 id（J-16：训练集 ≠ 保形集）
+    pub trained_from: String,
+    #[allow(clippy::type_complexity)]
+    pub f: Rc<dyn Fn(&[f64]) -> f64>,
 }

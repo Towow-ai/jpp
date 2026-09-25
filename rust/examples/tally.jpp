@@ -16,7 +16,7 @@ let firstone = first_k(r, 1);
 let firsttwo = first_k(r, 2);
 
 {streams: {act: map(accepted(r), fn(e) { e.index }), ignore: map(ignored(r), fn(e) { e.index }),
-           unsure: map(undecided(r), fn(p) { {index: p.element.index, cause: p.cause} })},
+           unsure: map(undecided(r), fn(p) { {index: p.index, cause: p.cause} })},
  count: t.value.count, complete: t.value.complete,
  exists: t.value.exists, all: t.value.all,
  // 被挡住的位置在续接里（B17 取舍）

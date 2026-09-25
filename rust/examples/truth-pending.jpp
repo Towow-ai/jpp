@@ -5,5 +5,5 @@ budget {calls: 4, cost: 0.01, depth: 256};
 let mention = form("test", "这段话是否提到了{concept}？", {calib: "form-concept"});
 let notes = ["那台立式乐器占了客厅一角，搬家时最费劲。", "他背起吉他，坐在公园长椅上弹唱了一下午。"];
 let r = sieve(notes, mention, [{concept: "钢琴"}]);
-{asked: r[0].detail.question.text, act: len(accepted(r[0])), ignore: len(ignored(r[0])),
- unsure: map(undecided(r[0]), fn(p) { {index: p.element.index, cause: p.cause} }), pending: r[0].pending}
+{asked: r.detail.question.text, act: len(accepted(r)), ignore: len(ignored(r)),
+ unsure: map(undecided(r), fn(p) { {index: p.index, cause: p.cause} }), pending: r.pending}

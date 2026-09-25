@@ -1,0 +1,62 @@
+{
+  "asks": 0,
+  "calls": 4,
+  "effects": [],
+  "judge_registrations": 4,
+  "pending": [],
+  "returned_unsure": [
+    "unsure(band)"
+  ],
+  "status": "returned",
+  "usd": 0.0,
+  "value": {
+    "answered": [
+      {
+        "ask": "这款手机防水吗？",
+        "reply": "它是 IP68 级防水，可以在 1.5 米水下待 30 分钟。"
+      },
+      {
+        "ask": "你们的健身房有淋浴吗？",
+        "reply": "有，男女更衣室里都有淋浴间。"
+      }
+    ],
+    "not_answered": [
+      {
+        "ask": "路由器的默认密码是多少？",
+        "reply": "路由器的问题我们建议您重启试试。"
+      }
+    ],
+    "pending": [
+      {
+        "at": [
+          2,
+          3
+        ],
+        "cause": "band",
+        "exit": {
+          "consumed": true,
+          "exit": "unsure(band)",
+          "id": 3,
+          "q": "f0ef4a5eb953ad767fdd05f3"
+        },
+        "item": {
+          "a": "路由器的默认密码是多少？",
+          "b": "默认密码印在路由器底部的标签上。"
+        },
+        "key": "a78e352c93eb4a9a551cea4c",
+        "left": "路由器的默认密码是多少？",
+        "pos": 3,
+        "q": {
+          "calib": "rel-answers-question",
+          "op": "noul",
+          "question": "f0ef4a5eb953ad767fdd05f3",
+          "text": "b 是否给出了 a 所问的信息？（间接但足以推出答案的说法也算）"
+        },
+        "qi": 0,
+        "right": "默认密码印在路由器底部的标签上。",
+        "trail": []
+      }
+    ],
+    "unobserved": []
+  }
+}

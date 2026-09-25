@@ -27,9 +27,10 @@ fn indexes(xs) { map(xs, fn(e) { e.index }) }
 fn summary(r) {
     let t = tally(r);
     {asked: r.detail.question.text, act: indexes(accepted(r)), ignore: indexes(ignored(r)),
-     unsure: map(undecided(r), fn(p) { {index: p.element.index, cause: p.cause} }),
+     unsure: map(undecided(r), fn(p) { {index: p.index, cause: p.cause} }),
      count: t.value.count, exists: t.value.exists, pending: t.pending}
 }
 
 // 未决随返回值交给调用者（J-05）：每个 tally 契约值带着它并入的未决
-{streams: map(results, summary)}
+// 多填法的 sieve 返回一个契约值；by_q 取第 k 个填法的子契约值
+{streams: map([0, 1, 2], fn(k) { summary(by_q(results, k)) })}

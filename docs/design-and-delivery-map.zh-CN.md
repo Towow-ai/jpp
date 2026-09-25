@@ -1,8 +1,8 @@
 # J++ 总设计与交付地图
 
-2026-09-24 按黑板重写（此前版本停在 09-23，多处陈述已过期）。本文把已有总计划、当前实现和最近发现放到同一张图上，作为阅读入口和阶段定位，不另立一套语言规范。状态是当日快照；下一段工作包是推进建议，不代表已启动实现。
+2026-09-25 按黑板重写（此前版本停在 09-24，把当天称为"同步分支待合入"的架构重构与固定序认证方法，如今都已实际合入 `main`，本次一并更新）。本文把已有总计划、当前实现和最近发现放到同一张图上，作为阅读入口和阶段定位，不另立一套语言规范。状态是当日快照；下一段工作包是推进建议，不代表已启动实现。
 
-**J++ 已经有独立源码、可运行的 Rust 内核、接通真实判断后端的校准流程。9 月 24 日的核心发现：内核语义在受控测试下成立，但在真实后端上，没有校准线的新题一律拿不到已决出口，一道题要约 160 条带真值标注才能认证出一条正式档的线。这是这门语言「便宜判断 + 校准阈值决定动作」这套机制的使用门槛，今天的设计工作主要就是在拆解它。** 原计划没有失效，也不需要从头再造一次语言；但"完成度"不能再只按代码行数或测试数判断，要看仪表读数。
+**J++ 已经有独立源码、可运行的 Rust 内核、接通真实判断后端的校准流程，而且拆解 9 月 24 日发现的"校准门槛"这项工作，今天已经落地：固定序认证方法把正式档门槛从约 160 条标注压到远小得多的标注集，已经真机上线。** 剩下的门槛不是"能不能便宜认证"，而是"表达量比、深度、换后端"这三条验收标准本身还没有到参考带——这是当前设计与工程工作的重点，不是从头再造一次语言。
 
 下一段的具体代码起点、里程碑挂点见 [实施任务](implementation-handoff-2026-09-23.zh-CN.md)（仍是 09-23 定的起点，尚未按本文更新）。
 
@@ -32,14 +32,14 @@ flowchart TB
 
 图中包含目标职责，不表示各层已经全部完成。精确计算属于语言的普通计算能力，不必绕到模型中完成。
 
-| 层 | 应负责什么 | 当前状态（本仓库 `main`） | 已造出、在同步分支待合入 | 只是裁定、任何分支都未造 |
-|---|---|---|---|---|
-| 源码与前端 | 人能写、拆分、导入程序，错误能定位到源码 | 已有独立语法、解析、检查、解释执行、多文件示例 | 前端直接降到中间表示（跳过旧核心语法树，`jpp-frontend` 改名 `jpp-syntax`），检查器抽成独立层 `jpp-check` | — |
-| 共同语义与内核 | 问题、读数、方法、未决和外部效应在组合后仍有明确含义 | 高阶方法、动态问题、部分结果与续接、题成为一等值、三路过滤/配对/聚合/迭代、组合封闭性契约、值级 taint | 中间表示层 `jpp-ir`、逐跳来源追踪（parents/hop）、值级来源标签细化 | — |
-| 执行系统 | 根据依赖运行，批量判断，记录成本与结果，恢复计算 | 惰性判断、同状态融合、预算停机、账本重放、批调度 | 账本改版 `jpp-ledger`（结构化键、头行字段扩充） | 并发端口（真机仍串行） |
-| 能力适配与反馈 | 同一程序使用真实判断、生成、工具与回应，并接收可用反馈 | 真实 JEV client（`--backend live`）、`calib-import` 真值通道、拆分样本两侧认证、题式级线回退、漂移自动标记 + 人工确认 | 试用档校准等级（更少样本、可路由不放行）、逐出口记线等级、真机默认必须带能力画像（无画像不再兜底常数）、验收仪表脚本 | 固定序/序贯认证方法（把正式档门槛从约 160 条降到约 60 条）、范围扩展修法 |
-| 方法库 | 用少量构造写出很多算法；算法可以接收和返回方法 | 有组合示例和小型源码库；三路过滤、配对、聚合已是可复用构造 | — | 首批共享题式库（落地后新题 0 行校准）、锦标赛/搜索骨架 |
-| 交付与工具 | 安装、编写、调试、复用、分享形成一条完整路径 | PR #27–#30 已合入 `main`；`cargo test --workspace --offline` 394 通过、0 失败、3 忽略 | 报告模式 CI（跑 GUIDE/README/METHODS 代码片段与全部示例）；同步分支 `cargo test --locked --workspace` 579 通过、0 失败、3 忽略 | 一页纸新开发者指南、诊断机读输出（JSON、编号化运行期错误）|
+| 层 | 应负责什么 | 当前状态（本仓库 `main`） | 只是裁定、任何分支都未造 |
+|---|---|---|---|
+| 源码与前端 | 人能写、拆分、导入程序，错误能定位到源码 | 独立语法、解析、检查、解释执行、多文件示例；前端直接降到中间表示（`jpp-frontend` 改名 `jpp-syntax`），检查器抽成独立层 `jpp-check` | — |
+| 共同语义与内核 | 问题、读数、方法、未决和外部效应在组合后仍有明确含义 | 高阶方法、动态问题、部分结果与续接、题成为一等值、三路过滤/配对/聚合/迭代、组合封闭性契约、值级 taint、中间表示层 `jpp-ir`、来源边分种类（值依赖/选择依赖，B92）、类型化程序入口与 `entry_hash` | 作者声明策略线 `declare:{hi, lo?}`（B128–B130）与宿主接受门（施工步 20j-1 进行中） |
+| 执行系统 | 根据依赖运行，批量判断，记录成本与结果，恢复计算 | 惰性判断、同状态融合、预算耗尽降级而非停机（B93）、账本 v3（`jpp-ledger`：`CalibUsed` 条目、`calib_ref` 留位、v2 迁移）、批调度、按窗口发出一层、端口内并发 | 真机跨端口并发调度（端口内已并发，跨端口调度仍是后续工作） |
+| 能力适配与反馈 | 同一程序使用真实判断、生成、工具与回应，并接收可用反馈 | 真实 JEV client（`--backend live`）、后端注册表与替身判断器（步 15g）、`calib-import` 真值通道、拆分样本两侧认证、**固定序/序贯认证方法已上线**（B104/B87，正式档门槛大幅下降）、试用档校准等级、逐出口记线等级、真机默认必须带能力画像、验收仪表脚本、`calib-import --cost` 动作空间代价线 | 首批共享题式库落地后新题 0 行校准（`bank/` 已有 5 条示例条目，规模仍小） |
+| 方法库 | 用少量构造写出很多算法；算法可以接收和返回方法 | 组合示例、小型源码库；三路过滤、配对、聚合已是可复用构造，`tally`/`first_k` 共用 `compose`/`element` 合成路径 | 锦标赛/搜索骨架 |
+| 交付与工具 | 安装、编写、调试、复用、分享形成一条完整路径 | PR #27–#30 及今天的架构重构与后续一整天工作已合入 `main`；`cargo test --locked --workspace` **884 passed, 0 failed, 9 ignored**；报告模式 CI（GUIDE/README/METHODS 代码片段与全部示例） | 一页纸新开发者指南、诊断机读输出（JSON、编号化运行期错误，`diag_json` 已有基础，尚未成篇） |
 
 ### 最小构造不是把所有东西叫成"一个单元"
 
@@ -49,7 +49,7 @@ flowchart TB
 |---|---|---|
 | 材料与状态 | 材料及上下文 → 本次判断的输入 | 可以由前一段计算产生，供不同问题使用 |
 | 问题 | 判、选、量的题面与配置 → 问题值 | 可以传递给方法，并按运行中的结果构造下一题 |
-| 判断与桥 | 状态 + 问题 → 读数 → 接受、忽略、选择、刻度或未决出口 | 出口控制后续计算；出口带着自己背后的证据等级（正式/试用/借用/仅夹具/无） |
+| 判断与桥 | 状态 + 问题 → 读数 → 接受、忽略、选择、刻度或未决出口 | 出口控制后续计算；出口带着自己背后的证据等级（正式/固定序/试用/借用/仅夹具/无） |
 | 方法 | 输入、捕获的环境与其他方法 → 结果或新方法 | 简单方法与复合方法都能继续作为参数或返回值 |
 | 部分结果与续接 | 已知结果 + 剩余问题 → 当前可用部分及后续计算 | 调用者使用已知部分，另一个策略继续剩余部分 |
 | 外部效应 | 判断、生成、动作或请求 → 观察、材料、执行结果或等待状态 | 结果回到程序，成为新的输入；实际发生的调用由运行系统记录 |
@@ -61,67 +61,67 @@ flowchart TB
 | 原计划 | 当前到哪里 | 已产生的效果 | 剩余重点 |
 |---|---|---|---|
 | 1. 源码到运行 | **已完成，稳定** | `.jpp` 经解析、检查，由 Rust 实际执行 | 随后续能力补齐文法与诊断 |
-| 2. 方法与结果组合 | **主要路径已跑通** | 方法可传递和返回；问题可动态产生；部分结果可续接；集合级构造（过滤/配对/聚合/迭代）已可复用 | 搜索与分治骨架、跨算法复用样本仍少 |
-| 3. 外部能力与生命周期 | **已接通，但可用性受校准门槛限制** | 真实后端、账本、预算、重放、校准真值通道都已实现；单靠正式档门槛，一道新题要约 160 条标注才有第一个已决出口；试用档已在同步分支造出，降低了这道门槛的一部分 | 固定序/序贯认证（把门槛压到约 60 条）已裁定、待写入代码；真机并发 |
-| 4. 可复用程序与基础优化 | **局部实现** | 小型源码库、等价写法核对（防止同一程序两种写法调用数相差十几倍）已有 | 共享题式库、锦标赛/搜索骨架 |
-| 5. 整版交付 | **公开快照已随日推进，架构重构在待合入的同步分支** | PR #27–#30 已合入 `main`；文档同步到 09-24 | 同日架构重构（3 拆 10 crate，上限 11）在 `sync/2026-09-24-architecture` 分支待审核合入；发行画像、可安装包 |
+| 2. 方法与结果组合 | **主要路径已跑通** | 方法可传递和返回；问题可动态产生；部分结果可续接；集合级构造（过滤/配对/聚合/迭代）已可复用，`tally`/`first_k` 共用合成路径 | 搜索与分治骨架、跨算法复用样本仍少 |
+| 3. 外部能力与生命周期 | **门槛这一层已解除，可用性仍受三条验收数字限制** | 真实后端、账本 v3、预算降级而非停机、重放、校准真值通道、固定序认证方法均已合入并上线；一道新题不再必须约 160 条标注才有第一个已决出口 | 真机跨端口并发；作者声明策略线（B128–B130）写进代码（步 20j-1） |
+| 4. 可复用程序与基础优化 | **局部实现** | 小型源码库、等价写法核对（防止同一程序两种写法调用数相差十几倍）已有；共享题库雏形（`bank/`，5 条示例） | 共享题式库规模化、锦标赛/搜索骨架 |
+| 5. 整版交付 | **公开快照按日推进，今天并入了此前"待合入"的整套架构重构** | PR #27–#30、今日架构重构（crate 由 3 拆至 10：`jpp-core`+`jpp-cli` 合并改名 `jpp`，解释器独立成 `jpp-runtime`，上限 11）、固定序认证、预算降级、账本 v3、库层合成、一批静态检查均已合入 `main` | 作者声明线代码化；发行画像、可安装包 |
 
-当前最准确的定位是：**独立语言的执行基础与真实后端已经打通，第 3 步的"可用性"受制于校准门槛，这是本轮设计工作的重点；第 4、5 步在它之后。**
+当前最准确的定位是：**独立语言的执行基础、真实后端与便宜认证路径已经打通；第 3 步不再受校准门槛卡住，重点转向第 4、5 步与三条验收标准本身的数字。**
 
 ## 4. 最近的工作产生了什么效果，发现了什么问题
 
 ### 已跑通的行为（合入 `main`）
 
-PR #27–#30 把研究树的运行时增量、构造施工、真实后端、题式级校准、规则批（夹具线不放行、漂移自动标记、合并读数禁众数、判断力缺席处理、`unsure` 具名原因）与值级 taint 全部带进公开仓库。`cargo test --workspace --offline`：**394 通过、0 失败、3 忽略**。这些修复的价值是让"组合后仍保留原来的含义"更可靠，也堵上了两类放行方向缺陷（推测执行越过用户函数提前跑 `do`；不可信内容经拼接/join 被洗白）。
+PR #27–#30 把研究树的运行时增量、构造施工、真实后端、题式级校准、规则批与值级 taint 带进公开仓库；今天（9 月 25 日）的每日同步把此前称为"同步分支待合入"的整套架构重构（crate 合并改名为 `jpp`、解释器独立为 `jpp-runtime`）连同其后一整天的工作一起并入：账本 v3、类型化程序入口（`--input-trusted`）、数值提升、预算耗尽降级而非停机（B93）、按窗口发出与端口内并发、库层合成 `compose`/`element`、七项静态检查（研究步 24a–24g）、`calib-import --cost` 动作空间代价线，以及本条目标题里的固定序/序贯认证方法本身（B104/B87，研究步 20h-1/20i：80 条盲复核零分歧后正式上岗）。`cargo test --locked --workspace`：****884 passed, 0 failed, 9 ignored****。
 
-### 9 月 24 日的核心发现：接上真机之后才看见的门槛
+### 9 月 24 日发现的门槛，9 月 25 日的处理结果
 
-真实后端接通后，任何没有校准记录的新题一律返回 `Unsure(cold)`——读数本身是对的，但出口拿不到已决结果，链式程序在第一层就停住。一道题要有一条正式档的线，需要约 160 条带真值标注；偏语义的题式要 200 条以上且不保证。这是这门语言「便宜判断 + 校准阈值决定动作」这套机制本身的使用门槛。一次独立复核（阶段评估）发现：内核语义在受控测试下成立，但现在还没有在真实后端上产生效果——三条验收标准（表达量比、深度、换判断器）目前都只有部分或没有真机证据。
+真实后端接通后，9 月 24 日发现任何没有校准记录的新题一律返回 `Unsure(cold)`，一道题要约 160 条带真值标注才能认证出一条正式档的线。今天，固定序认证方法（对齐同一顺序的序贯候选、保证随机到达与标签无关）把这个门槛压低，并已完成 80 条盲复核零分歧的验证后上岗——不是又一轮设计裁定，是代码、测试与真机验证都已经落地。这不等于三条验收标准达标：详见下一节。
 
-### 针对这个问题做的三件设计工作（细节见对应更新文档）
+### 表达量比：量法修正之后，数字仍然不达标
 
-1. **验收仪表七项 + 表达量比的量法修正。** 过去表达量比对照的 9–20 倍参考带其实只适用于手写基线也要自己实现审计、预算、合批、认证线这四件事的任务书；早期任务书让基线跳过了这些，比值自然只有 2 倍左右。任务对照现在分 T0（只写功能）/ T1（加四件事）两档，并把行数比改成按折行宽度归一后再算。仪表脚本与第一次两档多实现测量都已在研究工作区跑过：表达量比 T1 4.97×、T0 1.36×，都低于参考带；当天诊断（裁定 B96）查出 T1 读数里约 0.9–1.6 倍来自量法，纠正后约 4.1×（全部实现）、3.4×（只算通过验收的），按新口径的重测（步 31-1b）正在进行。其余六项的读数：探针 2–5 倍、评估试写 1.2–1.5 倍、真机新题已决出口占比 0.255（14/55，含此前全冷的运行）、固定观察下一/二/三跳判断数 22/12/4；仪表七项现在全部有数。详见[验收仪表与表达量参考系](updates/2026-09-24-dashboard-and-expressiveness-reference.md)。
-2. **试用档校准等级，解除真机全冷的问题。** 比正式档门槛低得多的样本量即可认证出一条试用线：能分派路由，但明确不许放行不可逆动作，且已在同步分支造出。真机测试中，一个两层链式程序第一次拿到全部已决出口、第一次真机走到第二层。详见[真机试用档校准线](updates/2026-09-24-live-trial-lines.md)。
-3. **把 160 条标注门槛本身降下来。** 拆解发现门槛里约一半是固定随机种子把样本切分不均造成的意外，不是真正要求；改用文献标准的固定序检验方法（离线用现有标注数据零成本验证过），可以把门槛降到约 60 条，安全边界不变。这项方法改动只写成了设计裁定，还没有实现进代码。详见[压低标注门槛](updates/2026-09-24-labeling-threshold.md)。
+步 31-1b（B96 裁定）把 T1 的逐点打分改成留出集、按性质验收，并对每个实现重新跑了第二套基线（十份新基线九份第一次验收就过）。结果：只计通过新验收方法的实现 3.69×，计入全部实现 4.48×，按旧冻结打分法（`t1-strict`）4.97×——都远低于 9–20× 的参考带，而且这次的读数不能直接和上一版本地图写的"约 4.1×/3.4×"比较，因为验收方法本身换了。深度证据仍是固定观察下的跳数分布（一/二/三跳 22/12/4 个判断），真机深度曲线还没测。换后端仪表项（`profile_swap`，8 条追踪假设）按黑板记录的最近一次读数是 1/8 全过；后续步骤又摘掉 4 组假设的 `ignore`，但还没有重新跑仪表脚本确认新分数，这里不做未经验证的声称。
 
-第 2 项（试用档校准、逐出口记线等级、真机必须带画像）已经造出，代码与同一天的架构重构（内核从 3 个 crate 拆到 10 个，上限 11）一起在同步分支 `sync/2026-09-24-architecture` 上，待审核后推送合入。第 3 项（固定序/序贯认证方法、范围扩展修法）只写进了设计裁定，任何分支都还没有代码。
+### 今天新增的裁定，还没有代码
+
+作者主权与策略表达一批（B128–B130）：作者可以在 `cut` 上直接写 `declare:{hi, lo?}` 作为明说的策略线，按写的数字原样用、不写进校准库；放行不可逆 `do` 的声明线需要宿主显式接受。论证见 `地基/附注/2026-09-25-作者主权与策略表达裁定.md`；把它接进代码的施工步 20j-1，截至本次同步仍是进行中的 worktree 分支。
 
 ## 5. 旧设计怎样进入新实现
 
-现行依据继续是 [12：IR 与类契约](../research/地基/12-IR与类契约-v0.1.md) 和 [13：Rust 实践修订](../research/地基/13-Rust实践反馈设计修订-v0.2.md)，加上 9 月 23–24 两天新写入的一批裁定（校准键改为题式主键、值级 taint 契约、组合封闭性契约、校准等级分档等）。
+现行依据继续是 [12：IR 与类契约](../research/地基/12-IR与类契约-v0.1.md) 和 [13：Rust 实践修订](../research/地基/13-Rust实践反馈设计修订-v0.2.md)（今天的每日同步也第一次把 [19：Nature 决策单](../research/地基/19-Nature决策单-2026-09.md)、[20：架构方案](../research/地基/20-架构方案-v2.md)、[21：工程方案](../research/地基/21-工程方案-v1.md) 等此前从未同步过的编号文本带进了 `research/地基/`），加上持续新写入的一批裁定（校准键改为题式主键、值级 taint 契约、组合封闭性契约、校准等级分档、固定序认证、预算降级、库层合成、作者声明线等）。
 
 | 原设计要求 | 现行分层中的位置 | 本轮确认的缺口 |
 |---|---|---|
 | 材料按判断分为接受、忽略、未决 | 判断/桥 + 三路过滤构造 | 已交付：`sieve` 直接吃题、三流出口，产物可再过滤 |
 | 两组材料计算关系、构造组合 | 枚举/召回 + 关系问题 + 配对方法 | 已交付：`pair` 构造 |
-| 集合上的存在、全称、计数区间、排序 | 集合聚合库 | 已交付：`tally`/`first_k`（计数区间、存在/全部三值出口）；搜索/锦标赛骨架仍缺 |
+| 集合上的存在、全称、计数区间、排序 | 集合聚合库 | 已交付：`tally`/`first_k`（计数区间、存在/全部三值出口，共用 `compose`/`element`）；搜索/锦标赛骨架仍缺 |
 | 反馈、分治、搜索、选择策略 | 普通控制流 + 高阶方法 + 库骨架 | 有个别程序；跨算法可复用的完整方法集仍不足 |
-| 线不能由程序自己写，只能来自带真值样本 | 校准子系统（真值通道、两侧拆分认证） | 已交付并接通真机；样本门槛过高是新发现的问题——试用档已造出（同步分支待合入），能大幅压低门槛的固定序/序贯认证方法已裁定未实现 |
+| 线不能由程序自己写，只能来自带真值样本 | 校准子系统（真值通道、两侧拆分认证、固定序认证） | 已交付并接通真机，门槛已大幅下降；作者声明策略线是这条规则内一个明说的例外（宿主须显式接受才能放行不可逆动作），代码待 20j-1 |
 
 ## 6. 下一段怎样做，才能形成一个完整版本
 
-**A．把已经造出的架构重构与试用档校准并入本仓库。** 同一天的 crate 拆分（3 拆 10，上限 11）、试用档校准等级、逐出口记线等级、真机必须带画像的规则、验收仪表脚本都已在同步分支 `sync/2026-09-24-architecture` 上测试通过（579 通过、0 失败、3 忽略），待审核后推送、开 PR、按依赖顺序合入，同时保持公开侧已有的审查修复不被覆盖。
+**A（已完成）～把架构重构、固定序认证与预算降级并入本仓库。** 这一项在上一版地图里是"待合入"，今天已经完成：crate 拆分与合并、固定序/序贯认证方法、预算耗尽降级、账本 v3、库层合成、静态检查批、端口内并发全部在 `main` 上测试通过。
 
-**B．把固定序/序贯认证方法写进代码。** 这一项与 A 不同：A 是把已经造出的代码合并进来，这一项是先把已裁定但尚未实现的固定序检验方法、序贯变体、范围扩展修法写成代码，再合入。写完之后，"新题可用"的成本会从约 160 条标注降到约 60 条，这是当前对用户体验影响最大的一段。
+**B．把作者声明策略线（B128–B130）写进代码。** 施工步 20j-1：`cut` 上的 `declare:{hi, lo?}`、宿主接受门（`--release-on-declared` / `EntryArgs.accept`）、报告里的证据量列表。这是今天唯一"只裁定、没有代码"的一等公民机制。
 
-**C．按纠正后的口径重测表达量比，并每次公开全部仪表读数。** 七项读数已经在研究工作区跑出并在本次公开，其中表达量比 T1 4.97×、T0 1.36×，纠正两处量法问题后约 4.1×（全部实现）、3.4×（只算通过验收的），离 9–20× 的参考带还远。按新口径的重测（步 31-1b）正在进行；之后每次跑仪表都连同全部读数一起公开。
+**C．按纠正后的口径继续重测表达量比，并每次公开全部仪表读数。** 步 31-1b 的性质验收读数（3.69×/4.48×/4.97×）已经是本次公开的最新数字，仍远低于 9–20× 的参考带；换后端仪表项（1/8，另有 4 组待重新验证）与深度证据（仅跳数分布）同样需要下一轮真机测量。
 
-**D．继续扩大集合级方法库与真实场景验证。** 优先沿用通爻的真实问题：输入需求和若干参与者材料，程序提出关系，构成候选组合。目前已有 Python 应用探索，完整原生 J++ 路径仍待实现。
+**D．继续扩大集合级方法库与真实场景验证。** 优先沿用通爻的真实问题：输入需求和若干参与者材料，程序提出关系，构成候选组合。共享题库（`bank/`）已有 5 条示例条目起步；完整原生 J++ 路径与规模化的题库仍待实现。
 
 交付衡量围绕四件事：新作者能否用已有构造写出新程序；加入第二种算法是否少写了重复协调代码；换策略后重要差异是否仍然可表达；真实运行在同等目标下的质量、调用、等待和费用怎样变化。
 
-完整版本的最低使用路径是：**安装 → 自己写源码 → 导入现成方法 → 标一批真值、拿到可用校准线 → 使用真实能力 → 得到结果或可继续处理的未决 → 查看记录并继续运行。**
+完整版本的最低使用路径是：**安装 → 自己写源码 → 导入现成方法 → 标一批真值、拿到可用校准线（固定序方法降低了这一步的成本）→ 使用真实能力 → 得到结果或可继续处理的未决 → 查看记录并继续运行。**
 
 ## 7. 研究、公开代码与协作位置
 
-主分支 `main` 已包含 PR [#27](https://github.com/Towow-ai/jpp/pull/27)、[#28](https://github.com/Towow-ai/jpp/pull/28)、[#29](https://github.com/Towow-ai/jpp/pull/29)、[#30](https://github.com/Towow-ai/jpp/pull/30)。`cargo test --workspace --offline`：394 通过、0 失败、3 忽略。研究树今天（9 月 24 日）的架构重构与试用档校准工作在同日同步分支 `sync/2026-09-24-architecture` 上（同步到研究树提交 `9716e61b`，`cargo test --locked --workspace` 579 通过、0 失败、3 忽略），待审核后推送并合入，与本仓库测试数、crate 数不是同一个基线；固定序/序贯认证方法则只有设计裁定，任何分支都还没有代码。下次同步应按依赖顺序整理后再合，且保留公开侧已有的审查修复。
+主分支 `main` 已包含 PR [#27](https://github.com/Towow-ai/jpp/pull/27)、[#28](https://github.com/Towow-ai/jpp/pull/28)、[#29](https://github.com/Towow-ai/jpp/pull/29)、[#30](https://github.com/Towow-ai/jpp/pull/30)，以及 2026-09-25 每日同步（研究树提交 `85e28bfc`，取代此前"同步分支待合入"的 `9716e61b` 基线）。`cargo test --locked --workspace`：**884 passed, 0 failed, 9 ignored**。作者声明策略线（B128–B130，施工步 20j-1）是当前唯一只有设计裁定、任何分支都还没有代码的一等机制。下次同步继续按依赖顺序整理后再合，且保留公开侧已有的审查修复（参见 `rust/PUBLIC-SNAPSHOT.md` 的改写记录）。
 
-沿用职责：主要 Rust 内核、适配与运行时实现在研究树完成、按依赖顺序同步进本仓库；前端、源码库、使用路径、文档按已认领的工作包衔接；关键设计裁定（如今天的校准等级分档、认证方法改动）由独立评审给出，写入依据文本后排期实现。
+沿用职责：主要 Rust 内核、适配与运行时实现在研究树完成、按依赖顺序同步进本仓库；前端、源码库、使用路径、文档按已认领的工作包衔接；关键设计裁定（如今天的作者主权与策略表达）由独立评审给出，写入依据文本后排期实现。
 
 ## English summary
 
-J++ now has independent `.jpp` source, a working Rust interpreter, and a real JEV backend wired through a calibration pipeline. PRs #27-30 merged into `main` today (2026-09-24): the live backend, first-class questions, the sieve/pair/tally/iterate construct family, the composition-closure contract, value-level taint, and a five-item rule batch. `cargo test --workspace --offline`: 394 passed, 0 failed, 3 ignored.
+J++ now has independent `.jpp` source, a working Rust interpreter, a real JEV backend wired through a calibration pipeline, and -- as of today's sync -- a fixed-sequence certification method that is live, not just designed: it cuts the labeled-evidence threshold for a formally certified line by aligning sequential candidates to a shared ordering and keeping random arrival label-independent, validated with an 80-row blind review at zero disagreements before going into service (ruling B104/B87, research steps 20h-1/20i). Today's daily sync also folds in everything the previous map called "on a same-day branch, pending review": the kernel-crate consolidation (`jpp-core` and `jpp-cli` merged and renamed to `jpp`; the interpreter split out into its own crate, `jpp-runtime`; 10 crates total, capped at 11), ledger v3, typed program entry, budget exhaustion that degrades at the next refresh point instead of halting (ruling B93), in-port concurrency, a shared `compose`/`element` synthesis path for `tally`/`first_k`, and seven static-check additions. `cargo test --locked --workspace`: **884 passed, 0 failed, 9 ignored**.
 
-The headline finding from today's work: once connected to the real backend, every new question without a certified calibration threshold returns an explicit undecided outcome, and getting a threshold at the existing formal safety bar takes roughly 160 labeled examples. An independent review found the kernel's semantics hold under controlled tests but had not yet produced an effect on the live backend, against the project's three acceptance criteria (shorter to write, how deep a judgment chain runs, swapping the backend without changing the program) -- each currently has partial or no live evidence. Three pieces of design work responded: a two-tier task methodology that corrected how the expressiveness ratio is measured against its 9x-20x literature target, with a first multi-implementation measurement run in the research workspace (T1 4.97x and T0 1.36x; about 4.1x over all implementations and 3.4x over passing ones after correcting two measurement artifacts, with a re-measurement in progress), and all seven dashboard items now read; a looser "trial" calibration tier, along with per-exit line-grade reporting and a required-profile rule, that unblocked a two-layer program on the live backend for under a fifth of a cent; and an analysis that found a path to cut the labeling requirement to about 60 examples by replacing a costly split-sample certification method with a literature-standard fixed-sequence method, validated for free against existing data. The trial-calibration work is built, on the same-day sync branch `sync/2026-09-24-architecture` (synced through research-tree commit `9716e61b`; `cargo test --locked --workspace`: 579 passed, 0 failed, 3 ignored), pending review before being pushed and merged. The fixed-sequence/sequential certification method and a related scope-extension fix are written design decisions only; neither is built in any branch yet. The same-day architecture refactor (3 kernel crates to 10, with a ruled cap of 11, and a rebuilt intermediate representation and ledger format) is on that same sync branch.
+None of this moves the project's three acceptance numbers into their reference bands yet. A re-measurement of the expressiveness ratio (step 31-1b, ruling B96) replaced point-based grading with a held-out property check and reads T1 at 3.69x counting only implementations that pass the new check, 4.48x counting all implementations, and 4.97x under the old frozen grading kept for comparison -- all well below the 9x-20x literature band, and not directly comparable to the previous map's ~4.1x/~3.4x because the acceptance method itself changed. Depth evidence is still a fixed-observation hop distribution only (22/12/4 judgments at hops one/two/three). Backend interchangeability last read 1 of 8 tracked hypotheses fully passing, with 4 more hypothesis groups un-ignored since but not yet re-run through the dashboard. One design decision from today has no code anywhere: author-declared policy lines (`declare:{hi, lo?}` on a `cut`, ruling B128-B130) are ruled but not built; the construction step, 20j-1, is an active work-in-progress branch.
 
-The next steps are to push and merge the sync branch's already-built work in dependency order, implement the fixed-sequence/sequential certification method and merge it separately, and re-measure the expressiveness ratio under the corrected accounting (step 31-1b); the current corrected reading, about 3.4x-4.1x, is well below the 9x-20x target band.
+The next steps are: build the author-declared-line construction step (20j-1); keep re-measuring the expressiveness ratio, depth curve and backend-swap fraction under the corrected/current methods and publish every dashboard reading as it lands; and continue growing the shared question-bank and method library toward a real-scenario application.

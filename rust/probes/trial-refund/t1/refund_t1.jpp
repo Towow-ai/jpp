@@ -8,35 +8,21 @@ budget {calls: 40, cost: 0.05, depth: 256};
 let refund = test("这段客服对话里，顾客是否明确提出要退款或退钱？", "cs-refund");
 let heated = test("这段客服对话里，顾客的措辞是否情绪激烈（例如愤怒、威胁投诉或曝光、连续质问）？", "cs-heated");
 
-let chats = [
-    "顾客：我上周买的耳机左边没声音了。客服：抱歉，可以为您安排换货。顾客：好的，那就换一个吧。",
-    "顾客：这什么破东西！用了三天就坏了，我要退款，现在就退！客服：非常抱歉，我马上为您登记。顾客：别跟我说抱歉，钱什么时候到账？",
-    "顾客：请问订单什么时候发货？客服：预计明天发出。顾客：好的谢谢。",
-    "顾客：我要退款。客服：请问是什么原因呢？顾客：尺码不合适，麻烦按流程退一下就行。客服：好的，已为您提交。",
-    "顾客：你们这是诈骗吧？说好的赠品呢？我要投诉到消协！客服：抱歉给您带来困扰，赠品会补发。顾客：我不要补发，我要曝光你们！",
-    "顾客：快递显示签收了但我没收到。客服：我们联系快递核实。顾客：行，麻烦尽快。",
-    "顾客：我已经等了两个星期了，客服换了三个人都没解决，退款！立刻！客服：实在抱歉，我现在就为您处理退款。顾客：你们效率太差了。",
-    "顾客：这个价格能再便宜点吗？客服：目前是活动价，暂时不能再优惠。顾客：那算了。",
-    "顾客：收到的商品有划痕，我想退掉。客服：可以的，您申请退货退款即可。顾客：好，我这就申请。",
-    "顾客：你们的售后态度太差了，我要找你们经理！客服：抱歉，我记录下来并反馈。顾客：反馈有什么用？我要的是解决问题！"
-];
-
 // 第一层：谁要退款
-let asked_refund = sieve(chats, refund);
+let asked_refund = sieve(input.chats, refund);
 // 第二层：只对要退款的对话问情绪；第一层的未决随包带进来
 let heated_refund = sieve(asked_refund, heated);
 let count = tally(heated_refund);
 
 fn idx(xs) { map(xs, fn(e) { e.index }) }
 
-// 第二层元素的 index 是第二层输入里的位置；原始位置在 source.index（第一次写成 e.index，输出的编号对不上）
-{urgent: map(accepted(heated_refund), fn(e) { {index: e.source.index, chat: e.item} }),
- refund_calm: map(ignored(heated_refund), fn(e) { {index: e.source.index, chat: e.item} }),
+// 元素的 index 跨层不变，是原始对话编号（B81，步 25-0）
+{urgent: map(accepted(heated_refund), fn(e) { {index: e.index, chat: e.item} }),
+ refund_calm: map(ignored(heated_refund), fn(e) { {index: e.index, chat: e.item} }),
  no_refund: idx(ignored(asked_refund)),
  // 拿不准的对话交给人工复核：原因写明是哪一层
- review: map(undecided(heated_refund), fn(p) { {index: p.element.index, cause: p.cause} }),
+ review: map(undecided(heated_refund), fn(p) { {index: p.index, cause: p.cause} }),
  urgent_count: count.value.count,
  // T1 (b)：预算停下时没问到的对话，两层各自的 unobserved，编号回到原始对话编号
- unobserved: concat(idx(unobserved(asked_refund)), map(unobserved(heated_refund), fn(p) { p.element.source.index })),
- spent: {layer1: asked_refund.spent, layer2: heated_refund.spent},
+ unobserved: idx(concat(unobserved(asked_refund), unobserved(heated_refund))),
  pending: count.pending}

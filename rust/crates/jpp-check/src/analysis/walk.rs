@@ -78,25 +78,44 @@ pub(crate) fn is_builtin(n: &str) -> bool {
 }
 
 /// 这个内置调用会发生哪种效应
+///
+/// 效应本身读注册表（步 15a，`20` A2）：进效应行的效应（`EffectSpec.in_effect_row`）即它自己。
+/// 另有三个构造与消费形式隐含效应：`sieve`、`literalize` 发判断，`escalate` 发问人；它们按
+/// 所隐含效应的字段（产出读数 / 输出是人的回答）从注册表取名，不在这里写效应名。
 pub(crate) fn builtin_effect(n: &str) -> Option<&'static str> {
+    use jpp_effects::{ALL, OutputShape, spec};
+    if let Some(s) = jpp_effects::by_name(n) {
+        return s.in_effect_row.then_some(s.name);
+    }
+    let implied = |f: fn(&jpp_effects::EffectSpec) -> bool| {
+        ALL.into_iter().map(spec).find(|s| f(s)).map(|s| s.name)
+    };
     match n {
-        "judge" | "literalize" | "sieve" => Some("judge"),
-        "ask" | "escalate" => Some("ask"),
-        "gen" => Some("gen"),
-        "do" => Some("do"),
+        "literalize" | "sieve" => implied(|s| s.produces_reading),
+        "escalate" => implied(|s| s.output_shape == OutputShape::Answer),
         _ => None,
     }
 }
 
 /// 高阶内置里哪一位收方法
-pub(crate) fn method_positions(builtin: &str) -> &'static [usize] {
+///
+/// 效应的方法位读 `EffectSpec.input_schema` 里种类为 `Fn` 的槽（步 15a，`20` A2）；其余是构造与宿主内置。
+pub(crate) fn method_positions(builtin: &str) -> Vec<usize> {
+    if let Some(s) = jpp_effects::by_name(builtin) {
+        return s
+            .input_schema
+            .iter()
+            .enumerate()
+            .filter(|(_, d)| d.kind == jpp_effects::SlotKind::Fn)
+            .map(|(i, _)| i)
+            .collect();
+    }
     match builtin {
-        "map" | "filter" => &[1],
-        "fold" | "loop" => &[2],
-        "iterate" => &[2, 3],
-        "pair" => &[2],
-        "transform" => &[0],
-        _ => &[],
+        "map" | "filter" => vec![1],
+        "fold" | "loop" => vec![2],
+        "iterate" => vec![2, 3],
+        "pair" => vec![2],
+        _ => vec![],
     }
 }
 

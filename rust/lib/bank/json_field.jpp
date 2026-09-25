@@ -1,0 +1,5 @@
+// 题库条目 json_field（首批 F1，属性 · 单对象 · 真值可算）。
+// 条目说明：bank/entries/ceb097176786d327fe1a0ba3/条目.md；规范：地基/题库/规范.md。
+// 模板、calib 标签与认证程序逐字相同，改一个字即新题式（新 form_hash），旧记录不适用。
+// calib 写校准类别标签（B34），线只来自条目目录里的校准记录（J-03）。
+let json_field = form("test", "这个 JSON 是否有字段 {F}？（字段名必须完全一致）", {calib: "bank-l2-json-field"});

@@ -30,6 +30,19 @@ pub fn print(p: &Program, annot: Option<&AnnotTable>) -> String {
             ))
             .unwrap_or_else(|| "-".into())
     );
+    // 入口声明（B106）：空时不打印，无入口程序的 `ir.txt` 不变
+    if !p.entry.is_empty() {
+        let ps: Vec<String> = p
+            .entry
+            .params
+            .iter()
+            .map(|e| {
+                let k = format!("{:?}:{:?}", e.kind, e.taint).to_lowercase();
+                format!("{}:{k}", e.name)
+            })
+            .collect();
+        let _ = writeln!(w.out, "entry {}", ps.join(" "));
+    }
     w.block(&p.body, 0);
     let _ = writeln!(w.out, "sites {}", p.sites.sites.len());
     for s in &p.sites.sites {

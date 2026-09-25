@@ -1,0 +1,26 @@
+// 试写 1（阶段评估 ①，Fable，2026-09-24）：从一批客服对话里找出「要求退款且情绪激烈」的对话。
+// 探针副本（步 14b-0）：由 评估/2026-09-24-试写/ 下同名程序复制，材料改经 `jpp run --input baseline/materials.json` 交给程序（名字 input，不可信材料）；原件留作评估记录与真机账本的重放源。
+// 只用公开面（README、INTERFACE.md、lib、examples）写成。两道是非题串成两层：
+// 第一层筛「要求退款」，第二层只对第一层接受的对话问「情绪激烈」。
+// 未决随契约值转交（J-05）；两层各自的未决合在最终 pending 里。
+import "../../lib/outcome.jpp";
+budget {calls: 40, cost: 0.05, depth: 256};
+
+let refund = test("这段客服对话里，顾客是否明确提出要退款或退钱？", "cs-refund");
+let heated = test("这段客服对话里，顾客的措辞是否情绪激烈（例如愤怒、威胁投诉或曝光、连续质问）？", "cs-heated");
+
+// 第一层：谁要退款
+let asked_refund = sieve(input.chats, refund);
+// 第二层：只对要退款的对话问情绪；第一层的未决随包带进来
+let heated_refund = sieve(asked_refund, heated);
+let count = tally(heated_refund);
+
+// 元素的 index 跨层不变，是原始对话编号（B81）；元素本身带 item、exit、cause
+{urgent: accepted(heated_refund),
+ refund_calm: ignored(heated_refund),
+ no_refund: map(ignored(asked_refund), fn(e) { e.index }),
+ // 拿不准的对话交给人工复核：条目本身带出口，整体返回即转交（J-05，B81 (c)）
+ review: undecided(heated_refund),
+ urgent_count: count.value.count,
+ // tally 的聚合出口拿不准时，元素责任并进聚合出口，要随返回值交出（真机冷线下成立）
+ pending: count.pending}

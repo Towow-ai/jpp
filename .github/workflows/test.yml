@@ -10,9 +10,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo test --locked --workspace
         working-directory: rust
-      - run: cargo run --locked -p jpp-cli -- run examples/adaptive.jpp --fixtures examples/fixtures/adaptive.json
+      - run: cargo run --locked -p jpp -- run examples/adaptive.jpp --fixtures examples/fixtures/adaptive.json
         working-directory: rust
-      - run: cargo run --locked -p jpp-cli -- run examples/partial.jpp --fixtures examples/fixtures/partial.json
+      - run: cargo run --locked -p jpp -- run examples/partial.jpp --fixtures examples/fixtures/partial.json
         working-directory: rust
   rust-checks:
     # 研究树 scripts/ci.sh 的公开子集（rust/scripts/ci_public.sh）：fmt、clippy、依赖表、行数与 grep 类检查、

@@ -29,6 +29,12 @@
   排版差异   = 原始行数比与 token 比相差超过 1.5 倍（大比小）时置 `layout_flag`
 参考带：折行归一与口径一对 9–20（专用语言档，只算专用语言文本）；口径二对 3.5–4.6（计入生成器或胶水代码）。
 
+两档三口径（B79、B96）：T0 最小任务书；T1 完整职责任务书（判定档，(d) 为性质验收）；`t1-strict` 是步 31-1 的
+旧 T1 基线（(d) 按 `calib-import` 逐位复刻），只报不判，J++ 侧与 T1 同一批程序。
+「全部实现」与「只计验收全过」两个中位并列（B96）：后者两侧只取验收全过的实现（冻结不跑的实现按 measure.toml 的
+`frozen_ok`，即冻结前的记录），某项目任一侧没有通过的实现即不进后者；T1 的位置判定用后者。
+「J++ 侧无通过实现的项目」单列。
+
 位置（§六·2 判定规则，B80 改用折行归一中位数）：< 9 低于该档，9–20 达到该档，> 20 高于该档；
 口径二中位数低于其带下沿、而口径一中位数不低于其带下沿时，另标「胶水代码把倍率吃掉了」（只有这时低位才归因于胶水）。
 第一轮弱受控，只报位置不判通过。
@@ -147,7 +153,13 @@ def projects() -> list:
     return sorted(p.parent.name for p in PROBES.glob("*/measure.toml"))
 
 
-TIER_BAND = {"t0": "t0_band", "t1": "caliber1_band"}   # T0 对 LMQL 带，T1 对 9–20 带（B79）
+TIER_BAND = {"t0": "t0_band", "t1": "caliber1_band", "t1-strict": "caliber1_band"}   # T0 对 LMQL 带，T1 对 9–20 带（B79）
+TIERS = ("t1", "t1-strict", "t0")
+
+
+def jpp_tier(tier: str) -> str:
+    """J++ 侧实现所在的档：t1-strict 与 t1 用同一批 J++ 程序（只有基线侧的 (d) 口径不同）。"""
+    return "t1" if tier == "t1-strict" else tier
 
 
 def jpp_impls(m: dict, tier: str) -> list:
@@ -155,27 +167,41 @@ def jpp_impls(m: dict, tier: str) -> list:
     j = m["jpp"]
     out = []
     if tier == "t0":
-        out.append({"source": j["source"], "run_dir": j.get("run_dir", "."), "data": j.get("data"),
+        out.append({"source": j["source"], "run_dir": j.get("run_dir", "."), "data": j.get("data"), "input": j.get("input"),
                     "coordination": j.get("coordination"), "author": "设计者", "projection": m["project"]["projection"],
                     "minutes": j.get("minutes")})
-    out += [x for x in j.get("impl", []) if x.get("tier", "t0") == tier]
+    out += [x for x in j.get("impl", []) if x.get("tier", "t0") == jpp_tier(tier)]
     return out
 
 
-def measure(project: str, calls: dict | None = None, tier: str = "t0") -> dict:
+def _ok_map(checks: dict | None) -> dict:
+    """check_tier 的结果 → {("jpp"|"base", 源文件相对项目目录): 是否全过}。"""
+    out = {}
+    for x in (checks or {}).get("jpp", []):
+        out[("jpp", x.get("source"))] = bool(x.get("ok"))
+    for x in (checks or {}).get("baselines", []):
+        out[("base", x.get("file"))] = bool(x.get("ok"))
+    return out
+
+
+def measure(project: str, calls: dict | None = None, tier: str = "t0", checks: dict | None = None) -> dict:
     """calls：{"jpp": n, "baseline": {文件: n}}（固定观察下的调用数）；缺省时不报调用数比。
-    tier：t0 或 t1。两侧都取该档全部实现的中位数（A-6 多实现）。"""
+    tier：t0、t1 或 t1-strict。两侧都取该档全部实现的中位数（A-6 多实现）；给了 checks（check_tier 的结果）时
+    另算「只计验收全过」（B96）。"""
     base, m = load(project)
     j = m["jpp"]
+    okm = _ok_map(checks)
     jl = []
     for x in jpp_impls(m, tier):
         f = (base / x["source"]).resolve()
         if f.exists():
             c = count_file(f, x.get("data"), x.get("coordination"))
-            c.update({"author": x.get("author", ""), "minutes": x.get("minutes")})
+            ok = bool(x.get("frozen_ok")) if x.get("redispatch") else okm.get(("jpp", x["source"]))
+            c.update({"author": x.get("author", ""), "minutes": x.get("minutes"),
+                      "redispatch": x.get("redispatch"), "ok": ok})
             jl.append(c)
     glue = []
-    extra = m.get("t1", {}).get("glue", []) if tier == "t1" else []
+    extra = m.get("t1", {}).get("glue", []) if tier in ("t1", "t1-strict") else []
     for g in j.get("glue", []) + extra:
         shared = bool(g.get("shared", False))
         if "file" in g:
@@ -195,7 +221,8 @@ def measure(project: str, calls: dict | None = None, tier: str = "t0") -> dict:
         if not f.exists():
             continue
         bc = count_file(f, b.get("data"), b.get("coordination"), b.get("runtime"))
-        bc.update({"author": b.get("author", ""), "minutes": b.get("minutes"), "passed": b.get("passed")})
+        bc.update({"author": b.get("author", ""), "minutes": b.get("minutes"), "passed": b.get("passed"),
+                   "ok": okm.get(("base", b["file"]))})
         impls.append(bc)
     out = {"project": project, "tier": tier, "original": m["project"]["original"], "shape": m["project"]["shape"],
            "control": m["reference"]["control"], "jpp_impls": jl, "glue": glue, "glue_lines": glue_lines,
@@ -235,6 +262,20 @@ def measure(project: str, calls: dict | None = None, tier: str = "t0") -> dict:
         if bc:
             out["calls"] = {"jpp": calls["jpp"], "baseline": calls["baseline"],
                             "ratio": round(statistics.median(bc) / calls["jpp"], 2)}
+    # B96：只计验收全过的实现（两侧各自过滤；任一侧为空则该项目不进这一口径）
+    if checks is not None:
+        jp = [x for x in jl if x["ok"]]
+        bp = [x for x in impls if x["ok"]]
+        out["jpp_pass_count"], out["baseline_pass_count"] = len(jp), len(bp)
+        if not jp:
+            out["passed_only"] = {"status": "J++ 侧无通过实现"}
+        elif not bp:
+            out["passed_only"] = {"status": "基线侧无通过实现"}
+        else:
+            pm = lambda xs, k: statistics.median(x[k] for x in xs)  # noqa: E731
+            out["passed_only"] = {"status": "有数", "wrap100": round(pm(bp, "wrap100") / pm(jp, "wrap100"), 2),
+                                  "caliber1": round(pm(bp, "counted") / pm(jp, "counted"), 2),
+                                  "jpp_counted": pm(jp, "counted"), "baseline_counted": pm(bp, "counted")}
     mins = [x["minutes"] for x in impls if isinstance(x["minutes"], (int, float))]
     jm = [x["minutes"] for x in jl if isinstance(x["minutes"], (int, float))]
     out["time_ratio"] = round(statistics.median(mins) / statistics.median(jm), 2) if mins and jm else None
@@ -289,6 +330,19 @@ def summarize(rows: list, tier: str = "t0") -> dict:
         s["time_position"] = position(s["time_ratio_median"], ref["time_band"])
     if abs(c1 / c2) > 4:
         s["overturn"] = "口径一与口径二差超过 4 倍：按 §六 推翻条件改以口径二为主判定"
+    # B96：「只计验收全过」中位与「J++ 侧无通过实现的项目」
+    po = [r for r in ok if (r.get("passed_only") or {}).get("status") == "有数"]
+    s["no_pass_jpp"] = [r["project"] for r in ok if (r.get("passed_only") or {}).get("status") == "J++ 侧无通过实现"]
+    s["no_pass_baseline"] = [r["project"] for r in ok if (r.get("passed_only") or {}).get("status") == "基线侧无通过实现"]
+    if po:
+        s["passed_only_wrap100_median"] = round(statistics.median(r["passed_only"]["wrap100"] for r in po), 2)
+        s["passed_only_caliber1_median"] = round(statistics.median(r["passed_only"]["caliber1"] for r in po), 2)
+        s["passed_only_projects"] = len(po)
+        s["passed_only_position"] = position(s["passed_only_wrap100_median"], band)
+    if tier == "t1":
+        s["judgement"] = "位置判定用「只计验收全过」中位（B96）；全部实现中位并列"
+    elif tier == "t1-strict":
+        s["judgement"] = "只报不判（B96：旧 (d) 口径逐位复刻 calib-import，基线计入行含被指定的实现细节）"
     return s
 
 
@@ -307,8 +361,10 @@ def run_jpp_report(project: str):
     cwd = (base / j["run_dir"]).resolve()
     src = os.path.relpath((base / j["source"]).resolve(), cwd)
     fx = os.path.relpath((base / j["fixture"]).resolve(), cwd)
-    p = subprocess.run([str(JPP), "run", src, "--fixtures", fx, "--output", str(out)],
-                       cwd=cwd, capture_output=True, text=True)
+    args = [str(JPP), "run", src, "--fixtures", fx, "--output", str(out)]
+    if j.get("input"):   # 步 14b-0：材料经 --input 交给程序（路径相对项目目录）
+        args += ["--input", os.path.relpath((base / j["input"]).resolve(), cwd)]
+    p = subprocess.run(args, cwd=cwd, capture_output=True, text=True)
     if p.returncode != 0 or not out.exists():
         raise SystemExit(f"[measure_expr] jpp run 失败（{project}）：{p.stderr[-800:]}")
     d = json.loads(out.read_text(encoding="utf-8"))
@@ -389,6 +445,8 @@ def run_jpp_impl(project: str, impl: dict, fixture=None, calib=None):
     args = [str(JPP), "run", os.path.relpath(src, cwd), "--fixtures", str(fx), "--output", str(out)]
     if calib:
         args += ["--calib", str(calib)]
+    if impl.get("input"):   # 步 14b-0：材料经 --input 交给程序（路径相对项目目录）
+        args += ["--input", str((base / impl["input"]).resolve())]
     p = subprocess.run(args, cwd=cwd, capture_output=True, text=True)
     if p.returncode != 0 or not out.exists():
         return None, None, p.stderr[-800:]
@@ -398,31 +456,51 @@ def run_jpp_impl(project: str, impl: dict, fixture=None, calib=None):
     return (PROJECTIONS[pj](d["value"]) if pj else d["value"]), d.get("cost", {}).get("calls"), ""
 
 
-def check_tier(project: str, tier: str, quiet: bool = False) -> dict:
+def check_tier(project: str, tier: str, quiet: bool = False, jpp_results: dict | None = None) -> dict:
     """该档全部实现的验收。t0：手写基线（check_detail）与 J++ 非设计者 T0 版；t1：t1_check 逐项。
     返回 {"baselines": [...], "jpp": [...]}，每项带 ok 与 calls。"""
     say = (lambda *a: None) if quiet else print
     base, m = load(project)
+    skipped = []
     if tier == "t0":
         bl = check_detail(project, quiet=quiet)
         jr = []
         exp = json.loads((base / m["baseline"]["dir"] / "expected.json").read_text(encoding="utf-8"))
         for x in jpp_impls(m, "t0"):
+            if x.get("redispatch"):
+                # 步 25-0：待重派的非设计者版不跑验收（源文件按旧形状写成，新运行时下跑不起来）；
+                # 行数照旧计，读数冻结在迁移前
+                say(f"[{project}] J++ {x['source']}：跳过（{x['redispatch']}）")
+                skipped.append({"file": x["source"], "reason": x["redispatch"]})
+                continue
             if not (base / x["source"]).exists():
                 say(f"[{project}] J++ {x['source']}：文件不存在")
                 continue
             v, n, err = run_jpp_impl(project, x)
             d = first_diff(exp, v) if v is not None else "运行失败：" + err
             say(f"[{project}] J++ {x['source']}：{'通过' if d is None else '不通过 — ' + d}（调用 {n} 次）")
-            jr.append({"file": x["source"], "ok": d is None, "calls": n})
-        return {"baselines": bl, "jpp": jr}
+            jr.append({"file": x["source"], "source": x["source"], "ok": d is None, "calls": n})
+        return {"baselines": bl, "jpp": jr, "skipped": skipped}
     import t1_check
-    bl = [t1_check.check_baseline(project, b["file"], quiet=quiet)
-          for b in m["baseline"].get("impl", []) if b.get("tier") == "t1"
-          and (base / m["baseline"]["dir"] / b["file"]).exists()]
-    jr = [t1_check.check_jpp(project, x, quiet=quiet) for x in jpp_impls(m, "t1")
-          if (base / x["source"]).exists()]
-    return {"baselines": bl, "jpp": jr}
+    mode = "strict" if tier == "t1-strict" else "property"
+    bl = []
+    for b in m["baseline"].get("impl", []):
+        if b.get("tier") == tier and (base / m["baseline"]["dir"] / b["file"]).exists():
+            r = t1_check.check_baseline(project, b["file"], quiet=quiet, mode=mode)
+            r["file"] = b["file"]
+            bl.append(r)
+    if jpp_results is not None:   # t1-strict 与 t1 同一批 J++ 程序，不重跑
+        return {"baselines": bl, "jpp": jpp_results["jpp"], "skipped": jpp_results.get("skipped", [])}
+    jr = []
+    for x in jpp_impls(m, "t1"):
+        if x.get("redispatch"):
+            say(f"[{project}] J++ {x['source']}：跳过（{x['redispatch']}）")
+            skipped.append({"file": x["source"], "reason": x["redispatch"]})
+        elif (base / x["source"]).exists():
+            r = t1_check.check_jpp(project, x, quiet=quiet)
+            r["source"] = x["source"]
+            jr.append(r)
+    return {"baselines": bl, "jpp": jr, "skipped": skipped}
 
 
 def observe_calls(project: str, detail: list | None = None) -> dict:
@@ -441,7 +519,7 @@ def main():
     ap.add_argument("--check")
     ap.add_argument("--regen-expected")
     ap.add_argument("--verify-jpp", action="store_true")
-    ap.add_argument("--tier", default="t0", choices=["t0", "t1"])
+    ap.add_argument("--tier", default="t0", choices=["t0", "t1", "t1-strict"])
     a = ap.parse_args()
     if a.check:
         r = check_tier(a.check, a.tier)
@@ -464,7 +542,7 @@ def main():
             bad += d is not None
         sys.exit(1 if bad else 0)
     doc = measure_all(quiet=True)
-    for tier in ("t1", "t0"):
+    for tier in TIERS:
         rows, summary = doc[tier]["projects"], doc[tier]["summary"]
         print(f"== {tier.upper()} ==")
         print("项目 | J++ 计入(中位) | 胶水 | 基线计入(中位) | 折行归一 | 原始行数 | 口径二 | token 比 | 调用数比 | 排版差异")
@@ -491,12 +569,13 @@ def calls_from(res: dict) -> dict:
 def measure_all(quiet: bool = True) -> dict:
     """两档全部项目：先逐项验收（取调用数与是否通过），再计数。返回 {t0: {...}, t1: {...}}。"""
     doc = {}
-    for tier in ("t0", "t1"):
+    for tier in ("t0", "t1", "t1-strict"):
         rows, checks = [], {}
         for p in projects():
-            res = check_tier(p, tier, quiet=quiet) if JPP.exists() else {"baselines": [], "jpp": []}
+            reuse = doc["t1"]["checks"].get(p) if tier == "t1-strict" else None
+            res = check_tier(p, tier, quiet=quiet, jpp_results=reuse) if JPP.exists() else {"baselines": [], "jpp": []}
             checks[p] = res
-            rows.append(measure(p, calls_from(res), tier))
+            rows.append(measure(p, calls_from(res), tier, res if JPP.exists() else None))
         doc[tier] = {"projects": rows, "summary": summarize(rows, tier), "checks": checks}
     return doc
 

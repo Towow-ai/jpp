@@ -22,10 +22,11 @@ let results = sieve(notes, mention, [{city: "成都"}, {city: "北京"}, {city: 
 fn indexes(xs) { map(xs, fn(e) { e.index }) }
 fn summary(r) {
     {asked: r.detail.question.text, act: indexes(accepted(r)), ignore: indexes(ignored(r)),
-     unsure: map(undecided(r), fn(p) { {index: p.element.index, cause: p.cause} }),
-     unobserved: map(unobserved(r), fn(p) { p.element.index }), stopped: stopped(r),
+     unsure: map(undecided(r), fn(p) { {index: p.index, cause: p.cause} }),
+     unobserved: map(unobserved(r), fn(p) { p.index }), stopped: stopped(r),
      complete: len(accepted(r)) + len(ignored(r)) + len(r.pending) == len(notes)}
 }
 
 // 未决清单随返回值交给调用者（J-05；预算未观察项是其中 cause=budget 的 Unsure）
-{streams: map(results, summary), pending: map(results, fn(r) { r.pending })}
+// 多填法的 sieve 返回一个契约值（元素 = 材料 × 填法）；by_q 取第 k 个填法的子契约值
+{streams: map([0, 1, 2], fn(k) { summary(by_q(results, k)) }), pending: map([0, 1, 2], fn(k) { by_q(results, k).pending })}

@@ -1,0 +1,132 @@
+ir v1
+budget calls=3 cost=0.01 depth=16 escalate=- unsure=- latency_p95=- absent=-
+block 434..1165
+  let which_named : -
+    #0 construct form @0 1679..1825
+      #1 text "select"
+      #2 text "这段话里直接写出了下列哪一个{kind}的名字？"
+      #3 record 1758..1824
+        calib:
+          #4 text "cls-which-mentioned"
+        over_kind:
+          #5 text "labels"
+        permute:
+          #6 bool true
+  let countries : -
+    #7 list 493..533
+      #8 text "日本"
+      #9 text "法国"
+      #10 text "巴西"
+      #11 text "埃及"
+  let texts : -
+    #12 list 547..697
+      #13 text "他在挪威工作过一年，后来被派去了法国。"
+      #14 text "他在法国读了两年研究生。"
+      #15 text "新闻说日本今年的出口增长很快。"
+  fn-stmt one
+    #16 fn (t:-) -> - effects=[judge]
+      block 719..951
+        result
+          #17 handle @1 725..949
+            exit:
+              #18 cut @2 732..813
+                reading:
+                  #19 effect judge @3 736..812
+                    state:
+                      #20 state @4 742..774
+                        on:
+                          #21 call 748..754
+                            callee:
+                              #22 name mat
+                            #23 name t
+                        opts:
+                          #24 record 756..773
+                            over:
+                              #25 name countries
+                    questions:
+                      #26 construct fill @5 776..811
+                        #27 name which_named
+                        #28 record 794..810
+                          kind:
+                            #29 text "国家"
+            arms:
+              #30 record 815..948
+                pick:
+                  #32 fn (k:-) -> - effects=-
+                    block 837..881
+                      result
+                        #33 record 839..879
+                          text:
+                            #34 name t
+                          named:
+                            #35 index
+                              #36 name countries
+                              #37 name k
+                          open:
+                            #38 list 876..878
+                unsure:
+                  #40 fn (u:-) -> - effects=-
+                    block 905..942
+                      result
+                        #41 record 907..940
+                          text:
+                            #42 name t
+                          named:
+                            #43 unit
+                          open:
+                            #44 list 936..939
+                              #45 name u
+  let rows : -
+    #46 call @6 964..1001
+      callee:
+        #47 name map
+      #48 name texts
+      #50 fn (t:-) -> - effects=[judge]
+        block 990..1000
+          result
+            #51 call 992..998
+              callee:
+                #52 name one
+              #53 name t
+  result
+    #54 record 1004..1165
+      named:
+        #55 call @7 1012..1063
+          callee:
+            #56 name map
+          #57 name rows
+          #59 fn (r:-) -> - effects=-
+            block 1028..1062
+              result
+                #60 record 1030..1060
+                  text:
+                    #61 field .text
+                      #62 name r
+                  named:
+                    #63 field .named
+                      #64 name r
+      pending:
+        #65 call @8 1114..1164
+          callee:
+            #66 name fold
+          #67 name rows
+          #68 list 1125..1127
+          #70 fn (acc:-, r:-) -> - effects=-
+            block 1140..1163
+              result
+                #71 call 1142..1161
+                  callee:
+                    #72 name concat
+                  #73 name acc
+                  #74 field .open
+                    #75 name r
+sites 9
+  @0 #0 construct:form 1679..1825 fn=- in=-
+  @1 #17 handle 725..949 fn=#16 in=-
+  @2 #18 cut 732..813 fn=#16 in=-
+  @3 #19 effect:judge 736..812 fn=#16 in=-
+  @4 #20 state 742..774 fn=#16 in=-
+  @5 #26 construct:fill 776..811 fn=#16 in=-
+  @6 #46 hof:map 964..1001 fn=- in=-
+  @7 #55 hof:map 1012..1063 fn=- in=-
+  @8 #65 hof:fold 1114..1164 fn=- in=-

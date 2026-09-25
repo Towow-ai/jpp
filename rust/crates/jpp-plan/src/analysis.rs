@@ -5,6 +5,7 @@
 //! [`EnvView`] 读（运行时实现）。判断口径与搬家前逐字相同：K-069/K-075 的修法（看函数体、
 //! 看不透的调用按有效应）原样保留。
 
+use jpp_effects::SchedClass;
 use jpp_effects::view::{Callee, K, kind};
 use jpp_ir::ir::{Block, Expr, Stmt};
 use jpp_ir::plan::{EnvView, ValueSummary};
@@ -15,7 +16,11 @@ pub(crate) fn judged_state(e: &Expr) -> Option<&Expr> {
     let K::Call { callee, args } = kind(e) else {
         return None;
     };
-    if callee.name() != Some("judge") {
+    if !callee
+        .name()
+        .and_then(jpp_effects::by_name)
+        .is_some_and(|s| s.produces_reading)
+    {
         return None;
     }
     args.first().copied()
@@ -164,11 +169,12 @@ fn effect_in_expr(e: &Expr, env: &dyn EnvView, seen: &mut HashSet<String>, stric
 pub(crate) fn has_impure(e: &Expr) -> bool {
     let mut found = false;
     walk(e, &mut |x| {
+        // 效应按 `EffectSpec.sched` 认（步 15a，`20` A2 与 §3.x 不变量 (2)）：`Immediate` 的效应当场执行，
+        // 提升与推测不能跨过；`escalate`、`literalize` 两个消费形式隐含效应，按名字认。
         if let K::Call { callee, .. } = x
-            && matches!(
-                callee.name(),
-                Some("do" | "gen" | "ask" | "transform" | "escalate" | "literalize")
-            )
+            && let Some(n) = callee.name()
+            && (jpp_effects::by_name(n).is_some_and(|s| s.sched == SchedClass::Immediate)
+                || matches!(n, "escalate" | "literalize"))
         {
             found = true;
         }

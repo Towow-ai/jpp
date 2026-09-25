@@ -246,6 +246,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 
 [[package]]
+name = "jpp"
+version = "0.1.0"
+dependencies = [
+ "jpp-calib",
+ "jpp-check",
+ "jpp-effects",
+ "jpp-ir",
+ "jpp-ledger",
+ "jpp-plan",
+ "jpp-runtime",
+ "jpp-syntax",
+ "jpp-value",
+ "serde",
+ "serde_json",
+ "ureq",
+]
+
+[[package]]
 name = "jpp-calib"
 version = "0.1.0"
 dependencies = [
@@ -264,34 +282,6 @@ dependencies = [
  "jpp-ir",
  "serde",
  "serde_json",
-]
-
-[[package]]
-name = "jpp-cli"
-version = "0.1.0"
-dependencies = [
- "jpp-core",
- "jpp-syntax",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "jpp-core"
-version = "0.1.0"
-dependencies = [
- "jpp-calib",
- "jpp-check",
- "jpp-effects",
- "jpp-ir",
- "jpp-ledger",
- "jpp-plan",
- "jpp-syntax",
- "jpp-value",
- "serde",
- "serde_json",
- "sha2",
- "ureq",
 ]
 
 [[package]]
@@ -330,6 +320,18 @@ version = "0.1.0"
 dependencies = [
  "jpp-effects",
  "jpp-ir",
+]
+
+[[package]]
+name = "jpp-runtime"
+version = "0.1.0"
+dependencies = [
+ "jpp-effects",
+ "jpp-ir",
+ "jpp-ledger",
+ "jpp-value",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

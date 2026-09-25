@@ -1,0 +1,4 @@
+// 题库条目 answers_question（首批 F2，关系 · 一对 · 语义题式；真值为 Sonnet 标注加 Fable 盲复核全覆盖）。
+// 条目说明：bank/entries/1d77f7a203b4258048dfefea/条目.md（含「标注口径」栏，B119）。
+// 用法：sieve(pair(问题材料, 回答材料, 配对谓词), fill(answers_question, {}))；a 是问题，b 是回答。
+let answers_question = form("test", "b 是否给出了 a 所问的信息？（间接但足以推出答案的说法也算）", {calib: "rel-answers-question"});

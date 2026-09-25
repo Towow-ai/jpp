@@ -5,7 +5,7 @@
     [
       "gen",
       "写两份会写 Rust 的候选人简介",
-      "90b3d467997e87f9069149ab",
+      "972cd313deb3ff0647bafdca",
       false
     ]
   ],
@@ -28,7 +28,7 @@
           "content": "戊：维护过 Rust 网络库",
           "mat": "1cbd2ca2b0ce848b790b3a2b",
           "origin": [
-            "gen:90b3d467997e87f9069149ab"
+            "gen:972cd313deb3ff0647bafdca"
           ],
           "taint": "Trusted"
         }

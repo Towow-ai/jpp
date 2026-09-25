@@ -32,8 +32,8 @@ pub struct ExitParts {
 /// let _ = Exit { id: 0, op: Op::Test, kind: ExitKind::Act, q_hash: String::new(), state_hash: String::new(),
 ///     taint: Taint::Trusted, site: Default::default(), from_ask: Default::default(), consumed: Default::default(),
 ///     consumed_by: Default::default(), line_source: String::new(), untested: None, ledger_key: Default::default(),
-///     fixture_line: Default::default(), suspend_candidate: Default::default(), scope_out: Default::default(),
-///     class_line: Default::default(), trial_line: Default::default() };
+///     grade: Default::default(), suspend_candidate: Default::default(), scope_out: Default::default(),
+///     delta_unknown: Default::default(), scope_unknown: Default::default(), parts: Default::default() };
 /// ```
 pub fn issue(p: ExitParts) -> Exit {
     Exit {
@@ -50,11 +50,12 @@ pub fn issue(p: ExitParts) -> Exit {
         untested: p.untested,
         line_source: p.line_source,
         ledger_key: RefCell::new(String::new()),
-        fixture_line: Cell::new(false),
+        grade: Cell::new(None),
         suspend_candidate: Cell::new(false),
         scope_out: Cell::new(false),
-        class_line: Cell::new(false),
-        trial_line: Cell::new(false),
+        delta_unknown: Cell::new(false),
+        scope_unknown: Cell::new(false),
+        parts: RefCell::new(Vec::new()),
     }
 }
 
@@ -72,8 +73,9 @@ pub struct CutInput<'a> {
     pub cost_requested: bool,
     /// 刷新之后的答案（只在需要比线时读）
     pub answer: Option<Answer>,
-    /// 这条线的 δ（线附近 ±δ 为 band）
-    pub delta: f64,
+    /// 这条线的 δ（线附近 ±δ 为 band）。`None` = 记录没有 δ（`20` §3.9：出口一律 `Unsure(untested)`，
+    /// 载体 `Delta`；步 15d-2 起 δ 只从校准记录取，没有代码兜底）
+    pub delta: Option<f64>,
     /// 置换众数占比（`None` = 本次路径上没测过置换）
     pub mode_share: Option<f64>,
 }
@@ -125,12 +127,23 @@ pub fn decide(i: &CutInput) -> (ExitKind, Untested) {
             )
         };
     };
+    // 依据：`20` §3.9 数值字段未测行为表「记录的 delta」行（步 15d-2）
+    let Some(delta) = i.delta else {
+        return (
+            ExitKind::Unsure("untested".into()),
+            Some((
+                "Delta".into(),
+                "修法【需接线人】：这条线的校准记录没有 δ；用 calib-import 带画像重新导入，或在夹具的 calibrations 里给出 delta（δ 只从记录取，B104、步 15d-2）".into(),
+            )),
+        );
+    };
     match i.answer.as_ref().expect("刷新之后答案必然在") {
         // `12`:167「再过线，再 band（线附近 ±δ）」。裸的 `p >= hi` 是失败开放（跨内核对照照出，E-JPP-LIVE）。
         Answer::Noul(p) => {
-            if *p >= hi + i.delta {
+            // 边界按容差比较，与认证同一已决集合（步 15d-2，`stat::decided_up/down`）
+            if crate::stat::decided_up(*p, hi, delta) {
                 (ExitKind::Act, None)
-            } else if *p <= lo - i.delta {
+            } else if crate::stat::decided_down(*p, lo, delta) {
                 (ExitKind::Ignore, None)
             } else {
                 (ExitKind::Unsure("band".into()), None)
@@ -144,13 +157,14 @@ pub fn decide(i: &CutInput) -> (ExitKind, Untested) {
                     ExitKind::Unsure("untested".into()),
                     Some((
                         "permutation".into(),
-                        "修法【需接线人】：开置换要在 Rust 侧设 JevClient.permute = true（select 的调用数 ×2）——**`.jpp` 作者改不了这一项**".into(),
+                        // 依据：B64（步 15f：置换是 select 站点的测量声明）
+                        "修法【作者可改】：在这道 select 题或它的题式上声明 {permute: true}（正逆两序，select 的调用数 ×2；B64）".into(),
                     )),
                 ),
                 Some(ms) if ms < 1.0 => (ExitKind::Unsure("tie".into()), None),
                 // 依据：B63（K 元划分的单侧线带 δ 迟滞：p_max ≥ hi + δ 才出 Pick）
                 Some(_) => {
-                    if p >= hi + i.delta {
+                    if crate::stat::decided_up(p, hi, delta) {
                         (ExitKind::Pick(k), None)
                     } else {
                         (ExitKind::Unsure("band".into()), None)
@@ -161,11 +175,84 @@ pub fn decide(i: &CutInput) -> (ExitKind, Untested) {
         Answer::Score(v) => {
             let (l, p) = argmax(v);
             // 依据：B63（同上；档位即动作不是免线的理由）
-            if p >= hi + i.delta {
+            if crate::stat::decided_up(p, hi, delta) {
                 (ExitKind::At(l), None)
             } else {
                 (ExitKind::Unsure("band".into()), None)
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod line_grade_tests {
+    //! 步 20a-1：`Exit::releases` 是唯一放行判定点（`附注/2026-09-24-评估①裁定.md` §十第 12(a) 条）。
+    use super::*;
+    use crate::value::LineGrade;
+
+    fn 部件(untested: Option<&str>, taint: Taint) -> ExitParts {
+        ExitParts {
+            id: 0,
+            kind: ExitKind::Act,
+            untested: untested.map(str::to_string),
+            op: Op::Test,
+            q_hash: String::new(),
+            state_hash: String::new(),
+            taint,
+            line_source: "题级·证书:α=0.10".into(),
+            site: Span::default(),
+        }
+    }
+
+    fn 出口(g: Option<LineGrade>, untested: Option<&str>) -> Exit {
+        let e = issue(部件(untested, Taint::Trusted));
+        e.grade.set(g);
+        e
+    }
+
+    /// 等级一项：只有 `Certified`、`Form` 放行；变体名与报告 `exits` 表的字符串一致。
+    #[test]
+    fn grade_releases_only_certified_and_form() {
+        let all = [
+            (LineGrade::Cold, "Cold", false),
+            (LineGrade::Fixture, "Fixture", false),
+            (LineGrade::Class, "Class", false),
+            (LineGrade::Trial, "Trial", false),
+            (LineGrade::Provisional, "Provisional", false),
+            (LineGrade::Form, "Form", true),
+            (LineGrade::Certified, "Certified", true),
+        ];
+        for (g, name, rel) in all {
+            assert_eq!(g.name(), name);
+            assert_eq!(g.releases(), rel, "{name}");
+            let e = 出口(Some(g), None);
+            assert_eq!(e.releases(), rel, "{name}");
+            assert_eq!(e.guard_trusted(), rel, "{name}");
+        }
+    }
+
+    /// 正交位：任一为真即不放行，可与放行等级叠加；`untested`（J-15）自步 20a-1 起计入。
+    #[test]
+    fn orthogonal_bits_block_release() {
+        assert!(出口(Some(LineGrade::Certified), None).releases());
+        let u = 出口(Some(LineGrade::Certified), Some("permutation"));
+        assert!(!u.releases() && !u.guard_trusted(), "判据未测不放行");
+        let sets: [fn(&Exit); 4] = [
+            |e| e.scope_out.set(true),
+            |e| e.suspend_candidate.set(true),
+            |e| e.delta_unknown.set(true),
+            |e| e.scope_unknown.set(true),
+        ];
+        for set in sets {
+            let x = 出口(Some(LineGrade::Form), None);
+            set(&x);
+            assert!(!x.releases());
+        }
+        // 不来自 `cut` 的出口没有等级：只看正交位
+        assert!(出口(None, None).releases());
+        // taint 由 guard_trusted 合取，不进 releases
+        let t = issue(部件(None, Taint::Untrusted));
+        t.grade.set(Some(LineGrade::Certified));
+        assert!(t.releases() && !t.guard_trusted());
     }
 }

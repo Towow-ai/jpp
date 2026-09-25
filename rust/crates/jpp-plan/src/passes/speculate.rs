@@ -95,7 +95,7 @@ fn expr(e: &Expr, born: &HashSet<String>, out: &mut Vec<TargetSite>, d: bool) {
         args: arguments,
     } = kind(e)
         && let Some(n) = callee.name()
-        && n == "judge"
+        && jpp_effects::by_name(n).is_some_and(|s| s.produces_reading)
         && arguments.len() == 2
     {
         // 用到分支体内才产生的名字：此刻算不出状态

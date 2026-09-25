@@ -1,0 +1,5 @@
+// 题库条目 same_name（首批 F4，比较 · K 候选为计算出的材料 · 真值可算）。
+// 条目说明：bank/entries/f4886dabf4e089bbdfd9f432/条目.md。
+// 线在两序读数上认证，题式带 permute: true（B64），理由同 which_named。
+// 用法：judge(state(材料, {over: 候选材料}), fill(same_name, {kind: "城市"}))。
+let same_name = form("select", "下列哪一段话里也直接写出了这段话里那个{kind}的名字？", {calib: "cmp-same-referent", over_kind: "candidates", permute: true});

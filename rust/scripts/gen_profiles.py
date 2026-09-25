@@ -2,7 +2,7 @@
 """生成发行附带的能力画像（B73；21 步 15d-0）。
 
 来源：`地基/foundation/profile/profiles/<model>.json`（run.py 实测结果）。
-产物：`地基/rust-jpp/profiles/<model>.json` = 来源内容原样 + 顶层 `provenance` 一节，
+产物：`地基/rust-jpp/profiles/<model>.json` = 来源内容原样 + 宿主策略节 `transport`（非实测）+ 顶层 `provenance` 一节，
 写明来源路径、来源的 profile_hash、实测编号（来源的 `sources` 字段）与生成脚本。
 
 `provenance` 不在 behavior_hash 的行为字段表里，所以行为摘要与来源相同；整份的
@@ -32,13 +32,21 @@ def H(*parts):
 def build(model):
     src = json.loads((SRC_DIR / f"{model}.json").read_text(encoding="utf-8"))
     out = dict(src)
+    # 宿主传输策略（真机传输超时，地基/过程记录/工程-传输超时.md）：不是实测值，只在发行画像里
+    out["transport"] = {
+        "timeout_s": 30,
+        "status": "宿主策略值，非实测",
+        "reason": "E8 实测单次调用时延 p50 0.868 s、p95 1.026 s、最大 1.135 s（状态约 300 token、题数 1–200）；大状态未测。"
+                  "超时只截断挂起、不截断慢响应，取实测最大值约 26 倍。推翻：真机测得大状态正常响应 p99.9 超过 10 s，按 p99.9 × 3 重定。",
+    }
     out["provenance"] = {
         "generated_from": f"地基/foundation/profile/profiles/{model}.json",
         "source_profile_hash": H(src),
         "measurements": list(src.get("sources", [])),
         "measured_at": src.get("date"),
         "generator": "地基/rust-jpp/scripts/gen_profiles.py",
-        "note": "发行附带画像（B73）。数值与来源逐字段相同；实测编号即 measurements，各项实验见 地基/foundation/experiments/。",
+        "note": "发行附带画像（B73）。实测数值与来源逐字段相同；实测编号即 measurements，各项实验见 地基/foundation/experiments/。"
+                "另加宿主策略节 transport（timeout_s = 30：宿主策略值，非实测；E8 最大时延 1.135 s；大状态未测）。",
     }
     return json.dumps(out, ensure_ascii=False, indent=2) + "\n"
 

@@ -7,10 +7,12 @@
     "tokens": 0,
     "usd": 0.0
   },
+  "entry": [],
   "exits": [
     {
       "exit": "act",
       "grade": "Fixture",
+      "item": "83ad7cf115b6",
       "key": "fixture",
       "releases": false,
       "site": 1295
@@ -28,6 +30,12 @@
         "end": 1686,
         "start": 1656
       }
+    }
+  ],
+  "questions": [
+    {
+      "kind": "attr",
+      "q": "63d688595a390d1b0bfc191c"
     }
   ],
   "replay": true,
@@ -82,6 +90,7 @@
       }
     ],
     "warnings": [
+      "W-window-untested: @1299 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
       "W-fixture-line: @1295 键 fixture 的线是夹具线（宿主 put 写入或没有认证证书，n=100），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线"
     ]
   },

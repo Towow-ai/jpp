@@ -1,0 +1,159 @@
+ir v1
+budget calls=3 cost=0.01 depth=16 escalate=- unsure=- latency_p95=- absent=-
+block 424..1543
+  let same_name : -
+    #0 construct form @0 1918..2081
+      #1 text "select"
+      #2 text "下列哪一段话里也直接写出了这段话里那个{kind}的名字？"
+      #3 record 2012..2080
+        calib:
+          #4 text "cmp-same-referent"
+        over_kind:
+          #5 text "candidates"
+        permute:
+          #6 bool true
+  let cases : -
+    #7 list 479..1114
+      #8 record 485..698
+        text:
+          #9 text "这次比赛的决赛放在北京举行。"
+        kind:
+          #10 text "城市"
+        over:
+          #11 list 565..697
+            #12 text "他的新工作在南京，下个月入职。"
+            #13 text "听说北京最近在修新的机场。"
+            #14 text "这家连锁店总部设在上海。"
+      #15 record 704..917
+        text:
+          #16 text "公司准备明年在重庆开分店。"
+        kind:
+          #17 text "城市"
+        over:
+          #18 list 781..916
+            #19 text "物流单显示包裹已经到了重庆。"
+            #20 text "这家连锁店总部设在南京。"
+            #21 text "有朋友推荐我去北京看看博物馆。"
+      #22 record 923..1112
+        text:
+          #23 text "我在楼下碰到了王强，聊了几句。"
+        kind:
+          #24 text "人"
+        over:
+          #25 list 1003..1111
+            #26 text "吴霞刚换了新手机号。"
+            #27 text "昨天的培训是李娜主讲的。"
+            #28 text "王强的方案被选上了。"
+  fn-stmt one
+    #29 fn (c:-) -> - effects=[judge]
+      block 1136..1371
+        result
+          #30 handle @1 1142..1369
+            exit:
+              #31 cut @2 1149..1228
+                reading:
+                  #32 effect judge @3 1153..1227
+                    state:
+                      #33 state @4 1159..1193
+                        on:
+                          #34 call 1165..1176
+                            callee:
+                              #35 name mat
+                            #36 field .text
+                              #37 name c
+                        opts:
+                          #38 record 1178..1192
+                            over:
+                              #39 field .over
+                                #40 name c
+                    questions:
+                      #41 construct fill @5 1195..1226
+                        #42 name same_name
+                        #43 record 1211..1225
+                          kind:
+                            #44 field .kind
+                              #45 name c
+            arms:
+              #46 record 1230..1368
+                pick:
+                  #48 fn (k:-) -> - effects=-
+                    block 1252..1297
+                      result
+                        #49 record 1254..1295
+                          text:
+                            #50 field .text
+                              #51 name c
+                          same:
+                            #52 index
+                              #53 field .over
+                                #54 name c
+                              #55 name k
+                          open:
+                            #56 list 1292..1294
+                unsure:
+                  #58 fn (u:-) -> - effects=-
+                    block 1321..1362
+                      result
+                        #59 record 1323..1360
+                          text:
+                            #60 field .text
+                              #61 name c
+                          same:
+                            #62 unit
+                          open:
+                            #63 list 1356..1359
+                              #64 name u
+  let rows : -
+    #65 call @6 1384..1421
+      callee:
+        #66 name map
+      #67 name cases
+      #69 fn (c:-) -> - effects=[judge]
+        block 1410..1420
+          result
+            #70 call 1412..1418
+              callee:
+                #71 name one
+              #72 name c
+  result
+    #73 record 1424..1543
+      same:
+        #74 call @7 1431..1480
+          callee:
+            #75 name map
+          #76 name rows
+          #78 fn (r:-) -> - effects=-
+            block 1447..1479
+              result
+                #79 record 1449..1477
+                  text:
+                    #80 field .text
+                      #81 name r
+                  same:
+                    #82 field .same
+                      #83 name r
+      pending:
+        #84 call @8 1492..1542
+          callee:
+            #85 name fold
+          #86 name rows
+          #87 list 1503..1505
+          #89 fn (acc:-, r:-) -> - effects=-
+            block 1518..1541
+              result
+                #90 call 1520..1539
+                  callee:
+                    #91 name concat
+                  #92 name acc
+                  #93 field .open
+                    #94 name r
+sites 9
+  @0 #0 construct:form 1918..2081 fn=- in=-
+  @1 #30 handle 1142..1369 fn=#29 in=-
+  @2 #31 cut 1149..1228 fn=#29 in=-
+  @3 #32 effect:judge 1153..1227 fn=#29 in=-
+  @4 #33 state 1159..1193 fn=#29 in=-
+  @5 #41 construct:fill 1195..1226 fn=#29 in=-
+  @6 #65 hof:map 1384..1421 fn=- in=-
+  @7 #74 hof:map 1431..1480 fn=- in=-
+  @8 #84 hof:fold 1492..1542 fn=- in=-

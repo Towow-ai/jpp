@@ -1,4 +1,4 @@
-<ROOT>/examples/errors/outcome-dropped.jpp:4:1: J-05: 契约值 r 绑定之后再没被提到：它的未决清单（pending）随包转移给了你，丢掉它就是静默丢弃未决（13 §3）。修法：返回它、交给下一个构造，或 consume(r, "drop") 显式丢并记账
+<ROOT>/examples/errors/outcome-dropped.jpp:4:1: J-05: 契约值 r 绑定之后再没被提到：它的未决清单（pending）随包转移给了你，丢掉它就是静默丢弃未决（13 §3）。修法：转交——返回它，或返回 undecided(r) 与 unobserved(r)（或 r.pending），或交给下一个构造；契约值不能整份 drop（B95），确实不进入输出的项才逐项丢
 let r = sieve(notes, test("这段话给出了具体价格吗？", "price"));
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 <ROOT>/examples/errors/outcome-dropped.jpp: check failed (1 errors)

@@ -35,6 +35,46 @@ pub struct Program {
     /// 整个程序的源位置（预算类诊断落在这里）
     #[serde(default)]
     pub span: Span,
+    /// 宿主入口参数声明（B106）：由 `jpp::Session::compile` 从宿主交进的名字表写入（唯一写入处），
+    /// 检查器名字趟读它。空时不序列化、不打印，不进任何哈希与金样。
+    /// 依据：B106（地基/附注/2026-09-25-B105-B106裁定.md §三）
+    #[serde(default, skip_serializing_if = "EntryDecl::is_empty")]
+    pub entry: EntryDecl,
+}
+
+/// 宿主入口参数声明（B106）：名字、种类与宿主声明的 taint。源码级声明语法未定（`21` A-13）。
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EntryDecl {
+    pub params: Vec<EntryParam>,
+}
+
+impl EntryDecl {
+    pub fn is_empty(&self) -> bool {
+        self.params.is_empty()
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EntryParam {
+    pub name: String,
+    pub kind: EntryKind,
+    pub taint: EntryTaint,
+}
+
+/// 入口条目的两种（B105-1）：值条目按读出规则绑定，材料条目绑定为材料
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum EntryKind {
+    Value,
+    Mat,
+}
+
+/// 宿主声明的 taint（`jpp-ir` 不依赖 `jpp-value`，这里另记一份二值；与 `jpp_value::value::Taint` 一一对应）
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum EntryTaint {
+    Trusted,
+    Untrusted,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]

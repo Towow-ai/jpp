@@ -1,9 +1,13 @@
 //! 只增账本（`12` §2.10）：判断读数、效应记录、成本。重放时同键零调用。
 //!
-//! **格式 v2（步 7，格式步）**：JSONL 链式。首行 `{version, header, calib_used}`；之后每条一行
-//! `{seq, prev, entry}`，`prev` 是上一行文本的哈希（首条对头行）。末行半写（无换行且解析不了）即截断到
-//! 最后一条完整条目并报告；链断、未知字段、完整行解析失败即拒绝。v1（整份 JSON，键只存哈希）不迁移，
-//! 解码报 `E-ledger-archived`，用标签 `ledger-v1-archive` 的二进制重放。
+//! **格式 v3（步 18a，格式步；B124）**：JSONL 链式。首行 `{version, header}`，在第 1 条条目之前定稿；
+//! 之后每条一行 `{seq, prev, entry}`，`prev` 是上一行文本的哈希（首条对头行）。实际命中的校准记录不在头行，
+//! 而是条目 [`Entry::CalibUsed`]（每键首次命中追加一条，按键取最后一条）；效应输出的材料元数据在
+//! `Effect.output_mat`（带来源边与种类，`derived_from` 不写，读回由值依赖边重算，B84、B92）。
+//! 末行半写（无换行且解析不了）即截断到最后一条完整条目并报告；链断、未知字段、完整行解析失败即拒绝。
+//! v2（步 7 至 18c）报 `E-ledger-v2`，经 `jpp::store::migrations::ledger_v2` 迁移（`jpp ledger-migrate`，
+//! 或 CLI 读入时在内存里迁移），旧二进制在标签 `ledger-v2-archive`；v1 报 `E-ledger-archived`，
+//! 用标签 `ledger-v1-archive` 的二进制重放。
 //! 依据：`20` §2.3 `jpp-ledger`、§3.7、§九 账本行；`21` §三·4 步 7、E5；B40、B59、B61。
 //!
 //! **步 10（R）**：自 `jpp-core::ledger` 原样搬成 crate `jpp-ledger`（只依赖 `jpp-ir`、`jpp-value`），
@@ -16,7 +20,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value as Json;
 
 use jpp_ir::ir::Span;
-use jpp_value::value::{Answer, hash_of};
+use jpp_value::prov::EdgeKind;
+use jpp_value::value::{Answer, Taint, hash_of};
 
 mod aggregate;
 pub use aggregate::{Observation, depth_profile, observations};
@@ -25,10 +30,35 @@ pub use jpp_ir::key::{
     CacheKey, CalibRef, EffectKey, JudgeKey, RENDER_VERSION, effect_key, judge_key,
 };
 
-/// 账本格式版本。
-pub const LEDGER_VERSION: u32 = 2;
+/// 账本格式版本（步 18a 起 3）。
+pub const LEDGER_VERSION: u32 = 3;
 /// v1 账本的归档标签：只由这个标签处的二进制重放（`21` E5）。
 pub const V1_ARCHIVE_TAG: &str = "ledger-v1-archive";
+/// v2 账本的归档标签（步 18a 格式变更前，`21` E5）。v2 另有迁移（`jpp::store::migrations::ledger_v2`）。
+pub const V2_ARCHIVE_TAG: &str = "ledger-v2-archive";
+
+/// 一条来源边（账本 v3 的 `output_mat.sources`，B84、B92）：直接来源读数的账本键、边的种类、题哈希。
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SourceEdge {
+    pub key: String,
+    pub kind: EdgeKind,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub q: String,
+}
+
+/// 效应输出材料的元数据（账本 v3，步 18a）：内容在 `Effect.output`，这里是地址、来源链、taint 与来源边。
+/// `taint` 必填：坏值或缺失即解码拒绝（不兜底，`12` §2.11「无声吞掉一个字段」通则）。
+/// `derived_from` 不写：它是值依赖边的题哈希投影，读回时由 `sources` 重算（B84、B92）。
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct MatMeta {
+    pub addr: String,
+    pub origin: Vec<String>,
+    pub taint: Taint,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub sources: Vec<SourceEdge>,
+}
 
 /// 一次置换测量：用了几个置换（K），众数占比多少。K 是这个测量身份的一部分，二者不拆开记。
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -39,8 +69,8 @@ pub struct PermMeasure {
 }
 
 /// 账本条目。每个变体的字段集合是封闭的：解码遇未知字段报错并指名（`12` §2.11「无声吞掉一个字段」通则）。
-/// `parents`、`hop`、`reused_from`、`output_mat`、`Intent`、`Halt` 在 v2 里先存在、恒为空或不产生，
-/// 由步 17、18、19 填（格式只变这一次，`21` ET1）。
+/// `reused_from`、`Intent`、`Halt` 先存在、恒为空或不产生，由步 19、18b、22 填；`calib_ref` 的
+/// `key`/`kind`/`fill` 由 20a-2 填（B124，账本格式不再变，`21` ET1）。
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub enum Entry {
@@ -56,8 +86,8 @@ pub enum Entry {
         /// 这条答案来自本次运行的第几次模型调用（融合后多道题同属一次调用）。
         /// 契约值的 `spent` 按它数调用、按调用计费，重放时从账本读出同一个数（B17）。
         call: u64,
-        /// 题声明的校准键；实际命中的记录在头行 `calib_used`（出口 = f(读数, 线)，出口不进账本）。
-        calib_ref: Option<CalibRef>,
+        /// 题声明的校准键；实际命中的记录在 `CalibUsed` 条目（出口 = f(读数, 线)，出口不进账本）。
+        calib_ref: Option<Box<CalibRef>>,
         /// 第几层发出（D8.2 从账本派生分层）；0 = 宿主手写的条目。
         layer: u32,
         /// 这条读数与同状态的其他题合并在一次调用里发出时，记合并它的 pass（`fuse`）。
@@ -79,9 +109,10 @@ pub enum Entry {
         key: String,
         ekey: Option<EffectKey>,
         kind: String,
+        /// 输出内容（材料输出时是材料内容，其余是值本身）。
         output: Json,
-        /// 完整材料（taint、origin、derived_from、from_key）。步 17/18 填。
-        output_mat: Option<Json>,
+        /// 输出是材料时的元数据（步 18a 起由 `do` 填；`gen`、`transform` 的材料元数据由实参重算，为空）。
+        output_mat: Option<Box<MatMeta>>,
         cost: f64,
     },
     /// 问人。`answer: None` = 已问未答：重放照样以 `Pending` 结束；续跑时再问，答案另起一条。
@@ -105,6 +136,14 @@ pub enum Entry {
     },
     /// 预算停机（`20` §4.3）。步 22 启用，v2 不产生。
     Halt { reason: String, layer: u32 },
+    /// 实际命中的校准记录（B83 第 6 条、B124；账本 v3 起离开头行）：`cut` 查到某键的记录时，
+    /// 该键在账本里最后一条的哈希与本次不同（或没有）才追加一条。重放与续接按键取最后一条。
+    /// 不进键索引（`key()` 为空）。
+    CalibUsed {
+        key: String,
+        hash: String,
+        record: Json,
+    },
 }
 
 impl Entry {
@@ -163,7 +202,7 @@ impl Entry {
             | Entry::Ask { key, .. }
             | Entry::Intent { key, .. }
             | Entry::Absent { key, .. } => key,
-            Entry::Halt { .. } => "",
+            Entry::Halt { .. } | Entry::CalibUsed { .. } => "",
         }
     }
 }
@@ -176,8 +215,10 @@ pub struct BudgetRecord {
     pub cost: f64,
 }
 
-/// 账本头的比对集合：**唯一定义处**，十一字段，任一不同报 `W-header`、不承诺重放一致（J-18）。
+/// 账本头的比对集合：**唯一定义处**，十字段，任一不同报 `W-header`、不承诺重放一致（J-18）。
 /// 比对哪些字段随场合（[`HeaderCompare`]）：只凭账本重放不比 `calib_hash`，续接全比（B77）。
+/// 命中的校准记录另由 [`Ledger::set_header_checked`] 与 `CalibUsed` 条目逐键比（B124：
+/// 「十字段加 `CalibUsed` 条目与视图逐键比」；原第十一字段 `calib_used_hash` 自账本 v3 移出）。
 /// `lib_version`、`bank_version`、`ir_version`、`entry_hash` 在 v2 先存在、恒为 `None`
 /// （标准库、题库、IR 版本与入口参数在步 12、14b、27 接上）。
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -194,11 +235,6 @@ pub struct HeaderCompared {
     /// 校准库的哈希：出口 = f(读数, 线)，读数进了账本，线的来源靠它比对。
     /// 空库也有自己的哈希；`None` 只有「早于这个字段」一个意思。
     pub calib_hash: Option<String>,
-    /// 本趟 `cut` 实际命中的校准记录集合的哈希（B77；[`calib_used_hash`]，由头行 `calib_used`
-    /// 的记录全文按键排序算出）。只凭账本重放比它而不比 `calib_hash`：重放只从头行补回命中的记录，
-    /// 装载库其余记录不在，库哈希必然不同而出口不变。`None` 只表示「早于这个字段」（步 7b）。
-    #[serde(default)]
-    pub calib_used_hash: Option<String>,
     pub lib_version: Option<String>,
     pub bank_version: Option<String>,
     pub ir_version: Option<String>,
@@ -208,15 +244,16 @@ pub struct HeaderCompared {
 /// 账本头比对的场合（B77，`12` J-18 行）：同一份账本被读回来时是哪种用法。
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum HeaderCompare {
-    /// 续接（以及同一账本上再跑一趟）：十一字段全比。续接会命中首跑没命中的键，
+    /// 续接（以及同一账本上再跑一趟）：十字段全比，另逐键比命中记录。续接会命中首跑没命中的键，
     /// 那些键的线来自装载库，所以 `calib_hash` 也要比。
     Resume,
-    /// 只凭账本的审计重放：不比 `calib_hash`，只比 `calib_used_hash`。
+    /// 只凭账本的审计重放：不比 `calib_hash`，只逐键比命中记录（`CalibUsed` 条目）。
     Replay,
 }
 
 /// 命中记录集合的哈希（B77）：`[[键, 记录全文], …]` 按键排序后取哈希。空集合也有哈希。
-/// 输入是「键 → 记录全文」（头行 `calib_used[键].record`，或运行时按同一批键从校准视图取出的记录）。
+/// 输入是「键 → 记录全文」（`CalibUsed` 条目的 `record`，或运行时按同一批键从校准视图取出的记录）。
+/// 账本 v3 起它不再存进头，只在 `W-header` 报文里给出比对双方的集合哈希（B83 报文不变，B124）。
 pub fn calib_used_hash<'a>(records: impl IntoIterator<Item = (&'a str, &'a Json)>) -> String {
     let sorted: BTreeMap<&str, &Json> = records.into_iter().collect();
     let arr = Json::Array(
@@ -229,7 +266,7 @@ pub fn calib_used_hash<'a>(records: impl IntoIterator<Item = (&'a str, &'a Json)
 }
 
 impl HeaderCompared {
-    /// 与另一头不同的字段（名字、旧值、新值），十一字段全比（续接口径）。
+    /// 与另一头不同的字段（名字、旧值、新值），十字段全比（续接口径）。
     pub fn diff(&self, new: &HeaderCompared) -> Vec<(&'static str, String, String)> {
         self.diff_in(new, HeaderCompare::Resume)
     }
@@ -267,11 +304,6 @@ impl HeaderCompared {
         if mode == HeaderCompare::Resume {
             s("calib_hash", o(&self.calib_hash), o(&new.calib_hash));
         }
-        s(
-            "calib_used_hash",
-            o(&self.calib_used_hash),
-            o(&new.calib_used_hash),
-        );
         s("lib_version", o(&self.lib_version), o(&new.lib_version));
         s("bank_version", o(&self.bank_version), o(&new.bank_version));
         s("ir_version", o(&self.ir_version), o(&new.ir_version));
@@ -308,7 +340,6 @@ impl Header {
                 profile_hash: None,
                 behavior_hash: None,
                 calib_hash: None,
-                calib_used_hash: None,
                 lib_version: None,
                 bank_version: None,
                 ir_version: None,
@@ -328,8 +359,9 @@ impl Header {
         self.compared.calib_hash = h;
         self
     }
-    pub fn with_calib_used_hash(mut self, h: Option<String>) -> Header {
-        self.compared.calib_used_hash = h;
+    /// 宿主入口参数的哈希（步 14b-0：`jpp run --input` 的规范化 JSON 哈希；不带入口参数时 `None`）。
+    pub fn with_entry_hash(mut self, h: Option<String>) -> Header {
+        self.compared.entry_hash = h;
         self
     }
     pub fn model_id(&self) -> &str {
@@ -344,8 +376,9 @@ pub struct Ledger {
     pub entries: Vec<Entry>,
     index: HashMap<String, usize>,
     pub header_warning: Option<String>,
-    /// **这次运行 `cut` 实际查到的校准记录**（键 → 记录全文 + 哈希）。落在头行。
-    /// 只凭账本重放时（不给 `--calib` / `--fixtures`），CLI 用这里补回当时的线，出口因此逐字节一致。
+    /// **实际命中的校准记录**（键 → `{hash, record}`）：`CalibUsed` 条目按键取最后一条的**派生视图**，
+    /// 由 [`Ledger::put`] 与 [`Ledger::rebuild_index`] 维护，只读；写入只经 [`Ledger::note_calib_used`]。
+    /// 只凭账本重放时（不给 `--calib` / `--fixtures`），宿主用这里补回当时的线，出口因此逐字节一致。
     pub calib_used: BTreeMap<String, Json>,
 }
 
@@ -354,7 +387,6 @@ pub struct Ledger {
 struct HeadLine {
     version: u32,
     header: Option<Header>,
-    calib_used: BTreeMap<String, Json>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -392,12 +424,95 @@ impl Ledger {
     }
     pub fn rebuild_index(&mut self) {
         self.index.clear();
+        self.calib_used.clear();
         for (i, e) in self.entries.iter().enumerate() {
             if !e.key().is_empty() {
                 // 同键多条时后写的生效：只有「已问未答 → 答」这一种（见 `put_answer`）
                 self.index.insert(e.key().to_string(), i);
             }
+            if let Entry::CalibUsed { key, hash, record } = e {
+                self.calib_used.insert(
+                    key.clone(),
+                    serde_json::json!({"hash": hash, "record": record}),
+                );
+            }
         }
+    }
+    /// 记下一次校准记录命中（B83 第 6 条、B124）：该键最后一条 `CalibUsed` 的哈希与本次相同则不追加，
+    /// 否则追加一条。首跑每键首次命中一条；同一账本再跑一趟命中同一记录不追加（账本逐字节不变）；
+    /// 续接时记录换了才追加，重放按键取最后一条即那一趟的线。
+    pub fn note_calib_used(&mut self, key: &str, hash: &str, record: Json) {
+        let same = self
+            .calib_used
+            .get(key)
+            .and_then(|v| v.get("hash"))
+            .and_then(|h| h.as_str())
+            == Some(hash);
+        if same {
+            return;
+        }
+        self.put(Entry::CalibUsed {
+            key: key.to_string(),
+            hash: hash.to_string(),
+            record,
+        });
+    }
+    /// 换头并比对（B77、B124；比对只在这里）：十字段按场合比，另把 `calib_used`（`CalibUsed` 条目按键取
+    /// 最后一条）与当前校准视图逐键比——某键视图里的记录哈希与条目不同，或视图里没有该键，即为变化。
+    /// 有差异时 `header_warning` 为 `W-header`；命中记录变化的一段写作「calib_used_hash 旧 X 新 Y」
+    /// （X、Y 为比对双方这批键的记录集合哈希）并追加「变化的键：…（共 n 条）」，与账本 v2 的报文相同
+    /// （B83 报文不变）。`视图` 按键返回当前视图里的记录全文。
+    pub fn set_header_checked(
+        &mut self,
+        h: Header,
+        mode: HeaderCompare,
+        视图: &dyn Fn(&str) -> Option<Json>,
+    ) {
+        let mut parts: Vec<String> = match &self.header {
+            Some(old) => old
+                .compared
+                .diff_in(&h.compared, mode)
+                .iter()
+                .map(|(n, a, b)| format!("{n} 旧 {a} 新 {b}"))
+                .collect(),
+            None => vec![],
+        };
+        let 现: Vec<(String, Json)> = self
+            .calib_used
+            .keys()
+            .filter_map(|k| 视图(k).map(|j| (k.clone(), j)))
+            .collect();
+        let 变化的键: Vec<String> = self
+            .calib_used
+            .iter()
+            .filter(|(k, v)| {
+                let 现哈希 = 视图(k).map(|j| hash_of(&[&j.to_string()]));
+                现哈希.as_deref() != v.get("hash").and_then(|h| h.as_str())
+            })
+            .map(|(k, _)| k.replace('\u{1f}', ":"))
+            .collect();
+        if !变化的键.is_empty() {
+            let 旧 = calib_used_hash(
+                self.calib_used
+                    .iter()
+                    .map(|(k, v)| (k.as_str(), v.get("record").unwrap_or(&Json::Null))),
+            );
+            let 新 = calib_used_hash(现.iter().map(|(k, j)| (k.as_str(), j)));
+            let 列: Vec<&str> = 变化的键.iter().take(3).map(|k| k.as_str()).collect();
+            parts.push(format!(
+                "calib_used_hash 旧 {旧} 新 {新}；变化的键：{}（共 {} 条）",
+                列.join("、"),
+                变化的键.len()
+            ));
+        }
+        if !parts.is_empty() {
+            // 依据：J-18（账本头不同即不承诺重放一致）；B61（预算不比对）；B77、B83、B124（命中记录逐键比）
+            self.header_warning = Some(format!(
+                "W-header: 账本头不同，不承诺重放一致：{}",
+                parts.join("；")
+            ));
+        }
+        self.header = Some(h);
     }
     /// 账本头（J-18）：比对集合里任一字段不同即报 `W-header`，不承诺重放一致。预算记录但不比对（B61）。
     /// 续接口径（全比）；只凭账本重放用 [`Ledger::set_header_in`] 传 [`HeaderCompare::Replay`]。
@@ -434,6 +549,12 @@ impl Ledger {
         if !k.is_empty() {
             self.index.insert(k, self.entries.len());
         }
+        if let Entry::CalibUsed { key, hash, record } = &e {
+            self.calib_used.insert(
+                key.clone(),
+                serde_json::json!({"hash": hash, "record": record}),
+            );
+        }
         self.entries.push(e);
     }
     /// 已问未答的 `ask` 在续跑时得到了答案：**另起一条**（只增，不改旧条目），索引指向新条目。
@@ -454,7 +575,7 @@ impl Ledger {
         self.index.insert(k, self.entries.len());
         self.entries.push(e);
     }
-    /// 头行 `calib_used` 全文的命中记录哈希（B77）。
+    /// 命中记录（`CalibUsed` 条目按键取最后一条）的集合哈希（B77）。
     pub fn calib_used_hash(&self) -> String {
         calib_used_hash(
             self.calib_used
@@ -469,12 +590,11 @@ impl Ledger {
         self.entries.is_empty()
     }
 
-    /// v2 编码：JSONL 链式（见模块文档）。确定性：同一内容逐字节相同。
+    /// v3 编码：JSONL 链式（见模块文档）。确定性：同一内容逐字节相同。
     pub fn encode(&self) -> String {
         let head = serde_json::to_string(&HeadLine {
             version: LEDGER_VERSION,
             header: self.header.clone(),
-            calib_used: self.calib_used.clone(),
         })
         .expect("账本头可序列化");
         let mut out = String::new();
@@ -495,8 +615,9 @@ impl Ledger {
         out
     }
 
-    /// v2 解码。返回账本与截断报告（末行半写时）。v1 报 `E-ledger-archived`；链断、未知字段、
-    /// 完整行解析失败报 `E-ledger-corrupt` 并指出行号。
+    /// v3 解码。返回账本与截断报告（末行半写时）。v1 报 `E-ledger-archived`；v2 报 `E-ledger-v2`
+    /// （迁移见 `jpp::store::migrations::ledger_v2`）；链断、未知字段、完整行解析失败报 `E-ledger-corrupt`
+    /// 并指出行号。
     pub fn decode(text: &str) -> Result<(Ledger, Option<Truncated>), String> {
         // 依据：20 §2.3 jpp-ledger「v1 账本不迁移，decode 报 E-ledger-archived」；21 E5
         if let Ok(Json::Object(m)) = serde_json::from_str::<Json>(text) {
@@ -514,6 +635,14 @@ impl Ledger {
         let Some(first) = lines.first() else {
             return Err("E-ledger-corrupt: 账本是空的，没有头行".into());
         };
+        // 依据：21 E5、B124 Q3（v2 迁移而不归档）
+        if let Ok(j) = serde_json::from_str::<Json>(first)
+            && j.get("version").and_then(Json::as_u64) == Some(2)
+        {
+            return Err(format!(
+                "E-ledger-v2: 这是 v2 格式的账本（步 7 至 18c）。修法：jpp ledger-migrate <本文件> <输出> 改写为 v3（CLI 读入时也会在内存里迁移）；旧二进制在标签 {V2_ARCHIVE_TAG}"
+            ));
+        }
         // 依据：20 §九 账本行「未知字段拒绝」「链哈希断裂 → decode 拒绝」；12 §2.11 无声吞字段通则
         let head: HeadLine = serde_json::from_str(first).map_err(|e| {
             if serde_json::from_str::<Json>(first).map(|j| j.get("version").and_then(Json::as_u64) == Some(1)).unwrap_or(false) {
@@ -525,13 +654,12 @@ impl Ledger {
         if head.version != LEDGER_VERSION {
             // 依据：21 E5（每次格式变更在上一提交打归档标签，旧格式只由对应二进制重放）
             return Err(format!(
-                "E-ledger-archived: 账本版本 {}，本二进制只读 v{LEDGER_VERSION}。修法：v1 用标签 {V1_ARCHIVE_TAG} 处的二进制重放",
+                "E-ledger-archived: 账本版本 {}，本二进制只读 v{LEDGER_VERSION}。修法：v1 用标签 {V1_ARCHIVE_TAG} 处的二进制重放，v2 用 jpp ledger-migrate 迁移",
                 head.version
             ));
         }
         let mut l = Ledger {
             header: head.header,
-            calib_used: head.calib_used,
             ..Ledger::default()
         };
         let mut prev = line_hash(first);
@@ -635,42 +763,44 @@ impl Trace {
 
 #[cfg(test)]
 mod b77_tests {
-    //! B77（步 7b）：按场合比对与旧头照读。
+    //! B77（步 7b）：按场合比对；B124（步 18a）：命中记录改由 `CalibUsed` 条目逐键比。
     use super::*;
 
-    fn 头(calib: &str, used: &str) -> HeaderCompared {
-        Header::new(1, 1.0, "m", "r1", "h")
-            .with_calib_hash(Some(calib.into()))
-            .with_calib_used_hash(Some(used.into()))
-            .compared
+    fn 头(calib: &str) -> Header {
+        Header::new(1, 1.0, "m", "r1", "h").with_calib_hash(Some(calib.into()))
     }
 
     #[test]
-    fn 重放跳过装载库哈希_续接两者都比() {
-        let a = 头("库甲", "用甲");
-        let 换库 = 头("库乙", "用甲");
-        let 换用 = 头("库甲", "用乙");
+    fn 重放跳过装载库哈希_续接比装载库哈希() {
+        let a = 头("库甲").compared;
+        let 换库 = 头("库乙").compared;
         assert!(a.diff_in(&换库, HeaderCompare::Replay).is_empty());
         assert_eq!(a.diff_in(&换库, HeaderCompare::Resume)[0].0, "calib_hash");
-        assert_eq!(
-            a.diff_in(&换用, HeaderCompare::Replay)[0].0,
-            "calib_used_hash"
-        );
-        assert_eq!(
-            a.diff_in(&换用, HeaderCompare::Resume)[0].0,
-            "calib_used_hash"
-        );
         assert_eq!(a.diff(&换库), a.diff_in(&换库, HeaderCompare::Resume));
     }
 
     #[test]
-    fn 旧头行缺字段照读为none() {
-        let mut l = Ledger::new();
-        l.set_header(Header::new(1, 1.0, "m", "r1", "h"));
-        let text = l.encode().replace(",\"calib_used_hash\":null", "");
-        assert!(!text.contains("calib_used_hash"));
-        let (back, _) = Ledger::decode(&text).expect("旧头行照读");
-        assert_eq!(back.header.unwrap().compared.calib_used_hash, None);
+    fn 命中记录逐键比_两种场合都比() {
+        let r1 = serde_json::json!({"hi": 0.5});
+        let r2 = serde_json::json!({"hi": 0.6});
+        let h1 = hash_of(&[&r1.to_string()]);
+        for mode in [HeaderCompare::Replay, HeaderCompare::Resume] {
+            let mut l = Ledger::new();
+            l.set_header_checked(头("库甲"), mode, &|_| None);
+            l.note_calib_used("k", &h1, r1.clone());
+            // 视图同记录：不报
+            let 同 = r1.clone();
+            l.set_header_checked(头("库甲"), mode, &|_| Some(同.clone()));
+            assert!(l.header_warning.take().is_none());
+            // 视图换了记录：报，列出键
+            let 换 = r2.clone();
+            l.set_header_checked(头("库甲"), mode, &|_| Some(换.clone()));
+            let w = l.header_warning.take().unwrap();
+            assert!(
+                w.contains("calib_used_hash 旧") && w.contains("变化的键：k（共 1 条）"),
+                "{w}"
+            );
+        }
     }
 
     #[test]
@@ -682,5 +812,21 @@ mod b77_tests {
         assert_eq!(正, 反);
         assert_ne!(正, calib_used_hash([("a", &r2), ("b", &r1)]));
         assert_eq!(Ledger::new().calib_used_hash(), calib_used_hash([]));
+    }
+
+    #[test]
+    fn 同记录不重复追加_换记录追加一条_派生视图取最后一条() {
+        let r1 = serde_json::json!({"hi": 0.5});
+        let r2 = serde_json::json!({"hi": 0.6});
+        let mut l = Ledger::new();
+        l.note_calib_used("k", "h1", r1.clone());
+        l.note_calib_used("k", "h1", r1.clone());
+        assert_eq!(l.entries.len(), 1);
+        l.note_calib_used("k", "h2", r2.clone());
+        assert_eq!(l.entries.len(), 2);
+        assert_eq!(l.calib_used["k"]["record"], r2);
+        let (back, _) = Ledger::decode(&l.encode()).unwrap();
+        assert_eq!(back.calib_used, l.calib_used);
+        assert_eq!(back.encode(), l.encode());
     }
 }

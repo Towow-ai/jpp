@@ -7,110 +7,163 @@
     "tokens": 0,
     "usd": 0.0
   },
+  "entry": [],
   "exits": [
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 0,
+      "item": "5fc81b291401",
       "key": "fit-pair",
+      "pos": 0,
       "releases": false,
       "site": 696
     },
     {
       "exit": "unsure(band)",
       "grade": "Fixture",
+      "index": 1,
+      "item": "6b0bc02e7f1c",
       "key": "fit-pair",
+      "pos": 1,
       "releases": false,
       "site": 696
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 2,
+      "item": "965a507872cc",
       "key": "fit-pair",
+      "pos": 2,
       "releases": false,
       "site": 696
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 3,
+      "item": "c8dc09b08f21",
       "key": "fit-pair",
+      "pos": 3,
       "releases": false,
       "site": 696
     },
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 4,
+      "item": "3d1afcf96244",
       "key": "fit-pair",
+      "pos": 4,
       "releases": false,
       "site": 696
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 5,
+      "item": "5f75a533f5a2",
       "key": "fit-pair",
+      "pos": 5,
       "releases": false,
       "site": 696
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 6,
+      "item": "200e0f2753fb",
       "key": "fit-pair",
+      "pos": 6,
       "releases": false,
       "site": 696
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 7,
+      "item": "58cfa24266f5",
       "key": "fit-pair",
+      "pos": 7,
       "releases": false,
       "site": 696
     },
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 8,
+      "item": "28b585bea7f2",
       "key": "fit-pair",
+      "pos": 8,
       "releases": false,
       "site": 696
     },
     {
       "exit": "unsure(band)",
       "grade": "Fixture",
+      "index": 9,
+      "item": "c34241f4d712",
       "key": "fit-pair",
+      "pos": 9,
       "releases": false,
       "site": 696
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 10,
+      "item": "25bb53c0b116",
       "key": "fit-pair",
+      "pos": 10,
       "releases": false,
       "site": 696
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 11,
+      "item": "dbe62f57b10b",
       "key": "fit-pair",
+      "pos": 11,
       "releases": false,
       "site": 696
     },
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 0,
+      "item": "c37ac913d7c7",
       "key": "fit-group",
+      "pos": 0,
       "releases": false,
-      "site": 1245
+      "site": 1231
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 1,
+      "item": "1487e0deb6b6",
       "key": "fit-group",
+      "pos": 1,
       "releases": false,
-      "site": 1245
+      "site": 1231
     }
   ],
   "fixture_description": "Synthetic fixed observations for pair-team.jpp (construction check only; not model evaluation). Calibration records are hand-written to exercise routing, not calibration.",
   "local_checks": [],
   "mode": "replay; no model API requests",
   "pending": [],
+  "questions": [
+    {
+      "kind": "attr",
+      "q": "615a0f8ed47fa7d6f0e1784d"
+    },
+    {
+      "kind": "attr",
+      "q": "b985e8d6a1156f2c119b2b34"
+    }
+  ],
   "replay": true,
   "resumed": false,
   "returned_unsure": [
@@ -254,32 +307,34 @@
       },
       {
         "cost": 0.0,
-        "key": "9b13c5724e8f00516c028d2e",
+        "key": "ffe5d1072c8ff89de3ba2d75",
         "kind": "judge",
         "note": "「已有组合 a（需求 a.a 与承接成员 a.b）加入新成员 b 后，这个组合整体能更好地完成该需求吗？」",
         "replayed": true,
         "site": {
-          "end": 1283,
-          "start": 1245
+          "end": 1269,
+          "start": 1231
         }
       },
       {
         "cost": 0.0,
-        "key": "db74b9fd104db350d447ef60",
+        "key": "2eed966eac2fbf3a388db7bb",
         "kind": "judge",
         "note": "「已有组合 a（需求 a.a 与承接成员 a.b）加入新成员 b 后，这个组合整体能更好地完成该需求吗？」",
         "replayed": true,
         "site": {
-          "end": 1283,
-          "start": 1245
+          "end": 1269,
+          "start": 1231
         }
       }
     ],
     "warnings": [
+      "W-window-untested: @696 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
       "W-fixture-line: @696 键 fit-pair 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
       "W-fixture-line: @696 键 fit-pair 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
       "W-fixture-line: @696 键 fit-pair 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
-      "W-fixture-line: @1245 键 fit-group 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-window-untested: @1231 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
+      "W-fixture-line: @1231 键 fit-group 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
       "returned_unsure: unsure(band), unsure(band)"
     ]
   },
@@ -287,114 +342,86 @@
     "pending": [
       [
         {
+          "at": [
+            0,
+            1
+          ],
           "cause": "band",
-          "element": {
-            "cause": "band",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(band)",
-              "id": 1,
-              "q": "615a0f8ed47fa7d6f0e1784d"
-            },
-            "index": 1,
-            "item": {
-              "a": "做一个带登录的网页后台",
-              "b": {
-                "name": "李工",
-                "skills": [
-                  "数据库",
-                  "后端"
-                ]
-              }
-            },
-            "source": {
-              "at": [
-                0,
-                1
-              ],
-              "item": {
-                "a": "做一个带登录的网页后台",
-                "b": {
-                  "name": "李工",
-                  "skills": [
-                    "数据库",
-                    "后端"
-                  ]
-                }
-              },
-              "left": "做一个带登录的网页后台",
-              "right": {
-                "name": "李工",
-                "skills": [
-                  "数据库",
-                  "后端"
-                ]
-              },
-              "trail": []
-            },
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
             "id": 1,
             "q": "615a0f8ed47fa7d6f0e1784d"
-          }
+          },
+          "item": {
+            "a": "做一个带登录的网页后台",
+            "b": {
+              "name": "李工",
+              "skills": [
+                "数据库",
+                "后端"
+              ]
+            }
+          },
+          "key": "64b58f62e6949622832a4389",
+          "left": "做一个带登录的网页后台",
+          "pos": 1,
+          "q": {
+            "calib": "fit-pair",
+            "op": "noul",
+            "question": "615a0f8ed47fa7d6f0e1784d",
+            "text": "成员 b 的技能能完成需求 a 吗？"
+          },
+          "qi": 0,
+          "right": {
+            "name": "李工",
+            "skills": [
+              "数据库",
+              "后端"
+            ]
+          },
+          "trail": []
         },
         {
+          "at": [
+            3,
+            0
+          ],
           "cause": "band",
-          "element": {
-            "cause": "band",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(band)",
-              "id": 9,
-              "q": "615a0f8ed47fa7d6f0e1784d"
-            },
-            "index": 9,
-            "item": {
-              "a": "给安卓应用做界面",
-              "b": {
-                "name": "王工",
-                "skills": [
-                  "web",
-                  "后端"
-                ]
-              }
-            },
-            "source": {
-              "at": [
-                3,
-                0
-              ],
-              "item": {
-                "a": "给安卓应用做界面",
-                "b": {
-                  "name": "王工",
-                  "skills": [
-                    "web",
-                    "后端"
-                  ]
-                }
-              },
-              "left": "给安卓应用做界面",
-              "right": {
-                "name": "王工",
-                "skills": [
-                  "web",
-                  "后端"
-                ]
-              },
-              "trail": []
-            },
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
             "id": 9,
             "q": "615a0f8ed47fa7d6f0e1784d"
-          }
+          },
+          "item": {
+            "a": "给安卓应用做界面",
+            "b": {
+              "name": "王工",
+              "skills": [
+                "web",
+                "后端"
+              ]
+            }
+          },
+          "key": "136790a2a30e0c03740b8543",
+          "left": "给安卓应用做界面",
+          "pos": 9,
+          "q": {
+            "calib": "fit-pair",
+            "op": "noul",
+            "question": "615a0f8ed47fa7d6f0e1784d",
+            "text": "成员 b 的技能能完成需求 a 吗？"
+          },
+          "qi": 0,
+          "right": {
+            "name": "王工",
+            "skills": [
+              "web",
+              "后端"
+            ]
+          },
+          "trail": []
         }
       ],
       []

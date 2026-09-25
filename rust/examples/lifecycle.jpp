@@ -1,6 +1,6 @@
 import "../lib/methods.jpp";
 import "../lib/observations.jpp";
-budget {calls: 2, cost: 0, depth: 256, escalate: 1};
+budget {calls: 4, cost: 0, depth: 256, escalate: 1};
 
 // Paths are relative to the process working directory. The core records each do.
 let input = do("read_json", ["input.json"], 0);

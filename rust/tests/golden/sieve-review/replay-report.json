@@ -7,18 +7,25 @@
     "tokens": 0,
     "usd": 0.0
   },
+  "entry": [],
   "exits": [
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 0,
+      "item": "e088072fec76",
       "key": "review",
+      "pos": 0,
       "releases": false,
       "site": 682
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 1,
+      "item": "c3d411ae15e7",
       "key": "review",
+      "pos": 1,
       "releases": false,
       "site": 682
     }
@@ -27,6 +34,12 @@
   "local_checks": [],
   "mode": "replay; no model API requests",
   "pending": [],
+  "questions": [
+    {
+      "kind": "attr",
+      "q": "c9df1f0c47a44c2b04c87219"
+    }
+  ],
   "replay": true,
   "resumed": false,
   "returned_unsure": [],
@@ -46,24 +59,24 @@
       },
       {
         "cost": 0.0,
-        "key": "46299ad465ed1e59f28d127c",
+        "key": "50df8c3522d6c05eb19fa2c1",
         "kind": "transform",
         "note": "",
         "replayed": true,
         "site": {
-          "end": 2157,
-          "start": 2072
+          "end": 3572,
+          "start": 3487
         }
       },
       {
         "cost": 0.0,
-        "key": "cfb8069c11cdf9ed2d0a10ec",
+        "key": "0a42a00de67fd94fc15464d2",
         "kind": "transform",
         "note": "",
         "replayed": true,
         "site": {
-          "end": 2157,
-          "start": 2072
+          "end": 3572,
+          "start": 3487
         }
       },
       {
@@ -90,6 +103,7 @@
       }
     ],
     "warnings": [
+      "W-window-untested: @682 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
       "W-fixture-line: @682 键 review 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线"
     ]
   },

@@ -1,0 +1,27 @@
+{
+  "asks": 0,
+  "calls": 3,
+  "effects": [],
+  "judge_registrations": 5,
+  "pending": [],
+  "returned_unsure": [],
+  "status": "returned",
+  "usd": 0.0,
+  "value": {
+    "pending": [],
+    "same": [
+      {
+        "same": "听说北京最近在修新的机场。",
+        "text": "这次比赛的决赛放在北京举行。"
+      },
+      {
+        "same": "物流单显示包裹已经到了重庆。",
+        "text": "公司准备明年在重庆开分店。"
+      },
+      {
+        "same": "王强的方案被选上了。",
+        "text": "我在楼下碰到了王强，聊了几句。"
+      }
+    ]
+  }
+}

@@ -55,7 +55,9 @@ def groups() -> list:
         probe.append((f"folio@scope-{cal}", "folio.jpp", SC / "fixture-folio.json", SC / cal))
     for name, src, fx, cal in probe:
         d = P / name.split("@")[0].replace("winnow-batched", "winnow")
-        out.append({"name": "probes/" + name, "cwd": d, "source": d / src, "fixtures": fx, "calib": cal, "files": {}})
+        # 步 14b-0：设计者版探针的材料经 --input 交给程序
+        out.append({"name": "probes/" + name, "cwd": d, "source": d / src, "fixtures": fx, "calib": cal, "files": {},
+                    "input": d / "baseline/materials.json"})
     byname = {c["name"]: c for c in m["cases"]}
     for c in m["cases"]:
         if c.get("resume_from") and c["resume_from"] in byname:
@@ -93,7 +95,8 @@ def scan_one(g: dict) -> dict:
         for k, v in g["files"].items():
             (tmp / k).write_text(v, encoding="utf-8")
         led, r1, r2 = tmp / "ledger.jsonl", tmp / "first.json", tmp / "replay.json"
-        a = [g["source"], "--fixtures", g["fixtures"], "--ledger-out", led, "--output", r1]
+        inp = ["--input", g["input"]] if g.get("input") else []
+        a = [g["source"], "--fixtures", g["fixtures"], "--ledger-out", led, "--output", r1, *inp]
         if g["calib"]:
             a += ["--calib", g["calib"]]
         p1 = run(a, cwd)
@@ -104,14 +107,14 @@ def scan_one(g: dict) -> dict:
             # 续接趟：比的是续接后的账本与续接趟的报告（B83）
             rs = g["resume"]
             led2, r1b = tmp / "ledger2.jsonl", tmp / "resumed.json"
-            b = [rs["source"], "--fixtures", rs["fixtures"], "--resume", led, "--ledger-out", led2, "--output", r1b]
+            b = [rs["source"], "--fixtures", rs["fixtures"], "--resume", led, "--ledger-out", led2, "--output", r1b, *inp]
             if rs["calib"]:
                 b += ["--calib", rs["calib"]]
             p1b = run(b, cwd)
             if not r1b.exists():
                 return {"name": g["name"], "error": "续接失败：" + p1b.stderr.strip()[-300:]}
             led, r1, src = led2, r1b, rs["source"]
-        p2 = run([src, "--replay", led, "--output", r2], cwd)
+        p2 = run([src, "--replay", led, "--output", r2, *inp], cwd)
         if not r2.exists():
             return {"name": g["name"], "error": "重放失败：" + p2.stderr.strip()[-300:], "diff": ["重放失败"]}
         f, s = json.loads(r1.read_text(encoding="utf-8")), json.loads(r2.read_text(encoding="utf-8"))

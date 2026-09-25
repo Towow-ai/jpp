@@ -11,6 +11,6 @@
 
 ## 语义投影（21 §二·2）
 
-`crates/jpp-cli/tests/golden.rs` 的 `project()`：状态、返回值、`returned_unsure`、未决清单（原因与站点）、`do`/`ask`/`gen` 的调用序列（种类、说明、账本键、是否重放）、判断登记数、调用数、提问数、费用。每个用例的投影存于 `<用例>/projection.json`，供步 7（账本 v2）与步 20a（校准键元组）的格式步比对。
+`crates/jpp/tests/golden.rs` 的 `project()`：状态、返回值、`returned_unsure`、未决清单（原因与站点）、`do`/`ask`/`gen` 的调用序列（种类、说明、账本键、是否重放）、判断登记数、调用数、提问数、费用。每个用例的投影存于 `<用例>/projection.json`，供步 7（账本 v2）与步 20a（校准键元组）的格式步比对。
 
 现行报告取不到、投影暂缺的两项：每个 `cut` 站点的出口种类（只在返回值里间接可见）与层数（报告不含 `layers`）。步 7 账本 v2 带上 `layer` 与 `parents` 后补入投影，同一步里对 HEAD 重做投影自检。

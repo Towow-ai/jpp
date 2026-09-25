@@ -7,6 +7,7 @@
     "tokens": 0,
     "usd": 0.0
   },
+  "entry": [],
   "fixture_description": null,
   "local_checks": [],
   "mode": "fixed observations; no model API requests",
