@@ -95,6 +95,17 @@ fn 读得进e_cal那三条真记录() {
 fn 读得进e_cal旧格式记录夹具() {
     let store = CalibStore::load(&记录夹具()).expect("仓库内三条旧格式夹具该读得进来");''', count=1)
 
+# 2026-09-26（步 20a-2b 新增测试自带的一处漏改）：b116_questions_out.rs 的 V7 案例指向研究工作区的
+# 评估/2026-09-24-V7固定序/（公开仓库里不存在，cargo test 首次同步即报 No such file or directory）。
+# 改读仓库内夹具 tests/fixtures/refund-do.jpp（内容与研究树该文件逐字节相同，已随本次同步一并加入）。
+rewrite("crates/jpp/tests/b116_questions_out.rs",
+        '''let src = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../../评估/2026-09-24-V7固定序/refund-do.jpp");''',
+        '''// 公开仓库副本：原路径指向研究工作区私有目录（评估/2026-09-24-V7固定序/），
+    // 不在本仓库里；tools/sync-rust-from-research.sh 把这一行改写成仓库内夹具。
+    let src = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/refund-do.jpp");''',
+        count=1, optional=True)
+
 # 探针脚本与运行记录里的本机绝对路径改成相对路径（不被测试或金样读取；研究树改了之后这两条自动跳过）。
 rewrite("probes/scope/rule_gradient.py",
         'ROOT = pathlib.Path("/Users/nature/个人项目/jev")\nRJ = ROOT / "地基/rust-jpp"\nCAL = ROOT / "实测/校准题式-2026-09-23"',

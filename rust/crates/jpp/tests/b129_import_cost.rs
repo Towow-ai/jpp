@@ -1,5 +1,7 @@
-//! 步 20a-2a：`calib-import --cost fp,fn`（B129）。代价线是导入的一种认证方式：`commission_costed_graded` 在标注集上
-//! 按 `fp·#误放行 + fn·#漏放行` 最小定线，证书按 α 判上岗（先正式、不过再试用，B72），证书带 `cost`、`selection` 为空；
+//! 步 20a-2a：`calib-import --cost fp,fn`（B129）。代价线是导入的一种认证方式：`commission_costed_graded` 在
+//! 选线半上按 `fp·#误放行 + fn·#漏放行` 最小定线，认证半上判 α 够不够，证书按结果上岗（先正式、不过再试用，
+//! B72），证书带 `cost`、`selection` 记分半方法与种子（B85 分层交替分半，PR35 评审修复缺陷二：此前选线与
+//! 认证用同一批样本，二项上界只对事先固定的线成立，对「在这批数据上挑出来的线」不成立）；
 //! `cut(r, {cost: [fp, fn]})` 取这张证书，别的代价查不到（冷）。代价线只定一条放行线、记录 `lo = 0`：线上 `act`，
 //! 线下 `unsure(band)`（`Ignore` 除 p = 0 外不可达，现行 `commission_costed` 的口径，本步照实钉住，见过程记录 Q11）。
 //!
@@ -7,7 +9,7 @@
 //! 已有两侧线的键拒做代价认证（代价线把 `lo` 置 0，会让已有的 Ignore 出口不可达）；CLI 的参数与互斥。
 //!
 //! 依据：B129（`地基/附注/2026-09-25-作者主权与策略表达裁定.md` §二）；B72；B117；`21` 步 20a-2 的〔B129〕施工注；
-//! `地基/过程记录/工程-步20a-2a.md`。
+//! `地基/过程记录/工程-步20a-2a.md`；`地基/过程记录/工程-PR35评审修复.md`（分半改动与样本量调整的算式）。
 
 use jpp::effects::{CalibStore, EffectError, FnPort, JudgeResult, Ports};
 use jpp::interp::{ActionRegistry, TaintOut};
@@ -135,10 +137,15 @@ fn 跑(src: &str, calib: &CalibStore, p: f64) -> Result<jpp::Outcome, String> {
 
 const 带代价: &str = ", {cost: [1, 10]}";
 
-/// P3：正式代价证书的形状与出口。线 = 0.9（并列取更高），`lo = 0`，证书带代价、`selection` 为空、正式等级。
+/// P3：正式代价证书的形状与出口。线 = 0.9（两类完全可分，选线半/认证半的分界都落在 0.1/0.9 之间，
+/// 并列取更高），`lo = 0`，证书带代价、`selection` 记分半方法与种子、正式等级。
+///
+/// PR35 评审修复（缺陷二）：N 从 40 对提到 **50 对**——认证半只有约一半的已决正例，40 对时认证半 20 个
+/// 零错正例，`ucb ≈ 0.109 > α=0.1`，只能拿到试用线；50 对时认证半 25 个，`ucb ≈ 0.088 ≤ 0.1`，正式线仍然
+/// 过（算式见 `地基/过程记录/工程-PR35评审修复.md` §二）。
 #[test]
 fn 代价线证书与出口() {
-    let (store, key) = 代价库(40);
+    let (store, key) = 代价库(50);
     let rec = &store.records[&key];
     assert_eq!(rec.status, "上岗");
     assert_eq!((rec.hi, rec.lo), (0.9, 0.0), "代价线只有放行线，lo 置 0");
@@ -146,7 +153,13 @@ fn 代价线证书与出口() {
     assert_eq!(rec.certs.len(), 1);
     let c = rec.certs.values().next().unwrap();
     assert_eq!(c.cost, Some(代价));
-    assert!(c.selection.is_none(), "代价线不按 δ 平移：selection 为空");
+    let sel = c.selection.as_ref().expect("代价分半（B85）要写 selection");
+    assert_eq!(sel.delta, Some(0.0), "代价线不按 δ 平移：显式声明 δ=0");
+    assert!(
+        sel.method.starts_with("cost-"),
+        "方法名前缀 cost-：{}",
+        sel.method
+    );
     assert_eq!(c.grade, jpp::effects::CertGrade::Formal);
     // P7：J-16 前置——标注集 id 与保形集 id 不同源
     assert_eq!(rec.label_set_id, "truth:s20a2a");
@@ -185,15 +198,20 @@ fn 代价线证书与出口() {
 }
 
 /// P3：正式代价线放行不可逆 do；试用代价线（正式 α 不过、试用 α 过）路由但不放行，J-08 拒。
+///
+/// PR35 评审修复（缺陷二）：正式那半 `代价库(40)` → `代价库(50)`（理由同 `代价线证书与出口`）；
+/// 试用那半 `代价库(12)` → `代价库(20)`——12 对时认证半只有 6 个零错正例，`ucb ≈ 0.319`，正式（0.1）
+/// 与试用（0.25）都过不了，会导致后面取 `certs.values().next().unwrap()` 直接 panic；
+/// 20 对时认证半 10 个，`ucb ≈ 0.206`，正式过不了但试用过，符合这个测试本来要测的「试用线」场景。
 #[test]
 fn 正式代价线放行_试用代价线不放行() {
-    let (正式, _) = 代价库(40);
+    let (正式, _) = 代价库(50);
     let o = 跑(&程序(带代价, "content(do(\"退款\", [], 0))"), &正式, 0.95).unwrap();
     assert_eq!(o.value_json(), json!("已退"));
     assert_eq!(o.exits[0]["releases"], json!(true));
 
-    // 12 对零错：正式 α 0.1 的上界约 0.175 不过，试用 α 0.25 过（B72）
-    let (试用, key) = 代价库(12);
+    // 20 对零错：正式 α 0.1 的上界约 0.206 不过，试用 α 0.25 过（B72）
+    let (试用, key) = 代价库(20);
     let c = 试用.records[&key].certs.values().next().unwrap();
     assert_eq!(c.grade, jpp::effects::CertGrade::Trial);
     assert_eq!(c.cost, Some(代价));
@@ -213,9 +231,13 @@ fn 临时(tag: &str) -> PathBuf {
 }
 
 /// P4：存盘再装载（步 20c 按证书重跑），正式与试用两种代价证书都复现，不降夹具。
+///
+/// PR35 评审修复（缺陷二）：N 值同 `正式代价线放行_试用代价线不放行` 的理由，`(40, "formal")` →
+/// `(50, "formal")`、`(12, "trial")` → `(20, "trial")`；重跑走证书自带的 `selection.seed`
+/// （见 `rerun.rs` 新增的 `cost-split-stratified` 分支），同一批样本、同一颗种子确定性复现。
 #[test]
 fn 装载重跑复现代价证书() {
-    for (n, tag) in [(40, "formal"), (12, "trial")] {
+    for (n, tag) in [(50, "formal"), (20, "trial")] {
         let (store, key) = 代价库(n);
         let d = 临时(tag);
         store.save(&d).unwrap();
@@ -321,7 +343,15 @@ fn cli_cost参数() {
     assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
     let rep: Json = serde_json::from_slice(&o.stdout).unwrap();
     assert_eq!(rep[0]["certification"]["cost"], json!([1.0, 10.0]));
-    assert_eq!(rep[0]["certification"]["selection"], Json::Null);
+    // PR35 评审修复（缺陷二）：代价线现在也分半，selection 不再是 null，记方法与种子
+    assert!(
+        rep[0]["certification"]["selection"]["method"]
+            .as_str()
+            .is_some_and(|m| m.starts_with("cost-")),
+        "{}",
+        rep[0]
+    );
+    assert_eq!(rep[0]["certification"]["selection"]["delta"], json!(0.0));
     assert_eq!(rep[0]["status"], json!("上岗"));
 
     for bad in ["1", "0,1", "a,b", "-1,2"] {

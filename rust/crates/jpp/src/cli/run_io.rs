@@ -109,7 +109,7 @@ pub fn ledger_migrate(from: &Path, to: &Path) -> Result<(), String> {
 /// B105 / B108
 pub fn read_host_input(path: &Path, trusted: bool) -> Result<jpp::EntryArgs, String> {
     let value: serde_json::Value = read_json(path)?;
-    runner::validate_numbers(&value).map_err(|e| format!("{}: {e}", path.display()))?;
+    jpp::actions::validate_numbers(&value).map_err(|e| format!("{}: {e}", path.display()))?;
     let mut v = jpp::EntryValue::new("input", value);
     if trusted {
         v = v.with_taint(jpp::Taint::Trusted);

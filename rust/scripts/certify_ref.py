@@ -4,7 +4,8 @@
     python3 certify_ref.py labels.jsonl            打印 {key: {"hi", "lo", "delta"} 或 {"status": "待真值", ...}}
 
 算法按 `jpp calib-import` 的拆分样本认证逐行移植（`crates/jpp-calib/src/calib/commission.rs`
-的 `commission_two_sided_split`、`commission_upper_split`、`选两侧线对`、`splitmix64`，
+的 `commission_two_sided_split_graded`、`commission_upper_split_graded`（步 20a-2b 起为 crate 内部，测试经
+`commission_legacy_seed_split_test_only` 调）、`选两侧线对`、`splitmix64`，
 `crates/jpp-value/src/stat.rs` 的 `binomial_upper`、`n_needed_zero_error`），
 使手写基线算出的线与 J++ 侧经 `calib-import` 得到的线逐位相同。任务书 T1 (d) 用文字写了同一算法。
 

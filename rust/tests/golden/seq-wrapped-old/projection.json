@@ -1,0 +1,25 @@
+{
+  "asks": 0,
+  "calls": 1,
+  "effects": [],
+  "judge_registrations": 7,
+  "pending": [],
+  "returned_unsure": [
+    "unsure(band)"
+  ],
+  "status": "returned",
+  "usd": 0.0,
+  "value": [
+    "是",
+    "否",
+    "是",
+    {
+      "answer": "未决",
+      "pending": {
+        "duty": 3,
+        "q": "89f87a3e9b74915cf8371bfd",
+        "unsure": "band"
+      }
+    }
+  ]
+}

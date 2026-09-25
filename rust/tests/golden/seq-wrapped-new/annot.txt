@@ -1,0 +1,73 @@
+ir v1
+budget calls=8 cost=0.01 depth=64 escalate=- unsure=- latency_p95=- absent=-
+block 129..616
+  let m : -
+    #0 call 179..243
+      callee:
+        #1 name mat
+      #2 text "我上个月去了成都出差，顺便见了老朋友。"
+  let qs : -
+    #3 call @0 254..454
+      callee:
+        #4 name map
+      #5 list 258..406
+        #6 text "这段话是否提到了成都？"
+        #7 text "这段话是否提到了北京？"
+        #8 text "这段话是否提到了出差？"
+        #9 text "这段话是否提到了朋友？"
+      #11 fn (t:-) -> - effects=-
+        block 427..453
+          result
+            #12 construct test @1 429..451
+              #13 name t
+              #14 text "seq-wrapped"
+  let es : -
+    #15 cut @2 465..489
+      reading:
+        #16 effect judge @3 469..488 ; {"effect":{"known":["judge"],"open":false},"summary":null,"duty_kind":null,"refresh_point":false}
+          state:
+            #17 state @4 475..483
+              on:
+                #18 name m
+          questions:
+            #19 name qs
+  result
+    #20 call @5 491..616
+      callee:
+        #21 name map
+      #22 name es
+      #24 fn (e:-) -> - effects=-
+        block 505..615
+          result
+            #25 handle @6 507..613
+              exit:
+                #26 name e
+              arms:
+                #27 record 517..612
+                  act:
+                    #29 fn () -> - effects=-
+                      block 528..537
+                        result
+                          #30 text "是"
+                  ignore:
+                    #32 fn () -> - effects=-
+                      block 552..561
+                        result
+                          #33 text "否"
+                  unsure:
+                    #35 fn (u:-) -> - effects=-
+                      block 577..611
+                        result
+                          #36 record 579..609
+                            answer:
+                              #37 text "未决"
+                            pending:
+                              #38 name u
+sites 7
+  @0 #3 hof:map 254..454 fn=- in=-
+  @1 #12 construct:test 429..451 fn=#11 in=@0
+  @2 #15 cut 465..489 fn=- in=-
+  @3 #16 effect:judge 469..488 fn=- in=-
+  @4 #17 state 475..483 fn=- in=-
+  @5 #20 hof:map 491..616 fn=- in=-
+  @6 #25 handle 507..613 fn=#24 in=@5

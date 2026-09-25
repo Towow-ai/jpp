@@ -29,6 +29,7 @@ fn 动作表() -> ActionTable {
         ActionFacts {
             reversible: false,
             output_untrusted: false,
+            no_sandbox: false,
         },
     );
     t

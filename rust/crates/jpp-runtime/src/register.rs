@@ -5,6 +5,9 @@ use super::plan_view::RtEnv;
 use super::*;
 use jpp_ir::plan::Reach;
 
+/// 提前登记的一个站点：状态、题、站点（推测、向量化、直线段提升共用）
+type 提前站点 = (Rc<State>, Vec<Rc<Question>>, Span);
+
 impl<'a> Interp<'a> {
     /// 判断键：算出账本键并记下结构化键，写账本时附上（账本 v2，步 7）。键值与 `judge_key` 相同。
     pub(crate) fn judge_key_of(
@@ -167,6 +170,7 @@ impl<'a> Interp<'a> {
                     .collect(),
                 site: sp,
                 speculative: false,
+                lifted: false,
             });
         }
         Ok(readings.into_iter().map(Value::Reading).collect())
@@ -294,16 +298,64 @@ impl<'a> Interp<'a> {
     /// （钩子已核：实参只有名字或字面量、按环境不会产生效应），在被调者的捕获环境上绑好形参再往里执行。
     /// 这里只求值与登记，不判许可（`20` T3）；求不出来就放弃这一支，不报错（与推测同一口径）。
     fn run_targets(&mut self, f: &Function, targets: &[jpp_ir::plan::Target], env: &Env) {
+        let mut sites = vec![];
+        self.eval_targets(&f.body, targets, env, &mut sites);
+        for (st, qs, sp) in sites {
+            let _ = self.register_speculative(&st, &qs, sp);
+        }
+    }
+
+    /// 直线段提升穿过函数调用（B94 下半，步 23c）：钩子给出本句起直线段里的目标（13b 的三个条件），
+    /// 求出各站点的状态与题，按状态分组，只把一组里有两处以上的提前登记——「同一状态的多次 judge
+    /// 提升到段首」；单独一处的等它自己的真站点登记（不同状态的层合并没有消费者，与 `lift` 同口径）。
+    /// 递归调用由钩子的路径集挡住一层；`if` 分支内不提升（候选不进分支体）。
+    pub(crate) fn 提升过调用(&mut self, b: &Block, at: jpp_ir::key::NodeId, env: &Env) {
+        if self.plan.segments.is_empty() {
+            return;
+        }
+        let view = RtEnv(env.clone());
+        let targets = self.hooks.segment(&self.plan, at, b, &view);
+        if targets.is_empty() {
+            return;
+        }
+        let mut sites = vec![];
+        self.eval_targets(b, &targets, env, &mut sites);
+        let mut 计数: HashMap<String, usize> = HashMap::new();
+        for (st, _, _) in &sites {
+            *计数.entry(st.hash.clone()).or_default() += 1;
+        }
+        for (st, qs, sp) in sites {
+            if 计数[&st.hash] >= 2 && self.register_speculative(&st, &qs, sp).is_some() {
+                // 审查修复 3b：提升登记的组排在真站点之后（刷新按第一条非提升登记排序）
+                if let Some(p) = self.pending.last_mut() {
+                    p.lifted = true;
+                }
+            }
+        }
+    }
+
+    /// 求钩子给的目标的状态与题（不登记）：`Site` 在当前环境里求；`Enter` 求被调者与实参（钩子已核：
+    /// 实参只有名字或字面量、按环境不会产生效应），在被调者的捕获环境上绑好形参再往里求。
+    /// 求不出来就放弃这一支，不报错（与推测同一口径）。
+    fn eval_targets(
+        &mut self,
+        body: &Block,
+        targets: &[jpp_ir::plan::Target],
+        env: &Env,
+        out: &mut Vec<提前站点>,
+    ) {
         use jpp_ir::plan::Target;
         for t in targets {
             match t {
                 Target::Site(id) => {
-                    if let Some(e) = jpp_ir::ir::find_expr(&f.body, *id) {
-                        self.speculate_judge(e, env);
+                    if let Some(e) = jpp_ir::ir::find_expr(body, *id)
+                        && let Some(x) = self.judge_parts(e, env)
+                    {
+                        out.push(x);
                     }
                 }
                 Target::Enter { call, inner } => {
-                    let Some(e) = jpp_ir::ir::find_expr(&f.body, *call) else {
+                    let Some(e) = jpp_ir::ir::find_expr(body, *call) else {
                         continue;
                     };
                     let K::Call { callee, args } = kind(e) else {
@@ -327,7 +379,7 @@ impl<'a> Interp<'a> {
                         env_define(&env2, &p.name, v);
                     }
                     let c2 = c2.clone();
-                    self.run_targets(&c2.function, inner, &env2);
+                    self.eval_targets(&c2.function.body, inner, &env2, out);
                 }
             }
         }
@@ -339,11 +391,18 @@ impl<'a> Interp<'a> {
     /// taint 与 `derived_from` 都跟着材料走——推测不新建材料，所以没有新边界。
     /// **这里搬的是站点不是值，值仍在原环境里算**。
     pub(crate) fn speculate_judge(&mut self, e: &Expr, env: &Env) {
+        if let Some((st, qs, sp)) = self.judge_parts(e, env) {
+            let _ = self.register_speculative(&st, &qs, sp);
+        }
+    }
+
+    /// 一个 `judge` 站点在当前环境里的状态与题；求不出来为 `None`（推测与提升同一口径）
+    fn judge_parts(&mut self, e: &Expr, env: &Env) -> Option<提前站点> {
         let K::Call {
             args: arguments, ..
         } = kind(e)
         else {
-            return;
+            return None;
         };
         if let (Ok(Value::State(st)), Ok(q)) =
             (self.eval(arguments[0], env), self.eval(arguments[1], env))
@@ -360,12 +419,13 @@ impl<'a> Interp<'a> {
                         }
                     })
                     .collect(),
-                _ => return,
+                _ => return None,
             };
             if !qs.is_empty() {
-                let _ = self.register_speculative(&st, &qs, e.span);
+                return Some((st, qs, e.span));
             }
         }
+        None
     }
 
     /// 登记一个推测站点：与真站点同一套键（`judge_key`），所以真站点走到时直接命中账本。
@@ -437,6 +497,7 @@ impl<'a> Interp<'a> {
             items,
             site: sp,
             speculative: true,
+            lifted: false,
         });
         Some(())
     }

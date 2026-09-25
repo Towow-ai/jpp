@@ -233,3 +233,91 @@ fn 回填导入() {
         String::from_utf8_lossy(&o.stderr)
     );
 }
+
+/// PR35 评审修复（缺陷一）：`--from-ledger` 此前逐行反序列化跳过头行，从不校验版本、`seq` 序号与
+/// `prev` 哈希链。篡改一条有后继的 Judge 读数（链没有重算）后，`--list-out` 导出与回填导入都必须
+/// 报 `E-ledger-corrupt` 且不写任何输出——不能把改过的读数悄悄当合法抽样框用。
+#[test]
+fn 篡改账本被拒收() {
+    let d = 目录("tamper");
+    首跑(&d);
+    let led = fs::read_to_string(d.join("led.jsonl")).unwrap();
+    // 第一条 Judge 的读数是 0.97（i=0「同意」那条），后面还有 59 行：只改第一处，让下一行的
+    // `prev` 对不上（链哈希记的是「上一行文本的哈希」，改了这一行内容后它自己的 prev 校验仍然
+    // 通过，但它产出的新哈希和原链记的不一致，链断的判定发生在下一行）。
+    assert!(
+        led.contains("\"Noul\":0.97"),
+        "前提：账本里有 0.97 的读数：{led}"
+    );
+    let tampered = led.replacen("\"Noul\":0.97", "\"Noul\":0.5", 1);
+    assert_ne!(tampered, led, "确实改动了内容");
+    fs::write(d.join("led.jsonl"), &tampered).unwrap();
+
+    // --list-out 导出：要拒收，不写清单文件
+    let o = 跑(
+        &d,
+        &[
+            "calib-import",
+            "--from-ledger",
+            "led.jsonl",
+            "--key",
+            "k",
+            "--list-out",
+            "tampered-list.jsonl",
+            "--seed",
+            "7",
+            "--profile",
+            画像,
+        ],
+    );
+    assert!(!o.status.success());
+    assert!(
+        o.stdout.is_empty(),
+        "{}",
+        String::from_utf8_lossy(&o.stdout)
+    );
+    assert!(
+        String::from_utf8_lossy(&o.stderr).contains("E-ledger-corrupt"),
+        "{}",
+        String::from_utf8_lossy(&o.stderr)
+    );
+    assert!(
+        !d.join("tampered-list.jsonl").exists(),
+        "拒收时不写清单文件"
+    );
+
+    // 回填导入：同样拒收，不写 --calib-out 目录（标签行内容本身不重要，账本先被拒收）
+    fs::write(
+        d.join("tampered-lab.jsonl"),
+        r#"{"key": "k", "item": "x", "label": true, "source": "computed"}"#,
+    )
+    .unwrap();
+    let o = 跑(
+        &d,
+        &[
+            "calib-import",
+            "tampered-lab.jsonl",
+            "--from-ledger",
+            "led.jsonl",
+            "--calib-out",
+            "tampered-co",
+            "--profile",
+            画像,
+        ],
+    );
+    assert!(!o.status.success());
+    assert!(
+        o.stdout.is_empty(),
+        "{}",
+        String::from_utf8_lossy(&o.stdout)
+    );
+    assert!(
+        String::from_utf8_lossy(&o.stderr).contains("E-ledger-corrupt"),
+        "{}",
+        String::from_utf8_lossy(&o.stderr)
+    );
+    assert!(
+        !d.join("tampered-co").exists(),
+        "拒收时不写 --calib-out 目录"
+    );
+}

@@ -55,7 +55,10 @@ pub struct MethodType {
 `fn solve(input: Mat, method: Fn(Record) -> Record !{judge})` 里的 `method(s)` 不再是「静态判不了」。
 `captures_responsibility` 区分 Codex 说的 `Fn¹`（捕获了未决责任，不可重复调用、不可丢弃）与 `Fnω`；
 core 现在会拦住把 `Fn¹` 交给 `map` / `filter` 的写法。文法已支持类型位上的效应行：
-`Fn(Record) -!{judge}-> Record` 降成 `Type::Method`，不写效应行的 `Fn(A) -> B` 仍是 `Type::Function`。
+`Fn(Record) -!{judge}-> Record` 降成 `Type::Method`，不写效应行的 `Fn(A) -> B` 仍是 `Type::Function`——
+**旧式无效应行不是「合法无告警写法」**：K-052（步 24h）加了 `W-legacy-fn-type`，`Type::Function`
+的形参在函数体内被当作方法调用时报警（旧式类型不携带效应契约，调用点看不出会不会触发判断/动作）；
+新写法一律给效应行，不确定效应时写空效应行 `-!{}-> ` 声明纯函数，而不是省略整段。
 
 `effects` 里的名字目前只认 `judge` / `gen` / `do` / `ask`；`transform` 是记账变换，不是效应形式，不写进标注。
 
@@ -69,6 +72,7 @@ pub enum Value {
     List(Rc<Vec<Value>>), Record(Rc<Vec<(String, Value)>>),
     Fn(Rc<Closure>), Builtin(&'static str),
     Mat(Rc<Mat>), State(Rc<State>), Question(Rc<Question>), Reading(Rc<Reading>), Exit(Rc<Exit>),
+    Cut(Rc<PendingCut>),    // 步 23c（B94）：程序里 cut 的结果，未解析的出口；第一次被检视时解析，之后等同 Exit
     Duty(Rc<Exit>),         // 未决责任 U(q)：unsure 臂收到的就是它
     Fail(Rc<str>),          // do 失败是值，不是异常（J-12）
     Stop(Rc<Value>),        // loop 的显式停止
@@ -325,7 +329,7 @@ S 库 `lib/materials.jpp` 的 `review_material(opinion, about)`：把评审意�
 | `jpp calib-import <labels.jsonl> --calib-out <dir> [--calib <dir>] [--alpha 0.1] [--conf-delta 0.1] [--spot-check-min 0.9] [--abstain-warn 0.1]` | 每行：`key`（校准键）或 `form`（题式规格：op、template、可选 scale / evidence / presupposition / request，哈希与 `.jpp` 的 `form` 同算法）、`item`（材料 id，人工与模型标注靠它配对）、`p`（一次实际运行的读数）、`label` ∈ `true` / `false` / `"ambiguous"`、`source` ∈ `human` / `computed`（真值由构造或程序算出）/ `model:<名>`、可选 `spot_check`（人工抽检批次）。逻辑在 `jpp_core::truth::import_labels` |
 | 真值选择 | 同一 `item` 有人工或构造的真值时用它，否则用模型的；`ambiguous` 不进线，计入 `truth.abstain_rate`，超过 `--abstain-warn` 报 `W-abstain` |
 | 上岗门 | 有只靠模型标注撑起的真值时，要求同键有人工抽检且一致率 ≥ `--spot-check-min`；否则记录停在 `待真值`，`truth.gate` 写「待核：原因」。门槛是参数，不写死在规则里 |
-| 认证 | `CalibStore::commission_two_sided_split`（真值通道所用，B24）：带标注样本先按 `(p, 真值)` 排成规范序，再按 `splitmix64(seed ^ 规范序下标)` 最低位分成选线半与认证半（与行序无关）；选线半上按 `cut` 实际判区（`p ≥ hi + δ` 给 Act、`p ≤ lo − δ` 给 Ignore）联合选线，取两区二项上界各 ≤ α 且已决条数最多的一对；认证半上对该对两侧各检验一次。任一半每侧不足零错误所需条数时停在待核（原因以「待核」开头）。证书新增可选字段 `selection {method, seed, n_select, n_certify, candidates}`，有值时进地址。`calib-import --seed`（默认 20260923）。〔步 20g（B86、B85）：`calib-import` 缺省改为 `commission_two_sided_fixed_sequence_graded`（固定序、不拆分；候选由读数按计数生成，从严到宽逐个检验，第一次不过即停；证书 `selection` 多 `rule`、`step`、`delta`、`generated`、`stop_index`，有 `rule` 时进地址）；`--certify split` 走 `commission_two_sided_split_stratified_graded`（分层交替分半，方法 `split-stratified`）；本行所述的种子分半保留给旧证书重跑；同批选线的 `commission_two_sided` 已删除；K 元单侧同形。原 `commission` 保留不删。〕 |
+| 认证 | `CalibStore::commission_two_sided_split`（真值通道所用，B24）：带标注样本先按 `(p, 真值)` 排成规范序，再按 `splitmix64(seed ^ 规范序下标)` 最低位分成选线半与认证半（与行序无关）；选线半上按 `cut` 实际判区（`p ≥ hi + δ` 给 Act、`p ≤ lo − δ` 给 Ignore）联合选线，取两区二项上界各 ≤ α 且已决条数最多的一对；认证半上对该对两侧各检验一次。任一半每侧不足零错误所需条数时停在待核（原因以「待核」开头）。证书新增可选字段 `selection {method, seed, n_select, n_certify, candidates}`，有值时进地址。`calib-import --seed`（默认 20260923）。〔步 20g（B86、B85）：`calib-import` 缺省改为 `commission_two_sided_fixed_sequence_graded`（固定序、不拆分；候选由读数按计数生成，从严到宽逐个检验，第一次不过即停；证书 `selection` 多 `rule`、`step`、`delta`、`generated`、`stop_index`，有 `rule` 时进地址）；`--certify split` 走 `commission_two_sided_split_stratified_graded`（分层交替分半，方法 `split-stratified`）；本行所述的种子分半保留给旧证书重跑；同批选线的 `commission_two_sided` 已删除；K 元单侧同形。原 `commission` 保留不删。〕〔步 20a-2b（主会话定 Q12）：种子分半的四个公开入口收窄——`commission_two_sided_split`、`commission_upper_split` 删去，两个 `_graded` 版改为 crate 内部（只供 `load` 重跑旧证书）；测试造旧证书用 `commission_legacy_seed_split_test_only`（`#[doc(hidden)]`，名字标明只供测试，`crates/*/src` 不得调用）。〕 |
 | 查找顺序 | `cut`：题键上岗 → 用题键；否则题上有 `form_hash` 且题式键 `\u{1f}form\u{1f}<哈希>` 上岗 → 用题式线，报 `W-form-line`，出口 `line_source=题式级·…`；否则模式级；再否则冷。题式记录经真值通道导入但未上岗时报 `W-form-pending`（写明待核原因），按冷键处理。停岗仍提前返回，回退够不着它 |
 | 账本 | 新字段 `Ledger.calib_used`（键 → `{hash, record}`）：`cut` 实际查到的记录，**本趟命中集合，每趟改写**（B83，步 7c：入口比对后清空，本趟按当前视图重填；续接后只凭账本重放复现续接趟）。`--replay` / `--resume` 时，本次没有另给的键从这里补回（stderr 列出补回的键），**只凭账本重放出口逐字节一致**。老账本无此字段，行为不变；头上的整库 `calib_hash` 因为库是子集必然不同，步 7b（B77）起只凭账本重放不比它，改比 `calib_used_hash`（命中记录集合的哈希），不再报假 `W-header`。〔账本 v3（步 18a）：载体改为 `CalibUsed` 条目，`Ledger.calib_used` 是按键取最后一条的派生视图，不再入口清空；`calib_used_hash` 移出头，改逐键比，见三·四·六〕 |
 
@@ -408,6 +412,26 @@ S 库 `lib/materials.jpp` 的 `review_material(opinion, about)`：把评审意�
 所以判据是：**凡结果依赖于答案的操作，皆是刷新点**，清单只作例子。现有刷新点：
 `cut`、`if`、`content`、`allocate`、`unsure_bound`、程序结束；后两个属清单里「宿主读内容」一类，
 不是新增的第七种。（已作附注提议给 `12`，待裁定；core 按判据实现。）
+
+**步 23c（B94）起 `cut` 惰性**：程序里的 `cut` 只把读数与线（校准键、代价）绑定，返回未解析出口
+（`Value::Cut`，出口号当场分配），不刷新。出口在第一次被**检视**时才刷新（刷新原因 `inspect`）、查线、
+过线、记 `calib_used`，解析一次、缓存出口，复制出去的各份是同一个出口。检视点：内置与构造的实参（含
+`handle`、`exit_kind`/`is_act`/`unsure_cause`、`consume`、`mat`/`state`、`sieve` 等全部内置，列表与记录里的
+也解析）、`if` 条件、运算两侧、取字段、函数返回前、程序返回前。列表里的元素经下标原样取出、函数实参
+与返回值原样搬运，都不解析。构造内部的切出口（`sieve`、`literalize`）仍当场读答案。于是「先登记、
+后检视」成立：`let e = cut(judge(…)); let r = sieve(…); handle(e, …)` 一层发出。开关 `Passes.lazy_cut`，
+关掉即改前行为。
+
+**直线段提升穿过函数调用（步 23c，B94 下半，随 `lift`）**：每条 `let` 求值前，从这一句起的直线段里
+（到下一条含副作用的语句为止；任一句含分支、循环或短路运算 `&&`/`||` 就停在这句之前，因为右侧不一定
+走到；不进方法字面量），`judge` 站点与「被调者是名字、实参只有名字或字面量」的用户函数调用按 13b 的
+三个条件穿进去，求出状态与题，同一状态（运行期 `StateHash` 相等，B145）有两处以上的先推测登记。提升
+登记的组在刷新时排在程序序更靠前的真站点之后，预算不够时先丢；没走到的推测项不记缺席账。计划面
+`Plan.segments`，钩子 `PlanHooks::segment`。四个包装函数直线段顺序各问一题（同一状态），改前 4 次调用，
+现在 1 次。递归逐题（每步实参依赖上一步 `handle` 的值）不在保证范围。
+
+**公开面登记（B145，`21` §五冻结豁免）**：步 23c 新增 `Passes.lazy_cut`、`Plan.segments`、`Plan.lazy_cut`、
+`PlanHooks::segment`。`lazy_cut` 是 `21` §六·5 的消融开关，与既有 pass 开关同类，`Passes::landed()` 含它。
 
 读答案的入口只有一个方法，名字就叫 `Reading::answer_after_flush()`——**判据摆在每个调用点上**，
 而不是指望作者记得去查清单。

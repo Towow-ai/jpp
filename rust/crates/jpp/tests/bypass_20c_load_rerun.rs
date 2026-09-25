@@ -103,7 +103,14 @@ fn 旧证书库_带宽(d: f64) -> CalibStore {
     r.lower = None;
     r.status = "待真值".into();
     store
-        .commission_two_sided_split("k", 0.1, 0.1, 20260923)
+        .commission_legacy_seed_split_test_only(
+            "k",
+            0.1,
+            0.1,
+            20260923,
+            true,
+            jpp::effects::CertGrade::Formal,
+        )
         .expect("旧种子分半认证");
     let c = store.records["k"].选中的证书().unwrap().clone();
     assert!(

@@ -237,12 +237,14 @@ impl<'a> Interp<'a> {
             }
         }
         match &args[0] {
-            Value::Reading(r) => self.cut(r, calib.as_deref(), cost, sp),
+            Value::Reading(r) => self.过桥(r, calib.as_deref(), cost, sp),
             Value::List(l) => {
                 let mut out = vec![];
                 for r in l.iter() {
                     match r {
-                        Value::Reading(r) => out.push(self.cut(r, calib.as_deref(), cost, sp)?),
+                        Value::Reading(r) => {
+                            out.push(self.过桥(r, calib.as_deref(), cost, sp)?)
+                        }
                         _ => return err(Some("E-rt-arg"), "cut 的列表里有非读数", sp),
                     }
                 }

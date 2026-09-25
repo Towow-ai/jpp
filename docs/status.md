@@ -1,6 +1,6 @@
 # Current scope / 当前实现范围
 
-Updated 2026-09-25, after the daily sync from research-tree commit `85e28bfc` (see [progress.md](progress.md) for the full account). This supersedes the previous "same-day branch, pending review" language: that branch, plus a full further day of work on top of it, is now in `main`. Standalone `.jpp` source runs through the native Rust implementation in [`rust/`](../rust/README.md), which is the primary implementation; the Python package remains available as a behavioral reference and for the discovery demonstrations. `cargo test --locked --workspace`: **884 passed, 0 failed, 9 ignored**.
+Updated 2026-09-26, after the daily sync from research-tree commit `2eb748dc` (see [progress.md](progress.md) for the full account). Standalone `.jpp` source runs through the native Rust implementation in [`rust/`](../rust/README.md), which is the primary implementation; the Python package remains available as a behavioral reference and for the discovery demonstrations. `cargo test --locked --workspace`: **1033 passed, 0 failed, 10 ignored**.
 
 ## What's in this repository
 
@@ -11,7 +11,9 @@ Updated 2026-09-25, after the daily sync from research-tree commit `85e28bfc` (s
 - **Budget exhaustion degrades instead of halting** (ruling B93, step 22-0): once a budget is spent, no new calls are issued, but a program already in flight keeps running on the results it already has, and the ledger records `budget` as the cause on entries it could not reach.
 - **Questions as first-class values** (`form`/`fill`), a **three-way sieve** construct that takes questions directly and can also ingest review-opinion material, **pairing** (`pair`), **set aggregation** (`tally`/`first_k`, now built on a shared `compose`/`element` synthesis path), **bounded iteration** with a required shrink condition (`iterate`), and a **composition-closure contract**: every set-level construct returns the same kind of value, so its output can be fed into another one of these constructs.
 - **Value-level taint tracking.** Every scalar value carries a trust bit, propagated through operators and built-in dispatch, and checked before content derived from untrusted input can license an irreversible action (a file write, an external call).
-- Windowed dispatch and in-port concurrency let one backend port serve several judgments from the same refresh window concurrently. A batch of static checks (research steps 24a-24g) covers pending-output warnings, multi-object crosstalk, untested-profile-field warnings, a comparative-fingerprint static face, an unregistered-action-name face and a diagnostics-layer shape-mismatch consumer -- see [progress.md](progress.md) for the rule numbers. `calib-import --cost fp,fn` certifies an action-space cost line from labeled evidence, alongside reading-space `declare` and certificate-only `alpha`.
+- Windowed dispatch and in-port concurrency let one backend port serve several judgments from the same refresh window concurrently. A batch of static checks (research steps 24a-24g, 24h) covers pending-output warnings, multi-object crosstalk, untested-profile-field warnings, a comparative-fingerprint static face, an unregistered-action-name face, a diagnostics-layer shape-mismatch consumer, an old-style function-type warning and an under-limit judgment-budget warning -- see [progress.md](progress.md) for the rule numbers. `calib-import --cost fp,fn` certifies an action-space cost line from labeled evidence (now split into a selection half and a certification half, ruling B85, after a Codex review on PR #35), alongside reading-space `declare` and certificate-only `alpha`.
+- **A composition-layer host action table, 14 entries.** A single table (`crates/jpp/src/actions/`) backs everything `do` can call: the original `record_check`/`read_json`/`write_json`, six exact-algorithm actions under a `graph:` prefix (matching, shortest path, max clique, connected components, set cover, max flow -- each checked against a brute-force reference on 200 random graphs), and five executor/retrieval actions (`exec_py`, `check_tests`, `exec_sql` -- run inside an OS-level sandbox (macOS `sandbox-exec`, Linux `bwrap`), probed once at startup with a real smoke test and cached; the sandbox blocks writes outside a per-call temp directory and network access, but not reading any host-readable file or CPU/memory/process-count limits, and the three actions are marked non-reversible with a static `E-action-no-sandbox` check when no usable sandbox is found; `embed_topk`, `bm25_topk` -- local semantic and keyword retrieval).
+- **Lazy cut bridging and straight-line lifting through function calls** (ruling B94, research step 23c): a `cut`'s judgment now resolves only when something actually inspects it, not at the point it's written, and same-state `judge` calls (including calls to functions with literal arguments) can lift to the top of a straight-line segment across a function boundary -- stopping at branches, loops and short-circuit operators. On constructed benchmarks this cut call layering from 4 to 2 with the same call count.
 
 ## What's ruled but not yet built anywhere
 
@@ -30,7 +32,7 @@ Do not reuse fixture calibration records for real decisions -- they exist only t
 
 ---
 
-Rust 内核现在是 10 个 crate：`jpp`（lib 目标加 `jpp` 二进制——检查器外观、效应、账本、CLI、存储、后端；今天由原 `jpp-core` 与 `jpp-cli` 合并而来，步 14a）、`jpp-runtime`（解释器：预算、桥、构造求值、宿主内置函数）、`jpp-syntax`（由 `jpp-frontend` 改名，解析与降级）、`jpp-check`（静态检查）、`jpp-ir`、`jpp-value`、`jpp-effects`、`jpp-ledger`、`jpp-calib`、`jpp-plan`；已裁定的上限是 11 个。源码解析、共用 AST、一套明确定义的静态检查子集、解释执行、原生 CLI、预算、固定观察与账本（v3）重放都已合入本仓库 `main`。`cargo test --locked --workspace`：**884 passed, 0 failed, 9 ignored**。
+Rust 内核现在是 10 个 crate：`jpp`（lib 目标加 `jpp` 二进制——检查器外观、效应、账本、CLI、存储、后端；今天由原 `jpp-core` 与 `jpp-cli` 合并而来，步 14a）、`jpp-runtime`（解释器：预算、桥、构造求值、宿主内置函数）、`jpp-syntax`（由 `jpp-frontend` 改名，解析与降级）、`jpp-check`（静态检查）、`jpp-ir`、`jpp-value`、`jpp-effects`、`jpp-ledger`、`jpp-calib`、`jpp-plan`；已裁定的上限是 11 个。源码解析、共用 AST、一套明确定义的静态检查子集、解释执行、原生 CLI、预算、固定观察与账本（v3）重放都已合入本仓库 `main`。`cargo test --locked --workspace`：**1033 passed, 0 failed, 10 ignored**。
 
 真实 JEV 后端接上了一条现在真正便宜的认证路径：`jpp run --backend live` 发真实判断调用；`jpp calib-import` 从标注证据建一条校准记录并认证阈值。两档认证：原有的拆分样本两侧界（正式档约 160 条标注），以及固定序方法（B104/B87 裁定，研究树步 20h-1/20i）——序贯候选对齐同一顺序、保证随机到达与标签无关，用远小得多的标注集达到同一个正式档，80 条盲复核零分歧后才正式上岗。另有一档更松的试用线（证据更少，不能放行不可逆动作），用于分派但不做完整认证。没有匹配校准记录的真机运行明确返回未决（`Unsure(cold)`），不会瞎猜一条线；每次真机运行都必须带能力画像（B73）。
 
@@ -42,7 +44,11 @@ Rust 内核现在是 10 个 crate：`jpp`（lib 目标加 `jpp` 二进制——�
 
 题是一等值（`form`/`fill`）、三路过滤直接吃题也能吃复核意见材料、配对（`pair`）、集合聚合（`tally`/`first_k`，现在走共用的 `compose`/`element` 合成路径）、带必要收缩条件的有界迭代（`iterate`），加一条组合封闭性契约：每个集合级构造都返回同一种值，产物可以再喂进另一个同类构造。值级 taint 跟踪：每个标量值都带可信位，经算子与内置函数分派传播，在不可信输入派生的内容被用来放行不可逆动作（写文件、外部调用）之前接受检查。
 
-按窗口发出与端口内并发让一个后端端口能同时服务同一刷新窗口里的几个判断。一批静态检查（研究树步 24a–24g）覆盖未决输出告警、多对象串扰、画像字段未测告警、比较性指纹静态面、未登记动作名静态面、诊断层形状不匹配消费者——具体规则编号见 [progress.md](progress.md)。`calib-import --cost fp,fn` 能从标注证据认证一条动作空间的代价线，与既有的读数空间 `declare`、只选证书的 `alpha` 并列。
+按窗口发出与端口内并发让一个后端端口能同时服务同一刷新窗口里的几个判断。一批静态检查（研究树步 24a–24g、24h）覆盖未决输出告警、多对象串扰、画像字段未测告警、比较性指纹静态面、未登记动作名静态面、诊断层形状不匹配消费者、旧式函数类型告警与预算未超限也可能提示的判断预算告警——具体规则编号见 [progress.md](progress.md)。`calib-import --cost fp,fn` 能从标注证据认证一条动作空间的代价线（PR #35 上 Codex 评审后，现在也拆成选线半与认证半，B85 裁定），与既有的读数空间 `declare`、只选证书的 `alpha` 并列。
+
+**搭配层宿主动作表，共 14 行。** 一张表（`crates/jpp/src/actions/`）撑起 `do` 能调用的一切：原有的 `record_check`/`read_json`/`write_json`，六个带 `graph:` 前缀的精确算法动作（匹配、最短路、最大团、连通分量、集合覆盖、最大流——每个都对暴力解法跑过 200 组随机图对拍），加五个执行器/检索动作（`exec_py`、`check_tests`、`exec_sql`——跑在操作系统级沙箱里（macOS `sandbox-exec`、Linux `bwrap`），启动时用一次真实冒烟测试探测并缓存；沙箱挡得住写沙箱工作目录以外的文件与联网，挡不住读宿主机任意可读文件、也不限制 CPU/内存/进程数，探测不到能用的沙箱时这三个动作会被标为不可逆并触发静态诊断 `E-action-no-sandbox`；`embed_topk`、`bm25_topk`——本地语义与关键词检索）。
+
+**惰性过桥与直线段提升穿过函数调用**（B94 裁定，研究树步 23c）：`cut` 的判断现在只在真被用到时才解析，不再是写下的那一刻；状态相同的 `judge` 调用（含实参为字面量的函数调用）可以跨函数边界提升到直线段段首——遇分支、循环、短路运算符即停。构造的基准程序上，调用层数从 4 层降到 2 层，调用数不变。
 
 只写进了设计裁定、任何分支都还没有代码的：作者声明的策略线——作者可以直接在 `cut` 上写 `declare:{hi, lo?}`，按写的数字原样用，不写进校准库；放行不可逆 `do` 的声明线需要宿主显式接受（`--release-on-declared` / `EntryArgs.accept`）。今天裁定（B128–B130，`地基/附注/2026-09-25-作者主权与策略表达裁定.md`）；施工步 20j-1 目前是一个进行中的 worktree 分支，不在本次同步范围内。一套完整的静态类型/效应系统、任意闭包序列化、机器码编译，同样还没有代码。
 

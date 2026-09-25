@@ -246,6 +246,8 @@ impl Outcome {
 struct Frame {
     name: String,
     exits: Vec<Rc<Exit>>,
+    /// 本帧登记、尚未解析的惰性出口（B94，步 23c）：帧返回前全部解析，出口挂回本帧
+    cuts: Vec<Rc<PendingCut>>,
     /// 返回类型提到 Exit：未消费的 Unsure 由调用者接手
     returns_exit: bool,
 }
@@ -332,6 +334,8 @@ pub struct Interp<'a> {
     c_max: Option<f64>,
     /// 预算停机（B93，步 22-0）：首次停发时置上；此后登记的站点同样停发、费用为零
     预算停: Option<BudgetStop>,
+    /// 解析惰性出口时借用的出口号与所属帧（B94，步 23c）：`new_exit_from` 取用一次即清
+    出口预定: Option<(usize, usize)>,
     /// 已停发过的判断键（`unsent` 按键去重：同一键经提前登记与真站点各进一次刷新时只计一次）
     停发键: HashSet<String>,
     /// 这一轮里被 `content()` 从 **untrusted 材料**拆出来的内容（规范 JSON）。
@@ -380,6 +384,9 @@ struct PendingJudge {
     site: Span,
     /// 推测登记的（不是程序真走到的站点）。超预算时**先丢它**，再动真站点。
     speculative: bool,
+    /// 直线段提升登记的（B94 下半，审查修复 3b）：刷新分组按组内第一条非提升登记的位置排序，
+    /// 只有提升登记的组排在最后，不挤掉程序序更靠前的真站点
+    lifted: bool,
 }
 
 /// 一次刷新发出的一层
@@ -499,6 +506,15 @@ impl jpp_ir::plan::PlanHooks for Unplanned {
     ) -> Vec<&'b Expr> {
         unreachable!("计划与钩子在 Interp::run 入口注入")
     }
+    fn segment(
+        &self,
+        _: &jpp_ir::plan::Plan,
+        _: jpp_ir::key::NodeId,
+        _: &Block,
+        _: &dyn jpp_ir::plan::EnvView,
+    ) -> Vec<jpp_ir::plan::Target> {
+        unreachable!("计划与钩子在 Interp::run 入口注入")
+    }
     fn may_effect(&self, _: &Expr, _: &dyn jpp_ir::plan::EnvView, _: jpp_ir::plan::Reach) -> bool {
         unreachable!("计划与钩子在 Interp::run 入口注入")
     }
@@ -603,6 +619,7 @@ impl<'a> Interp<'a> {
             latency_spent: 0.0,
             c_max: None,
             预算停: None,
+            出口预定: None,
             停发键: HashSet::new(),
             audit: ReplayAudit::default(),
             entry: EntryArgs::default(),
@@ -1248,6 +1265,12 @@ fn collect_exit_ids(v: &Value, out: &mut HashSet<usize>) {
 fn visit_exits(v: &Value, f: &mut dyn FnMut(&Rc<Exit>)) {
     match v {
         Value::Exit(e) | Value::Duty(e) => f(e),
+        // 惰性出口（B94）：解析了按出口算；未解析的只会在它自己那一帧还活着时出现，帧返回前必解析
+        Value::Cut(c) => {
+            if let Some(e) = c.exit() {
+                f(&e)
+            }
+        }
         Value::List(l) => l.iter().for_each(|x| visit_exits(x, f)),
         Value::Record(r) => r.iter().for_each(|(_, x)| visit_exits(x, f)),
         Value::Stop(x) => visit_exits(x, f),
@@ -1305,7 +1328,28 @@ fn captured_duties(f: &Function, env: &Env) -> Vec<usize> {
             out.push(e.id);
         }
     });
+    // 未解析的惰性出口（B94）：种类还不知道，按可能是未决记下它预分配的出口号（多记只让 Fn¹ 判定
+    // 多一个候选，是否真是未决在帧返回时按出口核）
+    for n in referenced_names(f) {
+        if let Some(v) = env_lookup(env, &n) {
+            未解析出口号(&v, &mut out);
+        }
+    }
     out
+}
+
+fn 未解析出口号(v: &Value, out: &mut Vec<usize>) {
+    match v {
+        Value::Cut(c) if c.exit().is_none() => {
+            if !out.contains(&c.id) {
+                out.push(c.id)
+            }
+        }
+        Value::List(l) => l.iter().for_each(|x| 未解析出口号(x, out)),
+        Value::Record(r) => r.iter().for_each(|(_, x)| 未解析出口号(x, out)),
+        Value::Stop(x) => 未解析出口号(x, out),
+        _ => {}
+    }
 }
 
 /// 返回值里每条责任的可达路径（B52 的 Fn¹ 判定用）：`direct` 是不经任何闭包可达的出口 id；
@@ -1314,6 +1358,9 @@ fn exit_paths(v: &Value, direct: &mut HashSet<usize>, via: &mut HashMap<usize, V
     match v {
         Value::Exit(e) | Value::Duty(e) => {
             direct.insert(e.id);
+        }
+        Value::Cut(c) => {
+            direct.insert(c.id);
         }
         Value::List(l) => l.iter().for_each(|x| exit_paths(x, direct, via)),
         Value::Record(r) => r.iter().for_each(|(_, x)| exit_paths(x, direct, via)),

@@ -22,12 +22,14 @@ impl CalibStore {
         conf_delta: f64,
         cluster_unit: &str,
     ) -> Result<Cert, Refusal> {
+        // 非代价路径不分半，seed 不消费——传 0（PR35 评审修复，缺陷二）
         self.commission_inner(
             key,
             alpha,
             conf_delta,
             cluster_unit,
             None,
+            0,
             CertGrade::Formal,
         )
     }
@@ -35,8 +37,11 @@ impl CalibStore {
     /// **代价矩阵定线、证书定能不能上岗**（那条裁定的两半合起来）。
     ///
     /// `certify` 自己会去找一条最宽的、仍被认证住的线；**给了代价矩阵就不找了**——
-    /// 线由 `cost_line` 在标注集上按 `fp·#误放行 + fn·#漏放行` 最小定出来，
-    /// 证书只回答**这条线在这批数据上的假放行上界够不够 α**。
+    /// 线由 `cost_line` 在**选线半**上按 `fp·#误放行 + fn·#漏放行` 最小定出来，
+    /// 证书只回答**这条线在认证半上的假放行上界够不够 α**（PR35 评审修复，缺陷二：
+    /// 此前选线与认证用的是同一批样本，二项上界只对事先固定的线成立，
+    /// 对「在这批数据上挑出来的线」不成立；改成套用 B85 分层交替分半，
+    /// `分法::交替` 与其余 `*_split_stratified_graded` 同一套函数）。
     /// 这是那条裁定的字面实现：**代价决定线定在哪，证书决定能不能上岗，不是二选一。**
     pub fn commission_costed(
         &mut self,
@@ -45,6 +50,7 @@ impl CalibStore {
         conf_delta: f64,
         cluster_unit: &str,
         cost: (f64, f64),
+        seed: u64,
     ) -> Result<Cert, Refusal> {
         self.commission_costed_graded(
             key,
@@ -52,6 +58,7 @@ impl CalibStore {
             conf_delta,
             cluster_unit,
             cost,
+            seed,
             CertGrade::Formal,
         )
     }
@@ -66,9 +73,18 @@ impl CalibStore {
         conf_delta: f64,
         cluster_unit: &str,
         cost: (f64, f64),
+        seed: u64,
         grade: CertGrade,
     ) -> Result<Cert, Refusal> {
-        self.commission_inner(key, alpha, conf_delta, cluster_unit, Some(cost), grade)
+        self.commission_inner(
+            key,
+            alpha,
+            conf_delta,
+            cluster_unit,
+            Some(cost),
+            seed,
+            grade,
+        )
     }
 
     fn commission_inner(
@@ -78,6 +94,7 @@ impl CalibStore {
         conf_delta: f64,
         cluster_unit: &str,
         cost: Option<(f64, f64)>,
+        seed: u64,
         grade: CertGrade,
     ) -> Result<Cert, Refusal> {
         // **先卡区间再造证书**：α=0 会让 `n_needed_zero_error` 得到 inf，
@@ -165,26 +182,66 @@ impl CalibStore {
                     "J-16: 校准键 {key} 的标注集 id（{lsid:?}）必须给出且 ≠ 保形集 id（{sid:?}）；代价线与保形线不能同源"
                 )));
             }
-            let cl = match jpp_value::stat::cost_line(&按条, fp, fn_) {
+            // B85 分层交替分半（PR35 评审修复，缺陷二）：选线半上 `cost_line` 选线，
+            // 认证半上 `binomial_upper` 只检验一次；与 `commission_two_sided_split_stratified_graded`/
+            // `commission_upper_split_stratified_graded` 同一套 `分法::交替` 与 `分半()`。
+            let 条目: Vec<(f64, bool, Option<String>)> = 带标注
+                .iter()
+                .map(|s| (s.p.expect("已滤"), s.label == Some(1), s.stratum.clone()))
+                .collect();
+            let (选线半, 认证半, 分层) = 分半(&条目, seed, 分法::交替);
+            let n_needed = jpp_value::stat::n_needed_zero_error(alpha, conf_delta);
+            let cl = match jpp_value::stat::cost_line(&选线半, fp, fn_) {
                 Ok(c) => c,
                 Err(e) => return Err(Refusal::跑不成(e)),
             };
-            // 证书只回答「这条线够不够 α」，不再自己找线
-            let ucb = jpp_value::stat::binomial_upper(cl.n_false_accept, cl.n_accepted, conf_delta);
-            if cl.n_accepted == 0 || ucb > alpha {
+            // 证书只回答「这条线在认证半上够不够 α」，不再在选线用过的那批上认证
+            let acc: Vec<&(f64, bool)> = 认证半.iter().filter(|x| x.0 >= cl.line).collect();
+            if acc.len() < n_needed {
+                // 与其余拆分方法同一判据：已决不足是「待核」，不是「认证不过」——
+                // 这个前缀会让 `truth.rs` 的正式→试用回退照常触发
+                return Err(bad(&format!(
+                    "待核：认证半已决 {} 条，零错误也需 ≥ {n_needed}（选线半 {} 条、认证半 {} 条）",
+                    acc.len(),
+                    选线半.len(),
+                    认证半.len()
+                )));
+            }
+            let n_false_accept = acc.iter().filter(|x| !x.1).count();
+            let ucb = jpp_value::stat::binomial_upper(n_false_accept, acc.len(), conf_delta);
+            if ucb > alpha {
                 return Err(Refusal::认证不过(Certificate::Refused {
                     best_ucb: ucb,
                     best_hi: cl.line,
-                    best_n_accepted: cl.n_accepted,
-                    n_needed: jpp_value::stat::n_needed_zero_error(alpha, conf_delta),
+                    best_n_accepted: acc.len(),
+                    n_needed,
                 }));
             }
+            let sel = Selection {
+                method: if 分层 {
+                    "cost-split-strata-stratified"
+                } else {
+                    "cost-split-stratified"
+                }
+                .into(),
+                seed,
+                n_select: 选线半.len(),
+                n_certify: 认证半.len(),
+                candidates: 0,
+                rule: Some("cost-split-stratified/v1".into()),
+                step: None,
+                // 代价线不按 δ 平移：显式声明 δ=0（不是「δ 未知」），线本身就是认证半的边
+                delta: Some(0.0),
+                generated: None,
+                stop_index: None,
+                sequential: None,
+            };
             let cert = Cert {
                 alpha,
                 conf_delta,
                 hi: cl.line,
-                n_accepted: cl.n_accepted,
-                n_errors: cl.n_false_accept,
+                n_accepted: acc.len(),
+                n_errors: n_false_accept,
                 ucb,
                 cluster_unit: cluster_unit.into(),
                 resample: None,
@@ -192,7 +249,7 @@ impl CalibStore {
                 bounded_side: 单侧声明(),
                 label_source: rec_lsrc.clone(),
                 label_fp: label_fp.clone(),
-                selection: None,
+                selection: Some(sel),
                 grade,
                 eff: None,
             };
@@ -318,21 +375,11 @@ impl CalibStore {
     /// 认证半里任一侧的已决条数小于零错误所需条数（`n_needed_zero_error`）时，
     /// 如实停在待核（`跑不成`，原因以「待核」开头），不降低门槛。
     ///
-    /// 这是旧的种子分半（证书方法 `split` / `split-strata`），留给步 20c 按证书方法重跑现有记录；
-    /// 新导入的 `--certify split` 走 [`Self::commission_two_sided_split_stratified_graded`]（B85）。
-    pub fn commission_two_sided_split(
-        &mut self,
-        key: &str,
-        alpha: f64,
-        conf_delta: f64,
-        seed: u64,
-    ) -> Result<Cert, Refusal> {
-        self.commission_two_sided_split_graded(key, alpha, conf_delta, seed, CertGrade::Formal)
-    }
-
-    /// 同上，证书写上认证等级（B72：导入时正式 α 不过再按试用 α 认证，证书记 `Trial`）。
-    /// 算法与正式档完全相同，等级只是写进证书的一个事实。
-    pub fn commission_two_sided_split_graded(
+    /// 这是旧的种子分半（证书方法 `split` / `split-strata`），只留给步 20c 按证书方法重跑现有记录，
+    /// crate 内部可见（步 20a-2b，Q12）；新导入的 `--certify split` 走
+    /// [`Self::commission_two_sided_split_stratified_graded`]（B85）。证书写上认证等级（B72）；
+    /// 不写 `selection.delta`，旧证书因此逐字节复现。
+    pub(crate) fn commission_two_sided_split_graded(
         &mut self,
         key: &str,
         alpha: f64,
@@ -534,19 +581,9 @@ impl CalibStore {
     /// 样本的 `p` 是胜出候选（或档位）的概率 p_max，`label` 是「argmax 是否等于真值」。
     /// 认证与 B24 上侧同形：选线半上取二项上界 ≤ α 且已决最多的 `h`，认证半上对它只检验一次；
     /// 记录的 `hi = h − δ`，于是 `cut` 的 `p_max ≥ hi + δ` 正好是 `p_max ≥ h`。
-    /// K 元划分没有否定出口，`lo` 无消费者，记 0。旧的种子分半，见两侧版的说明。
-    pub fn commission_upper_split(
-        &mut self,
-        key: &str,
-        alpha: f64,
-        conf_delta: f64,
-        seed: u64,
-    ) -> Result<Cert, Refusal> {
-        self.commission_upper_split_graded(key, alpha, conf_delta, seed, CertGrade::Formal)
-    }
-
-    /// 同上，证书写上认证等级（B72：K 元单侧线同样按 α 分档）。
-    pub fn commission_upper_split_graded(
+    /// K 元划分没有否定出口，`lo` 无消费者，记 0。旧的种子分半，见两侧版的说明（crate 内部可见，步 20a-2b，Q12）；
+    /// 证书写上认证等级（B72：K 元单侧线同样按 α 分档）。
+    pub(crate) fn commission_upper_split_graded(
         &mut self,
         key: &str,
         alpha: f64,
@@ -928,6 +965,30 @@ pub(super) fn splitmix64(x: u64) -> u64 {
     z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
     z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
     z ^ (z >> 31)
+}
+
+impl CalibStore {
+    /// **旧法重现，只供测试**（步 20a-2b；主会话 2026-09-25 对问题 Q12 的决定）：B85 之前的种子分半认证，
+    /// `two_sided` 为真走两侧、为假走 K 元单侧。它写出的证书带 `selection` 而缺 `selection.delta`，在运行时
+    /// 是「δ 未知」（B104：路由、不放行不可逆 `do`），装载时由样本与线解 δ（B117 (c)、B122）。测试用它造
+    /// 「旧证书」；库外的生产代码不得调用（`tests/selection_producers.rs` 的守卫核 `crates/*/src`）。
+    /// 新导入用固定序、分层交替拆分或序贯（它们都写 δ，批量裁定解读 (a)）。
+    #[doc(hidden)]
+    pub fn commission_legacy_seed_split_test_only(
+        &mut self,
+        key: &str,
+        alpha: f64,
+        conf_delta: f64,
+        seed: u64,
+        two_sided: bool,
+        grade: CertGrade,
+    ) -> Result<Cert, Refusal> {
+        if two_sided {
+            self.commission_two_sided_split_graded(key, alpha, conf_delta, seed, grade)
+        } else {
+            self.commission_upper_split_graded(key, alpha, conf_delta, seed, grade)
+        }
+    }
 }
 
 #[cfg(test)]

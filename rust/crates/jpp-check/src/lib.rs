@@ -21,6 +21,7 @@ use jpp_ir::ir::{Parameter, Span, Type, TypeName};
 
 mod analysis;
 pub mod diag;
+pub mod questions;
 mod rules;
 pub mod shapes;
 
@@ -156,13 +157,18 @@ pub fn check_with_calib(program: &Program, calib: &dyn CalibView) -> Report {
     check_with2(program, profile, Some(calib))
 }
 
-/// 宿主动作的两项静态事实（B108，步 24-0）：J-08 静态子面据此分 error / 不报，并认出输出不可信的动作。
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+/// 宿主动作的静态事实（B108，步 24-0；`no_sandbox` 为 B164 新增）：J-08 静态子面据此分
+/// error / 不报，认出输出不可信的动作，E-action-no-sandbox（`rules/e_action_no_sandbox.rs`）
+/// 据 `no_sandbox` 无条件报错。
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub struct ActionFacts {
     /// 登记为可逆（J-08 只管不可逆动作）
     pub reversible: bool,
     /// 登记的输出 taint 为不可信（`TaintOut::Untrusted`，例如 CLI 的 `read_json`）
     pub output_untrusted: bool,
+    /// 这个动作需要操作系统级沙箱才能跑，宿主启动时探测不到（B164）：不管调用点有没有守卫，
+    /// `do` 到这个名字就无条件报 `E-action-no-sandbox`——这是环境问题，不是放行策略问题。
+    pub no_sandbox: bool,
 }
 
 /// 宿主动作表的静态投影：动作名 → [`ActionFacts`]。检查器不依赖运行时，宿主从自己的动作登记表建它。

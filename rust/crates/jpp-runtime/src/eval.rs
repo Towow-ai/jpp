@@ -28,6 +28,9 @@ impl<'a> Interp<'a> {
                     // 推测要在**触发刷新的那条语句之前**完成——与 Python `spec.py` 的
                     // `_walk_block(start=当前语句, in_progress=True)` 同一个位置。
                     self.speculate_ahead(b, value.id, &env);
+                    // 直线段提升穿过函数调用（B94 下半，步 23c）：本句起的直线段里，同一状态的多次
+                    // judge（含包在用户函数里的）先登记，本句里第一次检视时一次发出
+                    self.提升过调用(b, value.id, &env);
                     // J-08 的守卫证据随值走（`GuardEv`，B121）：`let` 只绑值，不另记来源。
                     let v = self.eval(value, &env)?;
                     env_define(&env, name, v);
@@ -113,7 +116,9 @@ impl<'a> Interp<'a> {
             K::Function(f) => Ok(self.closure(f, env, None, sp)),
             K::Block(b) => self.eval_block(b, env),
             K::If { condition, yes, no } => {
+                // 检视点（B94）：条件里的惰性出口先解析
                 let c = self.eval(condition, env)?;
+                let c = self.检视(c)?;
                 // 刷新点：分支要在已知信息上走，不能让未发出的判断跨过分支边界（12 §2.2:129）
                 self.flush("if")?;
                 match c {
@@ -143,6 +148,12 @@ impl<'a> Interp<'a> {
             }
             K::Field { value, field } => {
                 let v = self.eval(value, env)?;
+                // 检视点（B94）：取惰性出口的字段先解析
+                let v = if matches!(v, Value::Cut(_)) {
+                    self.检视(v)?
+                } else {
+                    v
+                };
                 match &v {
                     Value::Record(_) => v.get(field).ok_or_else(|| {
                         Fault::Error(RtError::new(
@@ -209,6 +220,13 @@ impl<'a> Interp<'a> {
             K::Index { value, index } => {
                 let v = self.eval(value, env)?;
                 let i = self.eval(index, env)?;
+                // 检视点（B94）：下标本身是惰性出口时先解析（列表里的元素原样取出，不解析）
+                let i = self.检视(i)?;
+                let v = if matches!(v, Value::Cut(_)) {
+                    self.检视(v)?
+                } else {
+                    v
+                };
                 match (&v, &i) {
                     (Value::List(l), Value::Int(k, _)) => {
                         let k = *k;
@@ -246,6 +264,7 @@ impl<'a> Interp<'a> {
             }
             K::Unary { op, value } => {
                 let v = self.eval(value, env)?;
+                let v = self.检视(v)?;
                 // B84：一元运算输出带操作数的标签（taint 同 B33）
                 let t = v.prov();
                 match (op, &v) {
@@ -268,6 +287,7 @@ impl<'a> Interp<'a> {
             K::Binary { op, left, right } => {
                 if op == "&&" || op == "||" {
                     let l = self.eval(left, env)?;
+                    let l = self.检视(l)?;
                     return match (op, &l) {
                         // J-08 守卫证据（`20` v2 §3.1）：`&&` 取两侧的并，`||` 清空。
                         // 短路的 `false` 不放行任何东西，证据清空；短路的 `true ||` 同样清空。
@@ -280,6 +300,7 @@ impl<'a> Interp<'a> {
                         (_, Value::Bool(_, lt, lg)) => {
                             let (lt, lg) = (lt.clone(), *lg);
                             let r = self.eval(right, env)?;
+                            let r = self.检视(r)?;
                             match r {
                                 Value::Bool(b, rt, rg) => Ok(Value::Bool(
                                     b,
@@ -300,6 +321,8 @@ impl<'a> Interp<'a> {
                 }
                 let l = self.eval(left, env)?;
                 let r = self.eval(right, env)?;
+                // 检视点（B94）：运算两侧的惰性出口先解析
+                let (l, r) = (self.检视(l)?, self.检视(r)?);
                 self.binop(op, l, r, sp)
             }
             K::Call {
@@ -457,6 +480,12 @@ impl<'a> Interp<'a> {
         match f {
             Value::Fn(c) => self.call_closure(&c, args, sp),
             Value::Builtin(name) => {
+                // 检视点（B94，步 23c）：内置与构造的实参里的惰性出口先解析——它们要读出口种类、
+                // 把出口装进材料或契约值；列表与记录里的也解析（依据：B94）
+                let args = args
+                    .into_iter()
+                    .map(|a| self.检视(a))
+                    .collect::<R<Vec<Value>>>()?;
                 // B33 第 3 点：内置输出 taint = ∨ 输入，在分派处一处统一算。
                 // 效应边界与自带规则的内置（按 §2.11 表赋值）、以及只搬运元素的内置不在此列。
                 // B84：推广为来源标签的 join（taint ∨ 与 B33 相同，sources ∪），豁免表不变
@@ -537,9 +566,12 @@ impl<'a> Interp<'a> {
         self.frames.push(Frame {
             name: c.name.clone().unwrap_or_else(|| "<fn>".into()),
             exits: vec![],
+            cuts: vec![],
             returns_exit,
         });
         let result = self.eval_block(&f.body, &env);
+        // 帧返回前解析本帧的惰性出口（B94）：J-05 与 Fn¹ 按出口种类核
+        let result = result.and_then(|v| self.解析本帧().map(|_| v));
         let frame = self.frames.pop().unwrap();
         self.depth -= 1;
         let v = result?;
@@ -904,6 +936,7 @@ impl<'a> Interp<'a> {
                 }
                 Value::Reading(_)
                 | Value::Exit(_)
+                | Value::Cut(_)
                 | Value::Duty(_)
                 | Value::State(_)
                 | Value::Question(_) => return None,

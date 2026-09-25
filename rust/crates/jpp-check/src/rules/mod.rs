@@ -13,8 +13,10 @@ use crate::*;
 
 mod b13;
 mod b32;
+mod b52;
 mod b76;
 mod e07;
+mod e_action_no_sandbox;
 mod j01;
 mod j03;
 mod j04;
@@ -51,6 +53,8 @@ pub(crate) const RULES: &[&Rule] = &[
     &j08::RULE,
     &j09::RULE,
     &j11::RULE,
+    &e_action_no_sandbox::RULE,
+    &b52::RULE,
 ];
 
 pub(crate) struct Rule {

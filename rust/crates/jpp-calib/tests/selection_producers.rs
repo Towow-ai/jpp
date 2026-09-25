@@ -1,16 +1,23 @@
-//! 证书的生产者不变量（步 20a-2a，批量裁定解读 (a)）：`selection: None` 的证书只许由 `certify`（`commission`）与
-//! 代价线（`commission_costed` / `commission_costed_graded`）写出；按 δ 平移线的现行生产者必须写 `selection`
-//! 且带 `selection.delta`。生产者名单由源码扫出、封闭列举：新加一个 `pub fn commission*` 而不进这里的名单即红。
+//! 证书的生产者不变量（步 20a-2a，批量裁定解读 (a)）：`selection: None` 的证书只许由 `certify`（`commission`）
+//! 写出；按 δ 平移线的现行生产者必须写 `selection` 且带 `selection.delta`。生产者名单由源码扫出、封闭列举：
+//! 新加一个 `pub fn commission*` 而不进这里的名单即红。
 //!
-//! 种子分半的四个入口（`commission_two_sided_split`、`_graded`、`commission_upper_split`、`_graded`）是 B85 之前的
-//! 旧法重现：写 `selection` 不写 `delta`，这样 `load` 重跑旧证书时能逐字节复现，测试也靠它造「旧证书」。
-//! 它们的证书因此是 δ 未知（B104：路由、不放行不可逆 `do`）。解读 (a) 的字面要求所有平移生产者都写 δ，
-//! 这四个是已知例外，名单同样封闭；去留交主会话与 Fable（`过程记录/工程-步20a-2a.md` 问题 Q12）。
+//! 种子分半是 B85 之前的旧法：写 `selection` 不写 `delta`，这样 `load` 重跑旧证书时能逐字节复现。它的证书是 δ 未知
+//! （B104：路由、不放行不可逆 `do`）。步 20a-2b 起（主会话对问题 Q12 的决定）两个种子分半入口降为 crate 内部，
+//! 公开面只剩一个名字标明「旧法重现、只供测试」的 `commission_legacy_seed_split_test_only`；它是名单里唯一的旧法例外，
+//! 另有守卫核 `crates/*/src` 里没有任何调用。
+//!
+//! 代价线（`commission_costed` / `commission_costed_graded`）PR35 评审修复（缺陷二）之前也算「不平移」，
+//! 写 `selection: None`；改成 B85 分层交替分半后不再属于这一类——线不按 δ 平移的事实没变，但现在显式记
+//! `selection.delta = Some(0.0)`（「已知 δ=0」，不是「δ 未知」），方法名前缀 `cost-`。批量裁定 §五 (a) 原文
+//! 只限制「谁能写 `selection: None`」（`certify` 与代价线两个生产者），没有强制代价线必须写 `None`；
+//! 缩小许可范围不违反那条裁定，见 `地基/过程记录/工程-PR35评审修复.md` §二的核对。
 //!
 //! 另核装载一侧：`load` 之后，凡不是夹具的记录，带 `selection` 的证书都带 `delta`（旧证书由样本与线解出 δ
 //! 写回，解不出或不唯一即降夹具，B117 (c)、B122）。
 //!
-//! 依据：`地基/附注/2026-09-25-批量裁定.md` §五 (a)；B104；B117；`21` 步 20a-2 的〔B116〕施工注。
+//! 依据：`地基/附注/2026-09-25-批量裁定.md` §五 (a)；B104；B117；`21` 步 20a-2 的〔B116〕施工注；
+//! `地基/过程记录/工程-PR35评审修复.md`（代价线分半的重分类）。
 
 use jpp_calib::{CalibRecord, CalibStore, Cert, CertGrade, LiteralMode, Refusal, Sample, SeqSpec};
 use std::collections::BTreeSet;
@@ -59,7 +66,7 @@ fn 序贯规格(n: usize) -> SeqSpec {
     }
 }
 
-/// 生产者的三类
+/// 生产者的四类
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum 类 {
     /// 不按 δ 平移：`selection` 为空
@@ -68,6 +75,10 @@ enum 类 {
     平移,
     /// 旧法重现（种子分半）：`selection` 在、`delta` 缺
     旧法,
+    /// 代价线分半（B85，PR35 评审修复缺陷二）：`selection` 在、`delta == Some(0.0)`（显式声明「已知
+    /// δ=0」，不是「δ 未知」）、方法名前缀 `cost-`——不按 δ 平移这件事没变，只是不再用 `selection: None`
+    /// 表达它
+    代价分半,
 }
 
 type 调用 = fn(&mut CalibStore) -> Result<Cert, Refusal>;
@@ -89,20 +100,17 @@ fn 名单() -> Vec<(&'static str, &'static str, 类, 调用)> {
         项("commission", "noul", 类::不平移, |c| {
             c.commission(键, 0.1, 0.1, "条")
         }),
-        项("commission_costed", "noul", 类::不平移, |c| {
-            c.commission_costed(键, 0.1, 0.1, "条", (1.0, 10.0))
+        项("commission_costed", "noul", 类::代价分半, |c| {
+            c.commission_costed(键, 0.1, 0.1, "条", (1.0, 10.0), 20260923)
         }),
-        项("commission_costed_graded", "noul", 类::不平移, |c| {
-            c.commission_costed_graded(键, 0.25, 0.1, "条", (1.0, 10.0), Trial)
-        }),
-        项("commission_two_sided_split", "noul", 类::旧法, |c| {
-            c.commission_two_sided_split(键, 0.1, 0.1, 20260923)
+        项("commission_costed_graded", "noul", 类::代价分半, |c| {
+            c.commission_costed_graded(键, 0.25, 0.1, "条", (1.0, 10.0), 20260923, Trial)
         }),
         项(
-            "commission_two_sided_split_graded",
+            "commission_legacy_seed_split_test_only",
             "noul",
             类::旧法,
-            |c| c.commission_two_sided_split_graded(键, 0.1, 0.1, 20260923, Formal),
+            |c| c.commission_legacy_seed_split_test_only(键, 0.1, 0.1, 20260923, true, Formal),
         ),
         项(
             "commission_two_sided_split_stratified_graded",
@@ -110,14 +118,11 @@ fn 名单() -> Vec<(&'static str, &'static str, 类, 调用)> {
             类::平移,
             |c| c.commission_two_sided_split_stratified_graded(键, 0.1, 0.1, 20260923, Formal),
         ),
-        项("commission_upper_split", "choice", 类::旧法, |c| {
-            c.commission_upper_split(键, 0.1, 0.1, 20260923)
-        }),
         项(
-            "commission_upper_split_graded",
+            "commission_legacy_seed_split_test_only",
             "choice",
             类::旧法,
-            |c| c.commission_upper_split_graded(键, 0.1, 0.1, 20260923, Formal),
+            |c| c.commission_legacy_seed_split_test_only(键, 0.1, 0.1, 20260923, false, Formal),
         ),
         项(
             "commission_upper_split_stratified_graded",
@@ -192,10 +197,11 @@ fn 生产者名单由源码扫出且封闭() {
         测,
         "源码里的 pub fn commission* 与本测试的名单不同：新生产者要先归类"
     );
-    assert_eq!(测.len(), 13);
+    assert_eq!(测.len(), 10);
 }
 
-/// 每个生产者写出的证书：不平移的 `selection` 为空；现行平移的 `selection` 与 `delta` 都在；旧法的 `delta` 缺。
+/// 每个生产者写出的证书：不平移的 `selection` 为空；现行平移的 `selection` 与 `delta` 都在；旧法的 `delta` 缺；
+/// 代价分半的 `delta` 恒为 `Some(0.0)`、方法名前缀 `cost-`。
 #[test]
 fn 每个生产者的证书按类写selection() {
     for (name, phys, k, 调) in 名单() {
@@ -226,28 +232,47 @@ fn 每个生产者的证书按类写selection() {
                         .unwrap_or_else(|| panic!("{name}：旧法也写 selection"));
                     assert!(s.delta.is_none(), "{name}：旧法重现不写 δ（已知例外，Q12）");
                 }
+                类::代价分半 => {
+                    let s = x
+                        .selection
+                        .as_ref()
+                        .unwrap_or_else(|| panic!("{name}：代价分半也写 selection"));
+                    assert_eq!(
+                        s.delta,
+                        Some(0.0),
+                        "{name}：代价线不按 δ 平移，显式声明 δ=0"
+                    );
+                    assert!(
+                        s.method.starts_with("cost-"),
+                        "{name}：代价分半的方法名前缀 cost-，实际 {}",
+                        s.method
+                    );
+                }
             }
         }
     }
 }
 
-/// 反过来：`selection` 为空的证书只出自三个不平移入口（批量裁定解读 (a) 的第一句）。
+/// 反过来：`selection` 为空的证书只出自 `certify`（批量裁定解读 (a) 的第一句）。代价线改成 B85 分半后
+/// （PR35 评审修复缺陷二）不再属于这一类，见文件头注释。
 #[test]
-fn selection为空的证书只出自certify与代价线() {
+fn selection为空的证书只出自certify() {
     let 不平移: BTreeSet<&str> = 名单()
         .iter()
         .filter(|x| x.2 == 类::不平移)
         .map(|x| x.0)
         .collect();
+    assert_eq!(不平移, ["commission"].into_iter().collect());
+    let 代价分半: BTreeSet<&str> = 名单()
+        .iter()
+        .filter(|x| x.2 == 类::代价分半)
+        .map(|x| x.0)
+        .collect();
     assert_eq!(
-        不平移,
-        [
-            "commission",
-            "commission_costed",
-            "commission_costed_graded"
-        ]
-        .into_iter()
-        .collect()
+        代价分半,
+        ["commission_costed", "commission_costed_graded"]
+            .into_iter()
+            .collect()
     );
     let 旧法: BTreeSet<&str> = 名单()
         .iter()
@@ -256,15 +281,39 @@ fn selection为空的证书只出自certify与代价线() {
         .collect();
     assert_eq!(
         旧法,
-        [
-            "commission_two_sided_split",
-            "commission_two_sided_split_graded",
-            "commission_upper_split",
-            "commission_upper_split_graded"
-        ]
-        .into_iter()
-        .collect(),
+        ["commission_legacy_seed_split_test_only"]
+            .into_iter()
+            .collect(),
         "旧法例外的名单封闭，不许再加"
+    );
+}
+
+/// 旧法入口只供测试（步 20a-2b，Q12）：`crates/*/src` 下没有任何文件调用它（定义处是 `fn` 不是 `.`调用）。
+#[test]
+fn 旧法入口只供测试() {
+    let crates = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+    let mut 调用处: Vec<String> = vec![];
+    let mut 栈: Vec<std::path::PathBuf> = std::fs::read_dir(&crates)
+        .unwrap()
+        .map(|e| e.unwrap().path().join("src"))
+        .filter(|p| p.is_dir())
+        .collect();
+    while let Some(d) = 栈.pop() {
+        for e in std::fs::read_dir(&d).unwrap() {
+            let p = e.unwrap().path();
+            if p.is_dir() {
+                栈.push(p);
+            } else if p.extension().is_some_and(|x| x == "rs") {
+                let t = std::fs::read_to_string(&p).unwrap();
+                if t.contains(".commission_legacy_seed_split_test_only(") {
+                    调用处.push(p.display().to_string());
+                }
+            }
+        }
+    }
+    assert!(
+        调用处.is_empty(),
+        "生产代码调用了只供测试的旧法入口：{调用处:?}"
     );
 }
 
@@ -272,7 +321,7 @@ fn selection为空的证书只出自certify与代价线() {
 #[test]
 fn 装载后非夹具记录的平移证书都带delta() {
     let mut c = 库("noul");
-    c.commission_two_sided_split(键, 0.1, 0.1, 20260923)
+    c.commission_legacy_seed_split_test_only(键, 0.1, 0.1, 20260923, true, CertGrade::Formal)
         .unwrap();
     assert!(
         证书们(&c.records[键])

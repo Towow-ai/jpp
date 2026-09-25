@@ -1,46 +1,8 @@
 //! Host wiring only: fixed observations, local action registration and report I/O.
-use jpp::{
-    Program,
-    effects::CalibStore,
-    interp::{ActionRegistry, TaintOut, json_to_value},
-    ledger::Ledger,
-};
+//! 动作的事实与实现在 lib 目标 `jpp::actions` 的表里（B150；比赛块 C-1、C-1b；R2b 六个
+//! `graph:*` 动作已接入该表，见 `crates/jpp/src/actions/mod.rs::builtin_actions()`），这里只注册。
+use jpp::{Program, effects::CalibStore, interp::ActionRegistry, ledger::Ledger};
 use serde_json::{Value, json};
-use std::{cell::RefCell, rc::Rc};
-
-/// CLI 唯一注册的三个内置动作：名字、是否可逆、输出 taint 规则（步 24c，B108 已知限制收口）。
-/// 单一来源：`execute()` 的三处 `.register()` 调用与 [`builtin_action_table`] 都从这里取事实，
-/// 不各写一份、避免漂移。
-pub(crate) const BUILTIN_ACTIONS: &[(&str, bool, TaintOut)] = &[
-    ("record_check", true, TaintOut::Inherit),
-    ("read_json", true, TaintOut::Untrusted),
-    ("write_json", false, TaintOut::Inherit),
-];
-
-fn action_fact(name: &str) -> (bool, TaintOut) {
-    BUILTIN_ACTIONS
-        .iter()
-        .find(|(n, ..)| *n == name)
-        .map(|(_, r, t)| (*r, *t))
-        .expect("action registered below BUILTIN_ACTIONS")
-}
-
-/// CLI 已知动作表（步 24c）：不依赖用户输入或实际 `ActionRegistry`（`check` 不构造它），
-/// `check` 与 `run` 的预跑诊断都能随时拿到——J-08 静态子面据此对可逆动作不报、
-/// 对不可逆动作报 error，而不是没有表时一律降成 `W-guard-untrusted`。
-pub(crate) fn builtin_action_table() -> jpp::check::ActionTable {
-    let mut t = jpp::check::ActionTable::default();
-    for (name, reversible, taint_out) in BUILTIN_ACTIONS {
-        t.actions.insert(
-            (*name).to_string(),
-            jpp::check::ActionFacts {
-                reversible: *reversible,
-                output_untrusted: *taint_out == TaintOut::Untrusted,
-            },
-        );
-    }
-    t
-}
 
 pub fn execute(
     program: &Program,
@@ -56,47 +18,9 @@ pub fn execute(
     // 宿主入口（B105；步 14b-0 起 `--input` 产一条值条目）；空入口与不设相同，逐字节不变
     entry: &jpp::EntryArgs,
 ) -> Result<Value, jpp::Error> {
-    let checks = Rc::new(RefCell::new(Vec::new()));
-    let log = checks.clone();
+    let ctx = jpp::actions::Ctx::default();
     let mut actions = ActionRegistry::new();
-    let (rc_reversible, rc_taint) = action_fact("record_check");
-    let (rj_reversible, rj_taint) = action_fact("read_json");
-    let (wj_reversible, wj_taint) = action_fact("write_json");
-    // The source computes validity. This action only records and returns its value.
-    actions.register("record_check", 0.0, rc_reversible, rc_taint, move |args| {
-        if replay_only {
-            return Err("replay has no completed record for record_check".into());
-        }
-        if args.len() != 1 {
-            return Err("record_check expects one source-computed record".into());
-        }
-        log.borrow_mut().push(args[0].to_json());
-        Ok(args[0].clone())
-    });
-    actions.register("read_json", 0.0, rj_reversible, rj_taint, move |args| {
-        if replay_only {
-            return Err("replay has no completed record for read_json".into());
-        }
-        let [jpp::value::Value::Text(path, _)] = args else {
-            return Err("read_json expects one file path".into());
-        };
-        let bytes = std::fs::read(path.as_ref()).map_err(|e| format!("{path}: {e}"))?;
-        let value: Value = serde_json::from_slice(&bytes).map_err(|e| format!("{path}: {e}"))?;
-        // Reject unsigned integers that the core's JSON adapter cannot represent as Int.
-        validate_numbers(&value)?;
-        Ok(json_to_value(&value))
-    });
-    actions.register("write_json", 0.0, wj_reversible, wj_taint, move |args| {
-        if replay_only {
-            return Err("replay has no completed record for write_json".into());
-        }
-        let [jpp::value::Value::Text(path, _), value] = args else {
-            return Err("write_json expects a file path and a value".into());
-        };
-        let bytes = serde_json::to_vec_pretty(&value.to_json()).map_err(|e| e.to_string())?;
-        std::fs::write(path.as_ref(), bytes).map_err(|e| format!("{path}: {e}"))?;
-        Ok(value.clone())
-    });
+    jpp::actions::register_all(&mut actions, &ctx, replay_only);
     // 重放是审计重现（B35）：账本记过的调用照记录计预算，缺记录即 E-replay；续跑与首跑走 run
     let session = jpp::Session::new(ports, calibrations, &actions);
     let outcome = if replay_only {
@@ -125,7 +49,7 @@ pub fn execute(
         "cost": {"calls": outcome.cost.calls, "replayed": outcome.cost.replayed,
                  "tokens": outcome.cost.tokens, "usd": outcome.cost.usd, "asks": outcome.cost.asks},
         "trace": outcome.trace,
-        "local_checks": *checks.borrow(),
+        "local_checks": *ctx.checks.borrow(),
     });
     // 停岗候选（B25）只在有时出现，默认输出逐字节不变
     if !outcome.suspend_candidates.is_empty() {
@@ -149,15 +73,4 @@ pub fn execute(
     // 的 name/kind/taint），无入口为空数组；`purpose`（若给）已经是 params[0]（B58/17b）。
     report["entry"] = json!(program.entry.params);
     Ok(report)
-}
-
-pub fn validate_numbers(value: &Value) -> Result<(), String> {
-    match value {
-        Value::Number(n) if n.is_u64() && n.as_i64().is_none() => {
-            Err("JSON integer exceeds J++ Int range".into())
-        }
-        Value::Array(items) => items.iter().try_for_each(validate_numbers),
-        Value::Object(items) => items.values().try_for_each(validate_numbers),
-        _ => Ok(()),
-    }
 }

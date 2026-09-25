@@ -150,8 +150,8 @@ fn 代价定线证书定能不能上岗() {
         .expect("写得进");
     store.set_set_id("e_cal.noul", "conf-B").expect("写得进");
 
-    // fp 重那组：线 0.780、放行 6 条、0 个误放行 → 证书有机会认得动
-    let r = store.commission_costed("e_cal.noul", 0.45, 0.10, "条", (10.0, 1.0));
+    // fp 重那组（PR35 评审修复：现在选线半/认证半各半，数值随分半而变，见 `Ok` 分支只打印不断言精确值）
+    let r = store.commission_costed("e_cal.noul", 0.45, 0.10, "条", (10.0, 1.0), 20260923);
     match &r {
         Ok(cert) => {
             println!(
@@ -176,7 +176,7 @@ fn 代价定线证书定能不能上岗() {
     store
         .set_label_set_id("e_cal.noul", "conf-B")
         .expect("写得进");
-    let e = store.commission_costed("e_cal.noul", 0.45, 0.10, "条", (10.0, 1.0));
+    let e = store.commission_costed("e_cal.noul", 0.45, 0.10, "条", (10.0, 1.0), 20260923);
     assert!(
         format!("{e:?}").contains("J-16"),
         "标注集与保形集同源要拦：{e:?}"
@@ -207,7 +207,7 @@ fn 代价线只对test题有定义() {
     }
     store.set_label_set_id("k", "L").unwrap();
     store.set_set_id("k", "C").unwrap();
-    let e = store.commission_costed("k", 0.45, 0.10, "条", (1.0, 1.0));
+    let e = store.commission_costed("k", 0.45, 0.10, "条", (1.0, 1.0), 20260923);
     assert!(
         format!("{e:?}").contains("test"),
         "非 test 题要说清代价线未定：{e:?}"
@@ -308,8 +308,8 @@ fn 同风险目标时取线更高的那张() {
     store.set_label_set_id("k", "L").unwrap();
     store.set_set_id("k", "C").unwrap();
 
-    let 松 = store.commission_costed("k", 0.80, 0.10, "条", (1.0, 10.0));
-    let 严 = store.commission_costed("k", 0.80, 0.10, "条", (10.0, 1.0));
+    let 松 = store.commission_costed("k", 0.80, 0.10, "条", (1.0, 10.0), 20260923);
+    let 严 = store.commission_costed("k", 0.80, 0.10, "条", (10.0, 1.0), 20260923);
     if 松.is_ok() && 严.is_ok() {
         assert_eq!(
             store.get("k").certs.len(),
@@ -323,7 +323,13 @@ fn 同风险目标时取线更高的那张() {
             "**同 α 取线更高的那张**：{:?}",
             选中
         );
-        assert!((store.get("k").hi - 0.780).abs() < 0.001);
+        // PR35 评审修复：线现在只在选线半（37 条）上选，不再是全量 73 条上选出的 0.780；
+        // 分半后实测 0.775（同一颗种子 20260923，`分法::交替`，确定性），断言前用 `eprintln!` 核对过
+        assert!(
+            (store.get("k").hi - 0.775).abs() < 0.001,
+            "{}",
+            store.get("k").hi
+        );
     } else {
         println!(
             "这批数据上 α=0.80 两张没都认住（松={:?} 严={:?}），这一格没被覆盖到",

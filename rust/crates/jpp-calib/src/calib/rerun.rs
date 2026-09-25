@@ -319,11 +319,12 @@ impl CalibStore {
         let (a, dc, g) = (c.alpha, c.conf_delta, c.grade);
         let res = match &c.selection {
             None => match (c.cost, c.resample.as_ref()) {
-                // 代价证书按它自己的等级重跑（步 20a-2a：`calib-import --cost` 会写试用级代价证书；
-                // 按正式等级重跑时等级不同，判「不复现」而降夹具）。依据：B117 (a)（试用位是决定等级的量）
-                (Some(cost), _) => {
-                    临时.commission_costed_graded(&key, a, dc, &c.cluster_unit, cost, g)
-                }
+                // PR35 评审修复（缺陷二）：代价线现在总是写 `selection`（分半要记 seed），
+                // 这条分支因此只会碰到「selection 缺失的代价证书」——分半用的 seed 无从得知，
+                // 没有重跑过程，如实降为夹具（仓库里也没有任何这种旧证书落过盘）
+                (Some(_), _) => Err(Refusal::跑不成(
+                    "的方法是代价线但 selection 缺失，seed 无从得知，没有重跑过程".into(),
+                )),
                 (None, Some((0, 规则))) if 规则.starts_with("两侧联合选线：") => {
                     return Err("的方法是同批两侧选线（步 20g 已删除，没有重跑过程）".into());
                 }
@@ -341,6 +342,14 @@ impl CalibStore {
                 }
                 ("split-stratified" | "split-strata-stratified", false) => {
                     临时.commission_upper_split_stratified_graded(&key, a, dc, s.seed, g)
+                }
+                // 代价线的分半（B85，PR35 评审修复缺陷二）：两侧无意义（代价线只对 test 有定义、
+                // 只有一条上侧线），method 与两侧无关，统一按证书自带的 `s.seed` 与 `c.cost` 重跑
+                ("cost-split-stratified" | "cost-split-strata-stratified", _) => {
+                    let Some(cost) = c.cost else {
+                        return Err("的方法是代价线分半但证书缺代价矩阵".into());
+                    };
+                    临时.commission_costed_graded(&key, a, dc, &c.cluster_unit, cost, s.seed, g)
                 }
                 ("fixed-sequence", true) => {
                     临时.commission_two_sided_fixed_sequence_graded(&key, a, dc, s.step, g)

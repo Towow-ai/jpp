@@ -90,8 +90,15 @@ impl<'a> Interp<'a> {
         line_source: String,
         sp: Span,
     ) -> Value {
-        let id = self.next_exit;
-        self.next_exit += 1;
+        // 惰性出口（B94）：出口号在 `cut` 时已分配，出口挂回登记它的那一帧
+        let (id, 帧) = match self.出口预定.take() {
+            Some((id, 帧)) => (id, Some(帧)),
+            None => {
+                let id = self.next_exit;
+                self.next_exit += 1;
+                (id, None)
+            }
+        };
         // 出口只由桥产生：唯一构造在 `jpp_value::bridge::issue`（20 §2.4）
         let e = Rc::new(jpp_value::bridge::issue(jpp_value::bridge::ExitParts {
             id,
@@ -104,7 +111,10 @@ impl<'a> Interp<'a> {
             line_source,
             site: sp,
         }));
-        self.frame().exits.push(e.clone());
+        match 帧.and_then(|i| self.frames.get_mut(i)) {
+            Some(f) => f.exits.push(e.clone()),
+            None => self.frame().exits.push(e.clone()),
+        }
         Value::Exit(e)
     }
 
@@ -202,6 +212,121 @@ impl<'a> Interp<'a> {
         let c = self.calib.chain(key, None).class?;
         self.note_calib(&c.key);
         Some(c.rec)
+    }
+
+    /// 程序里的 `cut`（B94，步 23c）：只把读数与线（校准键、代价）绑定，返回未解析出口，不刷新。
+    /// 出口号此刻分配（与改前同序），出口在第一次被检视时由 [`Self::解析出口`] 解析、挂回本帧。
+    /// `lazy_cut` 关掉即改前行为：当场刷新并解析。依据：B94
+    pub(crate) fn 过桥(
+        &mut self,
+        r: &Rc<Reading>,
+        calib_key: Option<&str>,
+        cost: Option<(f64, f64)>,
+        sp: Span,
+    ) -> R<Value> {
+        if !self.plan.lazy_cut {
+            return self.cut(r, calib_key, cost, sp);
+        }
+        let id = self.next_exit;
+        self.next_exit += 1;
+        let c = Rc::new(PendingCut {
+            reading: r.clone(),
+            calib: calib_key.map(String::from),
+            cost,
+            site: sp,
+            id,
+            frame: self.frames.len() - 1,
+            resolved: std::cell::RefCell::new(None),
+        });
+        self.frame().cuts.push(c.clone());
+        Ok(Value::Cut(c))
+    }
+
+    /// 解析一个惰性出口（B94）：先在检视点刷新，再照改前的 `cut` 查线、过线、记账；
+    /// 解析一次、缓存出口，复制出去的各份得到同一个出口。
+    pub(crate) fn 解析出口(&mut self, c: &Rc<PendingCut>) -> R<Rc<Exit>> {
+        if let Some(e) = c.exit() {
+            return Ok(e);
+        }
+        // 检视点（B94）：「被检视时刷新」取代「cut 时刷新」
+        self.flush("inspect")?;
+        self.出口预定 = Some((c.id, c.frame));
+        let v = self.cut(&c.reading, c.calib.as_deref(), c.cost, c.site);
+        self.出口预定 = None;
+        let Value::Exit(e) = v? else {
+            return err(Some("E-rt-arg"), "cut 没有给出出口", c.site);
+        };
+        *c.resolved.borrow_mut() = Some(e.clone());
+        Ok(e)
+    }
+
+    /// 检视一个值（B94）：值里（列表、记录、`stop` 里）的未解析出口全部解析，换成出口；
+    /// 没有未解析出口的值原样返回。内置与构造的实参、`if` 条件、运算、取字段在用值前都经这里。
+    pub(crate) fn 检视(&mut self, v: Value) -> R<Value> {
+        if !含惰性出口(&v) {
+            return Ok(v);
+        }
+        Ok(match v {
+            Value::Cut(c) => Value::Exit(self.解析出口(&c)?),
+            Value::List(l) => {
+                let mut out = Vec::with_capacity(l.len());
+                for x in l.iter() {
+                    out.push(self.检视(x.clone())?);
+                }
+                Value::list(out)
+            }
+            Value::Record(r) => {
+                let mut out = Vec::with_capacity(r.len());
+                for (k, x) in r.iter() {
+                    out.push((k.clone(), self.检视(x.clone())?));
+                }
+                Value::record(out)
+            }
+            Value::Stop(x) => Value::Stop(Rc::new(self.检视((*x).clone())?)),
+            other => other,
+        })
+    }
+
+    /// 解析各帧里读数账本键为 `key` 的未解析出口（审查修复 1）：谱系放行按账本键查放行表，同一读数
+    /// 被几条线切出的出口都要先有等级，否则没被检视的那条（可能不放行）查不到。依据：B72-4、B94
+    pub(crate) fn 解析同键出口(&mut self, key: &str) -> R<()> {
+        let 待: Vec<Rc<PendingCut>> = self
+            .frames
+            .iter()
+            .flat_map(|f| f.cuts.iter())
+            .filter(|c| c.exit().is_none() && c.reading.ledger_key == key)
+            .cloned()
+            .collect();
+        for c in &待 {
+            self.解析出口(c)?;
+        }
+        Ok(())
+    }
+
+    /// 解析各帧里全部未解析出口（审查修复 3a）：`do`/`gen`/`ask` 与判断共用预算，改前这些出口在 `cut`
+    /// 处就已刷新计费；效应求值前先解析，调用的先后与出口种类与改前相同。没有未解析出口时什么都不做。
+    pub(crate) fn 解析全部帧(&mut self) -> R<()> {
+        let 待: Vec<Rc<PendingCut>> = self
+            .frames
+            .iter()
+            .flat_map(|f| f.cuts.iter())
+            .filter(|c| c.exit().is_none())
+            .cloned()
+            .collect();
+        for c in &待 {
+            self.解析出口(c)?;
+        }
+        Ok(())
+    }
+
+    /// 帧返回前（函数返回、程序结束）解析本帧登记的惰性出口（B94）：J-05 按出口种类核责任，
+    /// 所以帧里的出口在帧弹出前都要有种类。
+    pub(crate) fn 解析本帧(&mut self) -> R<()> {
+        let cuts = std::mem::take(&mut self.frame().cuts);
+        for c in &cuts {
+            self.解析出口(c)?;
+        }
+        Ok(())
     }
 
     pub(crate) fn cut(
@@ -736,4 +861,15 @@ impl<'a> Interp<'a> {
 /// 报告 `exits` 行的材料编号（B120 (b)，步 20h-2）：状态哈希前 12 位，与待标清单的 `item` 同源可对。
 fn 材料摘要(state_hash: &str) -> String {
     state_hash.chars().take(12).collect()
+}
+
+/// 值里有没有惰性出口（B94）：出口本身，或列表、记录、`stop` 里有
+fn 含惰性出口(v: &Value) -> bool {
+    match v {
+        Value::Cut(_) => true,
+        Value::List(l) => l.iter().any(含惰性出口),
+        Value::Record(r) => r.iter().any(|(_, x)| 含惰性出口(x)),
+        Value::Stop(x) => 含惰性出口(x),
+        _ => false,
+    }
 }

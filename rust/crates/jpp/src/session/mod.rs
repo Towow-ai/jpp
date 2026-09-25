@@ -166,15 +166,24 @@ impl<'a> Session<'a> {
                     let facts = check::ActionFacts {
                         reversible: a.reversible,
                         output_untrusted: a.taint_out == crate::interp::TaintOut::Untrusted,
+                        // B164：`no_sandbox` 的权威来源是 `jpp::actions::check_table()`（CLI
+                        // `check`/`run` 的预检查都走那张表，已经在这之前拦下）；`interp::Action`
+                        // 本身没有这一位（加它要扩 `jpp-runtime`，跨轨，本次不做），这里的
+                        // `ActionTable` 只是 `Session::go` 内部的二次检查，未接这一位是已知、
+                        // 记录在案的范围边界，不是疏漏——运行期本身（`exec_py_core` 等）仍会
+                        // 独立拒绝执行并返回 `Fail(NoSandbox)`，双重覆盖已经够。
+                        no_sandbox: false,
                     };
                     (a.name.clone(), facts)
                 })
                 .collect(),
-            // `mat_shape`（B51-R2，步 24g）暂不接入这条真实路径：字段本身在 `Action` 上已公开
-            // 可读（`a.mat_shape.clone()` 即可，不需要新访问器——比预注册预计的更简单），但接入
-            // 属于跨 `jpp-check`/`jpp` 两轨的改动，按 24-0 先例先问主会话授权再动，消费者本身
-            // 已用手造的 `ActionTable{shapes: ...}` 测试验证过。
-            shapes: Default::default(),
+            // `mat_shape`（B51-R2，步 24g，接入步 24h，主会话已批准）：`Action.mat_shape` 字段
+            // 在 `jpp-runtime` 上本就公开可读，动作声明过形状的才进表；`W-diag-shape`（诊断层
+            // 静态消费者，`jpp-check/src/diag/b13.rs::shape_check`）据此在检查期判断材料形状
+            // 是否够回答。
+            shapes: (self.actions.actions.values())
+                .filter_map(|a| a.mat_shape.clone().map(|s| (a.name.clone(), s)))
+                .collect(),
         };
         let report = check::check_with_calib_actions(program, self.calib, &table);
         if !report.is_ok() {

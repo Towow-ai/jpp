@@ -230,7 +230,16 @@ fn 六十条拆分待核固定序上岗() {
 #[test]
 fn 旧拆分证书逐字节不变() {
     let mut c = 库(&两极(100, 100));
-    let cert = c.commission_two_sided_split("k", 0.1, 0.1, 7).unwrap();
+    let cert = c
+        .commission_legacy_seed_split_test_only(
+            "k",
+            0.1,
+            0.1,
+            7,
+            true,
+            jpp::effects::CertGrade::Formal,
+        )
+        .unwrap();
     let j = serde_json::to_value(&cert).unwrap();
     let sel = j["selection"].as_object().unwrap();
     let keys: Vec<&str> = sel.keys().map(|k| k.as_str()).collect();

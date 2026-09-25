@@ -40,7 +40,7 @@ impl<'a> Interp<'a> {
         // 同一个值两处用：压上所选臂的守卫栈（臂里的 `do`），并进臂返回值的 `Bool` 叶子
         // （`let ok = handle(…); if ok { do }`）。未决出口恒空（B121-2）。
         // 谱系放行（B72-4，步 17b）：未决出口本身无证据，不必查谱系
-        let 谱系 = if e.is_unsure() { None } else { self.谱系(e) };
+        let 谱系 = if e.is_unsure() { None } else { self.谱系(e)? };
         if let Some(说明) = &谱系 {
             self.谱系断.borrow_mut().insert(e.id, 说明.clone());
         }

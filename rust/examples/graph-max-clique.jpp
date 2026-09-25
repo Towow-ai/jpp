@@ -1,0 +1,11 @@
+// 比赛 R2b 夹具：graph:max_clique（Bron–Kerbosch + 剪枝，n ≤ 60）。
+budget {calls: 1, cost: 0, depth: 8};
+
+let g = {
+    edges: [
+        {u: "a", v: "b"}, {u: "b", v: "c"}, {u: "a", v: "c"},
+        {u: "c", v: "d"}, {u: "d", v: "e"}
+    ],
+    nodes: ["a", "b", "c", "d", "e"]
+};
+content(do("graph:max_clique", [g], 0))

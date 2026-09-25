@@ -1,0 +1,9 @@
+// V6 放行面：试用线的 act 直接守卫一个不可逆动作（write_json 登记为不可逆）。
+// 预期 J-08 拒（B72：试用线出口不算放行不可逆 do 的可信合取项）。材料取试写 refund.jpp 第 1 段（明确要退款）。
+budget {calls: 2, cost: 0.01, depth: 16};
+let refund = test("这段客服对话里，顾客是否明确提出要退款或退钱？", "cs-refund");
+let chat = "顾客：这什么破东西！用了三天就坏了，我要退款，现在就退！客服：非常抱歉，我马上为您登记。顾客：别跟我说抱歉，钱什么时候到账？";
+handle(cut(judge(state(mat(chat)), refund)), {
+    act: fn() { content(do("write_json", ["refund-issued.json", {chat: chat}], 0)) },
+    ignore: fn() { "不退" },
+    unsure: fn(u) { consume(u, "drop"); "转人工" }})

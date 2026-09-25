@@ -71,6 +71,7 @@ impl<'a> Interp<'a> {
         self.frames.push(Frame {
             name: "<program>".into(),
             exits: vec![],
+            cuts: vec![],
             returns_exit: true,
         });
         let env = env_child(&root_env());
@@ -103,6 +104,8 @@ impl<'a> Interp<'a> {
         let result = self.eval_block(&program.body, &env).and_then(|v| {
             // 刷新点：程序结束（登记了却没人读的判断，到这里也要发出并记账）
             self.flush("end")?;
+            // 程序返回前解析顶层帧的惰性出口（B94：返回值离开程序是检视点）
+            self.解析本帧()?;
             // 推错的那些：推测花了调用、花了预算，**花掉的必须留痕**。
             let 没用上: Vec<&String> = self.speculated.iter().filter(|k| !self.speculation_used.contains(*k)).collect();
             if !没用上.is_empty() {

@@ -1,0 +1,140 @@
+{
+  "backend": "fixed-0",
+  "cost": {
+    "asks": 0,
+    "calls": 0,
+    "replayed": 4,
+    "tokens": 0,
+    "usd": 0.0
+  },
+  "entry": [],
+  "exits": [
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "item": "bc57fcc1b279",
+      "key": "seq-wrapped",
+      "releases": false,
+      "site": 465
+    },
+    {
+      "exit": "ignore",
+      "grade": "Fixture",
+      "item": "bc57fcc1b279",
+      "key": "seq-wrapped",
+      "releases": false,
+      "site": 465
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "item": "bc57fcc1b279",
+      "key": "seq-wrapped",
+      "releases": false,
+      "site": 465
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Fixture",
+      "item": "bc57fcc1b279",
+      "key": "seq-wrapped",
+      "releases": false,
+      "site": 465
+    }
+  ],
+  "fixture_description": "Synthetic fixed observations for seq-wrapped-*.jpp: one material, 4 questions (call-count comparison only; step 23c, B94).",
+  "local_checks": [],
+  "mode": "replay; no model API requests",
+  "pending": [],
+  "questions": [
+    {
+      "kind": "attr",
+      "q": "fe110bdf799f05a9c379af93"
+    },
+    {
+      "kind": "attr",
+      "q": "e85bdf01f404ebd6f33037a3"
+    },
+    {
+      "kind": "attr",
+      "q": "f6166b5d77915ab7c7d05678"
+    },
+    {
+      "kind": "attr",
+      "q": "89f87a3e9b74915cf8371bfd"
+    }
+  ],
+  "replay": true,
+  "resumed": false,
+  "returned_unsure": [
+    "unsure(band)"
+  ],
+  "status": "returned",
+  "trace": {
+    "events": [
+      {
+        "cost": 0.0,
+        "key": "fc38377a65b241c703182864",
+        "kind": "judge",
+        "note": "「这段话是否提到了成都？」",
+        "replayed": true,
+        "site": {
+          "end": 488,
+          "start": 469
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "3ef291947a4d4c81c91731e1",
+        "kind": "judge",
+        "note": "「这段话是否提到了北京？」",
+        "replayed": true,
+        "site": {
+          "end": 488,
+          "start": 469
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "bea9f3125b264d55eb7259bd",
+        "kind": "judge",
+        "note": "「这段话是否提到了出差？」",
+        "replayed": true,
+        "site": {
+          "end": 488,
+          "start": 469
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "6943e2b1726846e8d18a0546",
+        "kind": "judge",
+        "note": "「这段话是否提到了朋友？」",
+        "replayed": true,
+        "site": {
+          "end": 488,
+          "start": 469
+        }
+      }
+    ],
+    "warnings": [
+      "W-window-untested: @469 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
+      "W-fixture-line: @465 键 seq-wrapped 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-fixture-line: @465 键 seq-wrapped 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "returned_unsure: unsure(band)"
+    ]
+  },
+  "value": [
+    "是",
+    "否",
+    "是",
+    {
+      "answer": "未决",
+      "pending": {
+        "duty": 3,
+        "q": "89f87a3e9b74915cf8371bfd",
+        "unsure": "band"
+      }
+    }
+  ]
+}

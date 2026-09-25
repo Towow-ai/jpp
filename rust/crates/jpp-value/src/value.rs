@@ -635,6 +635,28 @@ pub enum ExitKind {
     Unsure(String),
 }
 
+/// 未解析的出口（B94，步 23c）。出口号在 `cut` 时分配（与改前同序），解析出的出口挂回登记它的那一帧。
+#[derive(Debug)]
+pub struct PendingCut {
+    pub reading: Rc<Reading>,
+    /// `cut` 的第二位：校准键（Text）
+    pub calib: Option<String>,
+    /// `cut` 的代价记录 `{cost: [fp, fn]}`（B29）
+    pub cost: Option<(f64, f64)>,
+    pub site: Span,
+    /// `cut` 时分配的出口号
+    pub id: usize,
+    /// 登记它的帧（运行时帧栈的下标）
+    pub frame: usize,
+    pub resolved: RefCell<Option<Rc<Exit>>>,
+}
+
+impl PendingCut {
+    pub fn exit(&self) -> Option<Rc<Exit>> {
+        self.resolved.borrow().clone()
+    }
+}
+
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct Exit {
@@ -887,6 +909,10 @@ pub enum Value {
     Form(Rc<Form>),
     Reading(Rc<Reading>),
     Exit(Rc<Exit>),
+    /// 惰性过桥（B94，步 23c）：`cut` 只把读数与线绑定，出口在第一次被检视时才解析。
+    /// 运行时在检视点（内置与构造的实参、`if` 条件、运算、取字段、函数与程序返回）把它换成 `Exit`；
+    /// 解析一次、缓存出口，复制出去的各份共享同一个出口（同一份责任）。
+    Cut(Rc<PendingCut>),
     /// 未决责任 `U(q)`：`handle` 的 unsure 臂收到的就是它。不可伪造（只能由 handle 交付）、
     /// 不能默默变成材料或 JSON 就算销账。与出口共享同一个 `Rc<Exit>`，销账记录是同一份。
     Duty(Rc<Exit>),
@@ -932,6 +958,14 @@ impl Value {
             Value::Exit(e) => {
                 Provenance::new(e.taint, Sources::value(&e.ledger_key.borrow(), &e.q_hash))
             }
+            // 未解析的出口（B94）：解析后取出口的；解析前取读数的 taint 与同一条值依赖边
+            Value::Cut(c) => match c.exit() {
+                Some(e) => Value::Exit(e).prov(),
+                None => Provenance::new(
+                    c.reading.state_taint,
+                    Sources::value(&c.reading.ledger_key, &c.reading.q_hash),
+                ),
+            },
             // B58（步 17b）：题带题面 taint
             Value::Question(q) => Provenance::new(q.taint, Sources::from_set(q.from_key.clone())),
             Value::Form(f) => Provenance::from(f.taint),
@@ -1011,6 +1045,7 @@ impl Value {
                 .iter()
                 .fold(Taint::Trusted, |t, (_, x)| Taint::join(t, x.taint())),
             Value::Exit(e) => e.taint,
+            Value::Cut(c) => c.exit().map_or(c.reading.state_taint, |e| e.taint),
             Value::Stop(x) => x.taint(),
             Value::Fail(_, t) => t.taint,
             Value::Question(q) => q.taint,
@@ -1060,7 +1095,7 @@ impl Value {
             Value::Question(_) => "Question",
             Value::Form(_) => "Form",
             Value::Reading(_) => "Reading",
-            Value::Exit(_) => "Exit",
+            Value::Exit(_) | Value::Cut(_) => "Exit",
             Value::Duty(_) => "Unsure",
             Value::Fail(..) => "Fail",
             Value::Stop(_) => "Stop",
@@ -1108,6 +1143,10 @@ impl Value {
             Value::Exit(e) => {
                 json!({"exit": e.label(), "id": e.id, "consumed": e.consumed.get(), "q": e.q_hash})
             }
+            Value::Cut(c) => match c.exit() {
+                Some(e) => Value::Exit(e).to_json(),
+                None => json!({"exit": "unresolved", "id": c.id, "q": c.reading.q_hash}),
+            },
             Value::Duty(e) => json!({"unsure": e.cause(), "duty": e.id, "q": e.q_hash}),
             Value::Fail(s, _) => json!({"fail": s.as_ref()}),
             Value::Stop(v) => json!({"stop": v.to_json()}),
@@ -1164,6 +1203,9 @@ impl Value {
             (Value::Question(a), Value::Question(b)) => a.hash == b.hash,
             (Value::Form(a), Value::Form(b)) => a.hash == b.hash,
             (Value::Exit(a), Value::Exit(b)) => a.kind == b.kind,
+            // 运行时在运算前已把未解析出口解析掉；这里只剩已解析的
+            (Value::Cut(a), _) => Value::Exit(a.exit()?).equals(other)?,
+            (_, Value::Cut(b)) => self.equals(&Value::Exit(b.exit()?))?,
             // 责任按身份比：同一道题的两个未决是两份责任
             (Value::Duty(a), Value::Duty(b)) => a.id == b.id,
             (Value::Fn(a), Value::Fn(b)) => a.hash == b.hash,

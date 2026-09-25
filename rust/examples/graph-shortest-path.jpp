@@ -1,0 +1,15 @@
+// 比赛 R2b 夹具：graph:shortest_path（Dijkstra，非负权）。
+budget {calls: 1, cost: 0, depth: 8};
+
+let g = {
+    edges: [
+        {u: "a", v: "b", w: 2},
+        {u: "b", v: "c", w: 2},
+        {u: "a", v: "c", w: 5}
+    ],
+    nodes: ["a", "b", "c"],
+    directed: false,
+    source: "a",
+    target: "c"
+};
+content(do("graph:shortest_path", [g], 0))
