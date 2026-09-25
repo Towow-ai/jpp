@@ -166,6 +166,13 @@ impl<'a> Session<'a> {
                     let facts = check::ActionFacts {
                         reversible: a.reversible,
                         output_untrusted: a.taint_out == crate::interp::TaintOut::Untrusted,
+                        // B164：`no_sandbox` 的权威来源是 `jpp::actions::check_table()`（CLI
+                        // `check`/`run` 的预检查都走那张表，已经在这之前拦下）；`interp::Action`
+                        // 本身没有这一位（加它要扩 `jpp-runtime`，跨轨，本次不做），这里的
+                        // `ActionTable` 只是 `Session::go` 内部的二次检查，未接这一位是已知、
+                        // 记录在案的范围边界，不是疏漏——运行期本身（`exec_py_core` 等）仍会
+                        // 独立拒绝执行并返回 `Fail(NoSandbox)`，双重覆盖已经够。
+                        no_sandbox: false,
                     };
                     (a.name.clone(), facts)
                 })

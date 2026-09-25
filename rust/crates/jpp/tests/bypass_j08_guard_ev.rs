@@ -282,6 +282,7 @@ fn j08_19_运行期放行的形状静态面不报() {
         ActionFacts {
             reversible: false,
             output_untrusted: false,
+            no_sandbox: false,
         },
     );
     t.actions.insert(
@@ -289,6 +290,7 @@ fn j08_19_运行期放行的形状静态面不报() {
         ActionFacts {
             reversible: true,
             output_untrusted: true,
+            no_sandbox: false,
         },
     );
     let 形状 = [

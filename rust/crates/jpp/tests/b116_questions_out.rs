@@ -244,3 +244,37 @@ fn d_降级失败不写与参数() {
     }
     let _ = fs::remove_dir_all(&d);
 }
+
+/// PR #36 复核 P2：`check --json --questions-out` 组合下，`--questions-out` 的导出摘要此前
+/// 无条件 `eprintln!`，违反「`check --json` 时 stdout 一个文档、stderr 不出东西」的既有契约
+/// （`print_check_doc` 头注）。修法：JSON 模式下这条摘要挪进文档的 `questions_out` 字段；
+/// 非 JSON 模式（上面 `导出()` 已经在测）沿用原来的 stderr 文本，两条路径分别钉住。
+#[test]
+fn e_json模式下questions_out摘要进文档不进stderr() {
+    let d = 目录("e");
+    fs::write(d.join("p.jpp"), 构造).unwrap();
+    let o = jpp(
+        &d,
+        &["check", "--json", "p.jpp", "--questions-out", "q.json"],
+    );
+    assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
+    assert!(
+        o.stderr.is_empty(),
+        "JSON 模式下 stderr 应为空，实得：{}",
+        String::from_utf8_lossy(&o.stderr)
+    );
+    let doc: Json = serde_json::from_slice(&o.stdout).unwrap();
+    assert_eq!(doc["ok"], json!(true));
+    // 计数与非 JSON 模式（导出() 里断言的「3 个标签、4 道题、跳过 4 处」）一致，只是落点换了地方。
+    assert_eq!(doc["questions_out"]["labels"], json!(3));
+    assert_eq!(doc["questions_out"]["questions"], json!(4));
+    assert_eq!(doc["questions_out"]["skipped"], json!(4));
+    assert_eq!(doc["questions_out"]["path"], json!("q.json"));
+    // 文件本身照写，内容与非 JSON 模式的导出一致（同一份 `构造` 程序）
+    let q = 读(&d.join("q.json"));
+    assert_eq!(
+        q["labels"].as_object().unwrap().keys().collect::<Vec<_>>(),
+        vec!["lab-a", "lab-b", "lab-c"]
+    );
+    let _ = fs::remove_dir_all(&d);
+}

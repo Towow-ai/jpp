@@ -1,6 +1,6 @@
 //! Host wiring only: fixed observations, local action registration and report I/O.
 //! 动作的事实与实现在 lib 目标 `jpp::actions` 的表里（B150；比赛块 C-1、C-1b；R2b 六个
-//! `graph:*` 动作已接入该表，见 `crates/jpp/src/actions/mod.rs::BUILTIN_ACTIONS`），这里只注册。
+//! `graph:*` 动作已接入该表，见 `crates/jpp/src/actions/mod.rs::builtin_actions()`），这里只注册。
 use jpp::{Program, effects::CalibStore, interp::ActionRegistry, ledger::Ledger};
 use serde_json::{Value, json};
 

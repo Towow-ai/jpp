@@ -84,10 +84,47 @@ pub(super) fn temp_script_path(tag: &str) -> PathBuf {
     ))
 }
 
+/// 按字节数截断到 `n` 附近，安全跨多字节 UTF-8 字符（PR #36 复核 P2：`&s[..n]` 在
+/// 多字节字符中间切会 panic——退到不超过 `n` 的最近一个字符边界，绝不切在字符中间）。
 pub(super) fn truncate(s: &str, n: usize) -> String {
     if s.len() <= n {
-        s.to_string()
-    } else {
-        format!("{}…（截断，原长 {} 字节）", &s[..n], s.len())
+        return s.to_string();
+    }
+    let mut end = n;
+    while end > 0 && !s.is_char_boundary(end) {
+        end -= 1;
+    }
+    format!("{}…（截断，原长 {} 字节）", &s[..end], s.len())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::truncate;
+
+    /// PR #36 复核 P2：一段含中文（每字符 3 字节）的长 stderr，截断点 `n` 故意落在
+    /// 某个字符的 UTF-8 编码中间（100 个「中」= 300 字节，第 34 个字符占字节 99..102，
+    /// `n=101` 正好切在它中间）——修前 `&s[..101]` 会 panic。
+    #[test]
+    fn truncate_splits_at_char_boundary_not_mid_multibyte_char() {
+        let s: String = "中".repeat(100);
+        assert_eq!(s.len(), 300);
+        assert!(!s.is_char_boundary(101), "构造前提：101 本该落在字符中间");
+        let out = truncate(&s, 101); // 不应 panic
+        assert!(out.starts_with("中"));
+        assert!(out.contains("（截断，原长 300 字节）"));
+        // 实际保留的字节数应退到不超过 101 的最近字符边界（99）
+        assert_eq!(&out[..99], &s[..99]);
+    }
+
+    #[test]
+    fn truncate_short_string_unchanged() {
+        assert_eq!(truncate("hi", 10), "hi");
+    }
+
+    #[test]
+    fn truncate_ascii_exact_boundary() {
+        let out = truncate("hello world", 5);
+        assert!(out.starts_with("hello"));
+        assert!(out.contains("原长 11 字节"));
     }
 }

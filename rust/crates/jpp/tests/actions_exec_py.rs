@@ -28,10 +28,26 @@ fn jpp(cwd: &Path, args: &[&str]) -> (bool, String) {
     )
 }
 
+/// `do("exec_py", …)` 字面出现在程序里，检查期就要求本机有真的能跑通的沙箱（`E-action-no-sandbox`，
+/// B164）——不管这条测试想测哪个子行为，都要先过这一关。复用生产同一套探测（`jpp::actions::
+/// sandbox_available`，内含真实冒烟测试，不是只看文件存不存在；主会话复核追加，公开仓库 CI
+/// 上沙箱工具可能存在但跑不起来）。跳过时打印原因，不判失败。
+macro_rules! require_sandbox_or_skip {
+    () => {
+        if !jpp::actions::sandbox_available() {
+            eprintln!(
+                "跳过：本机没有可用（探测到且冒烟测试通过）的沙箱工具，环境依赖，非失败"
+            );
+            return;
+        }
+    };
+}
+
 /// 首跑：`do("exec_py", …)` 返回 `{stdout, stderr, exit_code, timed_out}`；`cost.calls` 记 1 次。
 /// 重放：只给账本，新增调用为 0，`value` 与首跑逐字段相同。
 #[test]
 fn exec_py经do调用并且只凭账本重放零调用() {
+    require_sandbox_or_skip!();
     let d = tmp("basic");
     let src = r#"
 budget {calls: 2, cost: 0, depth: 8};
@@ -79,6 +95,7 @@ content(do("exec_py", ["print('六加六等于', 6+6)", "", 5], 0))
 /// 静态拒绝表命中时，`do` 返回失败值（J-12），程序照常往下走，不是运行期报错、不起子进程。
 #[test]
 fn exec_py静态拒绝返回失败值而不是运行期错误() {
+    require_sandbox_or_skip!();
     let d = tmp("reject");
     let src = r#"
 budget {calls: 2, cost: 0, depth: 8};
@@ -98,6 +115,7 @@ let r = do("exec_py", ["import os\nos.system('echo boom')", "", 5], 0);
 /// 超时是结构化失败（`timed_out: true`），不是拒绝、不是运行期错误。
 #[test]
 fn exec_py超时给出结构化结果() {
+    require_sandbox_or_skip!();
     let d = tmp("timeout");
     let src = r#"
 budget {calls: 2, cost: 0, depth: 8};

@@ -1,27 +1,31 @@
 //! 执行器动作：`exec_py`、`check_tests`、`exec_sql`（B150；R2a 施工，`exec_py`/`check_tests`
 //! 挪自 `cli/actions_r2a.rs`；`exec_sql` 是 24e-1 同一块的补齐项，见
-//! `地基/过程记录/工程-比赛R2a-exec_sql.md`）。
+//! `地基/过程记录/工程-比赛R2a-exec_sql.md`）。三者的 `reversible: true` 依赖
+//! `sandbox.rs` 的操作系统级隔离才成立（PR #36 复核 P1/严重项，见
+//! `地基/过程记录/工程-执行器动作安全修补.md`）。
 //!
 //! 依据：`地基/比赛/附注-2026-09-25-搭配层设计与36小时施工.md` §三·3.2、§五、§八；
-//! `12-IR与类契约-v0.1.md` B150（画像 `sandbox: "subprocess"`，不做资源隔离）。
-//! 过程记录：`地基/过程记录/工程-比赛R2a.md`、`工程-比赛R2a-exec_sql.md`。
+//! `12-IR与类契约-v0.1.md` B150（画像 `sandbox: "subprocess"`）。
+//! 过程记录：`地基/过程记录/工程-比赛R2a.md`、`工程-比赛R2a-exec_sql.md`、
+//! `工程-执行器动作安全修补.md`。
 //!
-//! `exec_py`/`check_tests` 两道防线，都不是沙箱：(1) 静态拒绝表——对 `code`/`tests` 字符串
-//! 做启发式扫描，挡明显的逃逸手法（`import os/subprocess/socket/shutil`、
-//! `__import__`/`eval`/`exec`/`compile`、`open()` 写模式）；(2) 运行期网络补丁——子进程执行前
-//! 先打补丁禁用 Python `socket` 模块，挡住静态扫描放过的间接网络访问（`urllib`/`http.client`/
-//! 第三方 `requests` 等）。两者都挡不住 `ctypes` 直接调 libc 或任何绕过 Python 这两层的手法——
-//! `sandbox: "subprocess"` 字面意思就是「只隔离到子进程」，不是资源隔离。
+//! **三层防线（从弱到强）**：(1) 静态拒绝表——对 `code`/`tests` 字符串做启发式扫描，挡明显的
+//! 逃逸手法，但挡不住不含扫描关键字的写法（例如 `pathlib.Path("x").write_text(...)` 不触发
+//! `open(` 扫描）；(2) 运行期网络补丁——子进程执行前打补丁禁用 Python `socket` 模块；
+//! (3) **操作系统级沙箱**（`sandbox.rs`）——真正让「写限定在临时工作目录、网络一律拒绝」
+//! 成立的那一层，没有它两者一律拒绝执行，不在沙箱外跑。三层都挡不住 `ctypes` 直接调 libc、
+//! CPU/内存/进程数耗用——如实写在 `sandbox.rs` 模块头。
 //!
-//! `exec_sql` 走的是 SQLite 自身的只读打开位（`file:...?mode=ro`），不是可执行 Python，
-//! 不套静态拒绝表（`sql` 参数不会被 `exec()`），但同样跑网络禁用补丁（防御性：`sqlite3`
-//! 本身不发网络请求，但 `ATTACH DATABASE` 等机制留有假设性风险，补丁代价接近零）。
+//! `exec_sql` 走的是 SQLite 自身的只读打开位（`file:...?mode=ro`）+ `PRAGMA query_only` +
+//! 授权回调（只放行 `SELECT`/`READ`/`FUNCTION`/`RECURSIVE`，挡住 `VACUUM INTO`/
+//! `ATTACH DATABASE` 这类不经过「写原库文件」检查的逃逸路径）+ 同一套操作系统沙箱，四层。
+//! 不套静态拒绝表（`sql` 参数不会被 `exec()`），但同样跑网络禁用补丁（防御性）。
 
 use super::Ctx;
-use super::subprocess_util::{run_subprocess, temp_script_path, truncate};
+use super::sandbox;
+use super::subprocess_util::{run_subprocess, truncate};
 use super::values_util::{value_number, value_text, value_to_assertions};
 use crate::value::Value;
-use std::process::Command;
 use std::time::Duration;
 
 /* ============================== 静态拒绝表 ============================== */
@@ -74,19 +78,19 @@ fn reject_write_open(code: &str) -> Option<String> {
         let bytes: Vec<char> = args.chars().collect();
         while i < bytes.len() {
             let qc = bytes[i];
-            if qc == '\'' || qc == '"' {
-                if let Some(close_off) = bytes[i + 1..].iter().position(|c| *c == qc) {
-                    let mode: String = bytes[i + 1..i + 1 + close_off].iter().collect();
-                    if !mode.is_empty()
-                        && mode.len() <= 3
-                        && mode.chars().all(|c| "rwaxbt+".contains(c))
-                        && mode.chars().any(|c| "wax+".contains(c))
-                    {
-                        return Some(format!("`open(…, \"{mode}\")` 写模式禁止（静态拒绝表）"));
-                    }
-                    i += close_off + 2;
-                    continue;
+            if (qc == '\'' || qc == '"')
+                && let Some(close_off) = bytes[i + 1..].iter().position(|c| *c == qc)
+            {
+                let mode: String = bytes[i + 1..i + 1 + close_off].iter().collect();
+                if !mode.is_empty()
+                    && mode.len() <= 3
+                    && mode.chars().all(|c| "rwaxbt+".contains(c))
+                    && mode.chars().any(|c| "wax+".contains(c))
+                {
+                    return Some(format!("`open(…, \"{mode}\")` 写模式禁止（静态拒绝表）"));
                 }
+                i += close_off + 2;
+                continue;
             }
             i += 1;
         }
@@ -160,24 +164,31 @@ with open(_jpp_os.environ["JPP_EXEC_PY_USER_FILE"], "r", encoding="utf-8") as _j
 exec(compile(_jpp_src, "<exec_py>", "exec"))
 "#;
 
-/// `exec_py(code, stdin, timeout_s)`：子进程 `python3 -I <固定外壳>`，外壳先打网络禁用补丁
-/// 再执行用户代码（见 [`NETWORK_DISABLE_PRELUDE`] 的能挡/不能挡范围）；无资源隔离之外的部分，
-/// 静态拒绝表挡明显的文件系统/进程逃逸手法；超时是结构化失败（`timed_out: true`），不是
-/// `Err`——只有静态拒绝命中时才 `Err`（J++ 侧变失败值，J-12）。
+/// `exec_py(code, stdin, timeout_s)`：子进程 `python3 -I <固定外壳>`，跑在操作系统沙箱里
+/// （`sandbox.rs`；没有沙箱工具直接拒绝，不在沙箱外跑）；外壳先打网络禁用补丁再执行用户代码
+/// （见 [`NETWORK_DISABLE_PRELUDE`] 的能挡/不能挡范围，沙箱的 `deny network*` 是第二道网络
+/// 防线）；静态拒绝表是最外层、最快的一道，挡明显的文件系统/进程逃逸手法；超时是结构化失败
+/// （`timed_out: true`），不是 `Err`——只有静态拒绝命中、或找不到沙箱时才 `Err`
+/// （J++ 侧变失败值，J-12）。
 fn exec_py_core(code: &str, stdin: &str, timeout_s: f64) -> Result<ExecResult, String> {
+    let tool = sandbox::tool().ok_or_else(|| sandbox::missing_message("exec_py"))?;
     if let Some(reason) = static_reject(code) {
         return Err(format!("exec_py 拒绝执行：{reason}"));
     }
     let timeout = clamp_timeout(timeout_s);
-    let harness_path = temp_script_path("exec-py");
-    let user_path = temp_script_path("exec-py-user");
+    let call_dir = sandbox::new_call_dir("exec-py")?;
+    let harness_path = call_dir.join("harness.py");
+    let user_path = call_dir.join("user.py");
     let harness =
         format!("{EXEC_PY_HARNESS_HEADER}{NETWORK_DISABLE_PRELUDE}{EXEC_PY_HARNESS_FOOTER}");
     std::fs::write(&harness_path, &harness).map_err(|e| format!("exec_py: 写临时外壳失败：{e}"))?;
     std::fs::write(&user_path, code).map_err(|e| format!("exec_py: 写临时脚本失败：{e}"))?;
     let python = exec_python_path();
-    let mut cmd = Command::new(&python);
-    cmd.arg("-I").arg(&harness_path);
+    let sandboxed_args = vec![
+        "-I".to_string(),
+        harness_path.to_string_lossy().into_owned(),
+    ];
+    let mut cmd = sandbox::wrap(tool, &python, &sandboxed_args, &call_dir)?;
     cmd.env_clear();
     if let Ok(path) = std::env::var("PATH") {
         cmd.env("PATH", path);
@@ -186,9 +197,13 @@ fn exec_py_core(code: &str, stdin: &str, timeout_s: f64) -> Result<ExecResult, S
     cmd.env("PYTHONDONTWRITEBYTECODE", "1");
     cmd.env("JPP_EXEC_PY_USER_FILE", &user_path);
     let res = run_subprocess(cmd, stdin, timeout);
-    let _ = std::fs::remove_file(&harness_path);
-    let _ = std::fs::remove_file(&user_path);
-    let r = res.map_err(|e| format!("exec_py: {e}（解释器：{python}）"))?;
+    let _ = std::fs::remove_dir_all(&call_dir);
+    let r = res.map_err(|e| {
+        format!(
+            "exec_py: {e}（解释器：{python}；沙箱：{}）",
+            sandbox::describe(tool)
+        )
+    })?;
     Ok(ExecResult {
         stdout: r.stdout,
         stderr: r.stderr,
@@ -272,26 +287,34 @@ fn check_tests_core(
     tests: &[String],
     timeout_s: f64,
 ) -> Result<CheckTestsResult, String> {
+    let tool = sandbox::tool().ok_or_else(|| sandbox::missing_message("check_tests"))?;
     let combined = format!("{code}\n{}", tests.join("\n"));
     if let Some(reason) = static_reject(&combined) {
         return Err(format!("check_tests 拒绝执行：{reason}"));
     }
     let timeout = clamp_timeout(timeout_s);
-    let script_path = temp_script_path("check-tests");
+    let call_dir = sandbox::new_call_dir("check-tests")?;
+    let script_path = call_dir.join("driver.py");
     std::fs::write(&script_path, check_tests_driver())
         .map_err(|e| format!("check_tests: 写临时脚本失败：{e}"))?;
     let python = exec_python_path();
-    let mut cmd = Command::new(&python);
-    cmd.arg("-I").arg(&script_path);
+    let sandboxed_args = vec!["-I".to_string(), script_path.to_string_lossy().into_owned()];
+    let mut cmd = sandbox::wrap(tool, &python, &sandboxed_args, &call_dir)?;
     cmd.env_clear();
     if let Ok(path) = std::env::var("PATH") {
         cmd.env("PATH", path);
     }
     cmd.env("LC_ALL", "C.UTF-8");
+    cmd.env("PYTHONDONTWRITEBYTECODE", "1");
     let payload = serde_json::json!({"code": code, "tests": tests}).to_string();
     let res = run_subprocess(cmd, &payload, timeout);
-    let _ = std::fs::remove_file(&script_path);
-    let r = res.map_err(|e| format!("check_tests: {e}（解释器：{python}）"))?;
+    let _ = std::fs::remove_dir_all(&call_dir);
+    let r = res.map_err(|e| {
+        format!(
+            "check_tests: {e}（解释器：{python}；沙箱：{}）",
+            sandbox::describe(tool)
+        )
+    })?;
     if r.timed_out {
         return Err(format!(
             "check_tests: 超过 {:.1} 秒超时",
@@ -338,10 +361,21 @@ const EXEC_SQL_TIMEOUT_S: f64 = 3.0;
 
 /// 固定驱动脚本：`{db, sql}` 从 stdin 以 JSON 喂入，不插值。先跑 [`NETWORK_DISABLE_PRELUDE`]
 /// （防御性：`sqlite3` 本身不发网络请求，但代价接近零，照 `exec_py` 的口径加上）。
-/// `db` 转成 SQLite 只读 URI（`file:<abspath>?mode=ro`）——只读是 SQLite 自己的打开位，
-/// 写语句在这个连接上执行会被 SQLite 自己拒绝，异常落进 `error`，不再往上抛、不 panic；
-/// 坏 SQL、库文件不存在同样落进 `error`。行内非 JSON 原生类型（`bytes`/`BLOB`）转
-/// `{"__blob_b64__": <base64>}`，其余（`int`/`float`/`str`/`None`）原样可序列化。
+/// `db` 转成 SQLite 只读 URI（`file:<abspath>?mode=ro`）——**只读打开位单独不够**：
+/// `VACUUM INTO`、`ATTACH DATABASE` 都不写「原库文件」，只读打开位管不到它们，会在磁盘上
+/// 生成新文件（PR #36 复核，主会话实测）。修法是 `PRAGMA query_only = ON` 加授权回调
+/// `set_authorizer`，只放行 `SQLITE_SELECT`/`SQLITE_READ`/`SQLITE_FUNCTION`/`SQLITE_RECURSIVE`，
+/// 其余一律 `SQLITE_DENY`——**顺序要紧**：`PRAGMA query_only` 必须在 `set_authorizer` 之前跑，
+/// 因为 `PRAGMA` 本身有自己的动作码、不在放行集合里，装完授权器再跑这条 PRAGMA 会被自己挡下
+/// （写代码前用真实脚本核实过，见 `地基/过程记录/工程-执行器动作安全修补.md` §二）。
+///
+/// **B164 改判**：授权回调拒绝要报 `Fail(Denied)`，不能落进 `error` 字段（那是给「语法错、库
+/// 不存在」这类内容性错误用的，授权拒绝是安全边界，性质不同）。驱动脚本自己不知道进程要不要
+/// `sys.exit` 非零，用一个 `_jpp_denied` 标记记下授权器有没有真的返回过 `SQLITE_DENY`
+/// 且这次异常确实源自它（不是靠解析英文报文，跨 SQLite 版本/locale 更稳）；命中就打印
+/// `{"denied": true, ...}` 并以非零码退出，Rust 侧据此转成 `Err`，不当成结构化 `error`。
+/// 其余异常（坏 SQL、库文件不存在）仍然落 `error`，不 panic。行内非 JSON 原生类型
+/// （`bytes`/`BLOB`）转 `{"__blob_b64__": <base64>}`，其余（`int`/`float`/`str`/`None`）原样。
 const EXEC_SQL_DRIVER_BODY: &str = r#"
 import sys, json, sqlite3, os
 from urllib.parse import quote
@@ -349,6 +383,8 @@ from urllib.parse import quote
 payload = json.load(sys.stdin)
 db = payload["db"]
 sql = payload["sql"]
+
+_jpp_denied = False
 
 
 def _to_jsonable(v):
@@ -360,52 +396,85 @@ def _to_jsonable(v):
     return str(v)
 
 
+def _jpp_sql_authorizer(action, arg1, arg2, db_name, trigger_name):
+    global _jpp_denied
+    allowed = {
+        sqlite3.SQLITE_SELECT,
+        sqlite3.SQLITE_READ,
+        sqlite3.SQLITE_FUNCTION,
+        sqlite3.SQLITE_RECURSIVE,
+    }
+    if action in allowed:
+        return sqlite3.SQLITE_OK
+    _jpp_denied = True
+    return sqlite3.SQLITE_DENY
+
+
 try:
     uri = "file:" + quote(os.path.abspath(db)) + "?mode=ro"
     conn = sqlite3.connect(uri, uri=True, timeout=1)
     try:
+        # 顺序要紧：先 PRAGMA 后装授权器（PRAGMA 有自己的动作码，装完授权器再跑会被拒）。
+        conn.execute("PRAGMA query_only = ON")
+        conn.set_authorizer(_jpp_sql_authorizer)
         cur = conn.cursor()
         cur.execute(sql)
         columns = [d[0] for d in cur.description] if cur.description else []
         rows = [[_to_jsonable(v) for v in row] for row in cur.fetchall()]
-        print(json.dumps({"columns": columns, "rows": rows, "error": None}))
+        print(json.dumps({"columns": columns, "rows": rows, "error": None, "denied": False}))
     finally:
         conn.close()
 except Exception as e:
-    print(json.dumps({"columns": [], "rows": [], "error": f"{type(e).__name__}: {e}"}))
+    if _jpp_denied:
+        print(json.dumps({"columns": [], "rows": [], "error": None, "denied": True,
+                           "detail": f"{type(e).__name__}: {e}"}))
+        sys.exit(1)
+    print(json.dumps({"columns": [], "rows": [], "error": f"{type(e).__name__}: {e}", "denied": False}))
 "#;
 
 fn exec_sql_driver() -> String {
     format!("{NETWORK_DISABLE_PRELUDE}{EXEC_SQL_DRIVER_BODY}")
 }
 
+#[derive(Debug)]
 struct ExecSqlResult {
     columns: Vec<String>,
     rows: serde_json::Value,
     error: Option<String>,
 }
 
-/// `exec_sql(db, sql)`：子进程 Python 标准库 `sqlite3`（不加新 cargo 依赖），只读连接，
-/// 固定 3 秒超时。超时不是 `Err`（`exec_sql` 的契约形状是文档定死的三字段，没有
-/// `exec_py` 那样单独的 `timed_out` 字段），并入 `error`，`columns`/`rows` 为空——
-/// 与写语句被拒、坏 SQL、库不存在走同一条「结构化失败落进 error」的路。
+/// `exec_sql(db, sql)`：子进程 Python 标准库 `sqlite3`（不加新 cargo 依赖），跑在操作系统
+/// 沙箱里（`sandbox.rs`；没有沙箱工具直接拒绝，与 `exec_py`/`check_tests` 同一套，防御性——
+/// SQLite 层面的只读打开位 + `query_only` + 授权回调已经挡住已知的逃逸路径，沙箱是万一还有
+/// 遗漏路径时的最后一层，不依赖它们互相知道对方存在）。固定 3 秒超时。超时不是 `Err`
+/// （`exec_sql` 的契约形状是文档定死的三字段，没有 `exec_py` 那样单独的 `timed_out` 字段），
+/// 并入 `error`，`columns`/`rows` 为空——与写语句被拒、坏 SQL、库不存在走同一条
+/// 「结构化失败落进 error」的路。
 fn exec_sql_core(db: &str, sql: &str) -> Result<ExecSqlResult, String> {
+    let tool = sandbox::tool().ok_or_else(|| sandbox::missing_message("exec_sql"))?;
     let timeout = Duration::from_secs_f64(EXEC_SQL_TIMEOUT_S);
-    let script_path = temp_script_path("exec-sql");
+    let call_dir = sandbox::new_call_dir("exec-sql")?;
+    let script_path = call_dir.join("driver.py");
     std::fs::write(&script_path, exec_sql_driver())
         .map_err(|e| format!("exec_sql: 写临时脚本失败：{e}"))?;
     let python = exec_python_path();
-    let mut cmd = Command::new(&python);
-    cmd.arg("-I").arg(&script_path);
+    let sandboxed_args = vec!["-I".to_string(), script_path.to_string_lossy().into_owned()];
+    let mut cmd = sandbox::wrap(tool, &python, &sandboxed_args, &call_dir)?;
     cmd.env_clear();
     if let Ok(path) = std::env::var("PATH") {
         cmd.env("PATH", path);
     }
     cmd.env("LC_ALL", "C.UTF-8");
+    cmd.env("PYTHONDONTWRITEBYTECODE", "1");
     let payload = serde_json::json!({"db": db, "sql": sql}).to_string();
     let res = run_subprocess(cmd, &payload, timeout);
-    let _ = std::fs::remove_file(&script_path);
-    let r = res.map_err(|e| format!("exec_sql: {e}（解释器：{python}）"))?;
+    let _ = std::fs::remove_dir_all(&call_dir);
+    let r = res.map_err(|e| {
+        format!(
+            "exec_sql: {e}（解释器：{python}；沙箱：{}）",
+            sandbox::describe(tool)
+        )
+    })?;
     if r.timed_out {
         return Ok(ExecSqlResult {
             columns: Vec::new(),
@@ -419,6 +488,17 @@ fn exec_sql_core(db: &str, sql: &str) -> Result<ExecSqlResult, String> {
             truncate(&r.stderr, 500)
         )
     })?;
+    // B164：授权回调拒绝要报 Fail(Denied)，不落 error 字段（安全边界，不是内容性错误）。
+    if parsed.get("denied").and_then(|v| v.as_bool()) == Some(true) {
+        let detail = parsed
+            .get("detail")
+            .and_then(|v| v.as_str())
+            .unwrap_or("SQL 被授权回调拒绝");
+        return Err(format!(
+            "exec_sql: Denied: 只放行 SELECT/READ/FUNCTION/RECURSIVE，其余一律拒绝\
+             （VACUUM INTO/ATTACH DATABASE/写语句等）：{detail}"
+        ));
+    }
     let columns = parsed
         .get("columns")
         .and_then(|v| v.as_array())
@@ -563,6 +643,47 @@ mod tests {
         assert!(r.is_err(), "应拒绝，不落盘不起子进程");
     }
 
+    /// PR #36 复核 P1 的核实：`pathlib.Path(...).write_text(...)` 不含任何一条静态拒绝表的
+    /// 关键字（不是 `import os/subprocess/socket/shutil`，不含 `open(`），能穿过静态扫描，
+    /// 真正到子进程里执行——挡它的必须是操作系统沙箱，不是静态表。本机（macOS）有
+    /// `sandbox-exec`，跑真实断言；没有沙箱工具的平台跳过并注明原因（不是假跳过，
+    /// `sandbox::detect()` 探测不到时就没有别的办法验证这条）。
+    #[test]
+    fn exec_py_core_sandbox_blocks_write_outside_call_dir() {
+        if sandbox::tool().is_none() {
+            eprintln!(
+                "跳过 exec_py_core_sandbox_blocks_write_outside_call_dir：本机没有可用的沙箱工具（环境依赖，非失败）"
+            );
+            return;
+        }
+        let target = std::env::temp_dir().join(format!(
+            "jpp-sandbox-escape-{}-{}.txt",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_nanos())
+                .unwrap_or(0)
+        ));
+        let _ = std::fs::remove_file(&target);
+        let code = format!(
+            "import pathlib\np = pathlib.Path({target:?})\n\
+             try:\n    p.write_text('escaped')\n    print('WROTE')\n\
+             except Exception as e:\n    print(f'blocked: {{type(e).__name__}}: {{e}}')\n",
+        );
+        let r = exec_py_core(&code, "", 5.0).expect("静态拒绝表不拦 pathlib 写，应能起子进程");
+        assert!(
+            !target.exists(),
+            "沙箱外的写不该成功：{target:?}；stdout={}",
+            r.stdout
+        );
+        assert!(
+            !r.stdout.contains("WROTE"),
+            "不该看到写成功的输出：{}",
+            r.stdout
+        );
+        let _ = std::fs::remove_file(&target);
+    }
+
     /// 无网络的核实：`urllib` 不在静态拒绝表的模块名单里（只有 os/subprocess/socket/shutil），
     /// 所以这条能穿过静态扫描，真正到子进程里执行——网络禁用补丁要在这一层挡住它。
     /// 这是对「B150 要求 check_tests/exec_py 无网络」的实测核实，不是复述文档。
@@ -644,6 +765,9 @@ mod tests {
 
     /// 建一个带两行数据的临时 sqlite 库，供 `exec_sql_core` 测试用。借 `exec_py_core`
     /// 起 Python 建库，不新增依赖、不手写 SQLite 文件格式。
+    /// 建测试用的 sqlite 库：直接用系统 `python3`（不经 `exec_py_core`——`exec_py` 现在把写
+    /// 限定在它自己每次调用新建的沙箱工作目录里，没法用来在任意测试目录建库；这里只是测试
+    /// 夹具准备，不测 `exec_py` 本身，用未沙箱化的 `Command` 反而是对的）。
     fn make_test_db(tag: &str) -> String {
         let dir =
             std::env::temp_dir().join(format!("jpp-exec-sql-test-{tag}-{}", std::process::id()));
@@ -658,8 +782,16 @@ mod tests {
              conn.commit()\n\
              conn.close()\n"
         );
-        let r = exec_py_core(&code, "", 5.0).expect("建测试库应能执行");
-        assert_eq!(r.exit_code, Some(0), "建库失败：{}", r.stderr);
+        let out = std::process::Command::new("python3")
+            .arg("-c")
+            .arg(&code)
+            .output()
+            .expect("python3 应可用");
+        assert!(
+            out.status.success(),
+            "建库失败：{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
         db_str
     }
 
@@ -682,25 +814,10 @@ mod tests {
     #[test]
     fn exec_sql_core_rejects_write_on_readonly_connection() {
         let db = make_test_db("write-reject");
-        let r =
-            exec_sql_core(&db, "insert into t values (3, 'c')").expect("应能执行（结构化失败）");
-        assert!(r.error.is_some(), "只读连接上的写语句应报错");
-        assert!(
-            r.error
-                .as_ref()
-                .unwrap()
-                .to_lowercase()
-                .contains("readonly")
-                || r.error
-                    .as_ref()
-                    .unwrap()
-                    .to_lowercase()
-                    .contains("read-only"),
-            "{:?}",
-            r.error
-        );
-        assert!(r.columns.is_empty());
-        assert_eq!(r.rows, serde_json::json!([]));
+        // B164：授权回调拒绝是 Fail(Denied)，不是 Ok(结构化 error)——安全边界，不是内容性错误。
+        let err = exec_sql_core(&db, "insert into t values (3, 'c')")
+            .expect_err("只读连接上的写语句应报 Err（Fail(Denied)）");
+        assert!(err.contains("Denied"), "{err}");
         // 真的没写进去：再读一次应仍只有两行
         let check = exec_sql_core(&db, "select count(*) from t").expect("应能执行");
         assert_eq!(check.rows, serde_json::json!([[2]]), "写语句不该生效");
@@ -722,5 +839,44 @@ mod tests {
             .to_string();
         let r = exec_sql_core(&missing, "select 1").expect("应能执行（结构化失败）");
         assert!(r.error.is_some());
+    }
+
+    /// 严重项的直接复现与核实：`mode=ro` 只读打开位挡不住 `VACUUM INTO` 在磁盘生成新文件——
+    /// 授权回调（只放行 SELECT/READ/FUNCTION/RECURSIVE）修好之后，这条应该被拒、不产生目标文件。
+    #[test]
+    fn exec_sql_core_rejects_vacuum_into_and_leaves_no_file() {
+        let db = make_test_db("vacuum-into");
+        let out = std::env::temp_dir()
+            .join(format!("jpp-exec-sql-vacuum-out-{}.db", std::process::id()))
+            .to_string_lossy()
+            .to_string();
+        let _ = std::fs::remove_file(&out);
+        let sql = format!("VACUUM INTO '{out}'");
+        let err = exec_sql_core(&db, &sql).expect_err("VACUUM INTO 应报 Err（Fail(Denied)）");
+        assert!(err.contains("Denied"), "{err}");
+        assert!(
+            !std::path::Path::new(&out).exists(),
+            "VACUUM INTO 不该在磁盘上留下文件：{out}"
+        );
+    }
+
+    /// 同上，`ATTACH DATABASE` 那条路径：`ATTACH` 本身不写「原库文件」，`mode=ro` 管不到，
+    /// 授权回调修好之后应该在 `ATTACH` 这一步本身就被拒（`exec_sql` 一次只执行一条语句，
+    /// 「ATTACH 后再 CREATE TABLE」两步攻击在这个接口下传不进一次调用，见过程记录 §二）。
+    #[test]
+    fn exec_sql_core_rejects_attach_database_and_leaves_no_file() {
+        let db = make_test_db("attach");
+        let att = std::env::temp_dir()
+            .join(format!("jpp-exec-sql-attach-out-{}.db", std::process::id()))
+            .to_string_lossy()
+            .to_string();
+        let _ = std::fs::remove_file(&att);
+        let sql = format!("ATTACH DATABASE '{att}' AS a");
+        let err = exec_sql_core(&db, &sql).expect_err("ATTACH DATABASE 应报 Err（Fail(Denied)）");
+        assert!(err.contains("Denied"), "{err}");
+        assert!(
+            !std::path::Path::new(&att).exists(),
+            "ATTACH DATABASE 不该在磁盘上留下文件：{att}"
+        );
     }
 }

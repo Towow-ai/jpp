@@ -939,3 +939,138 @@ fn replay_only_rejects_all_graph_actions() {
         );
     }
 }
+
+// ---------- PR #36 复核 P2：绝对阈值在小量纲输入下静默丢网络元素 ----------
+// 预注册与逐处判断见 `地基/过程记录/工程-执行器动作安全修补.md` §二。
+// 复现路径就是主会话点出的那条：容量/权重/成本远小于旧版写死的 1e-9/1e-12 绝对阈值时，
+// 修前的行为是把它们当零处理（`max_flow` 报 0、丢边/丢最优解）却仍然标 `"exact": true`。
+
+/// `max_flow` 的直接复现：只有一条容量 `1e-10` 的源到汇边，旧版绝对阈值 `1e-9` 会把它当零、
+/// 报 `max_flow: 0`；相对阈值修好之后应该正确报出这条边自己的容量。
+#[test]
+fn max_flow_tiny_capacity_is_not_silently_dropped() {
+    let actions = registry();
+    let input = json!({
+        "edges": [{"u": "s", "v": "t", "cap": 1e-10}],
+        "nodes": ["s", "t"], "source": "s", "sink": "t",
+    });
+    let out = call(&actions, "graph:max_flow", input).expect("tiny-capacity max_flow");
+    let got = out["max_flow"].as_f64().unwrap();
+    assert!(
+        (got - 1e-10).abs() < 1e-19,
+        "容量 1e-10 的单边最大流应该约等于 1e-10，实得 {got}（相对阈值=容量*1e-9=1e-19，\
+         远小于这条边自己的容量，不该被当成零）"
+    );
+}
+
+/// 一般图匹配 DP 重建：全体权重都在 `1e-10` 量级时，旧版 `1e-9` 绝对阈值的重建判据
+/// （`(dp[without_i]-dp[mask]).abs()<1e-9`）会把「真实存在的匹配」误判成「未匹配」——
+/// 改成精确相等后应该与暴力解一致，不受量纲影响（不需要阈值，见过程记录 §二判断）。
+#[test]
+fn matching_general_tiny_weights_still_matched_exactly() {
+    let actions = registry();
+    let n = 6;
+    let nodes = node_names(n);
+    let mut w: HashMap<(usize, usize), f64> = HashMap::new();
+    let mut edges_json = Vec::new();
+    let mut rng = Rng::new(0x7111_7000);
+    for i in 0..n {
+        for j in (i + 1)..n {
+            if rng.chance(0.6) {
+                let weight = (1 + rng.range(9)) as f64 * 1e-11; // 1e-11..9e-11 量级
+                w.insert((i, j), weight);
+                edges_json.push(json!({"u": nodes[i], "v": nodes[j], "w": weight}));
+            }
+        }
+    }
+    let input = json!({"edges": edges_json, "nodes": nodes});
+    let out = call(&actions, "graph:matching", input).expect("tiny-weight general matching");
+    let got = out["total_weight"].as_f64().unwrap();
+    let expected = brute_force_general_matching(n, &w);
+    assert_eq!(
+        got, expected,
+        "全体权重 ~1e-11 时应与暴力解逐位相同（不再用绝对阈值判定，理应精确），\
+         got={got} expected={expected}"
+    );
+    assert!(
+        expected > 0.0,
+        "测试前提：这组随机边应至少能配出一对（否则测试没测到东西）"
+    );
+}
+
+/// 最短路 Dijkstra 松弛：全体边权都在 `1e-13` 量级时，旧版 `-1e-12` 的「改进幅度」门槛会
+/// 吞掉真实更优的路径；去掉门槛后应该与 Floyd–Warshall 暴力解一致。
+#[test]
+fn shortest_path_tiny_weights_still_correct() {
+    let actions = registry();
+    let n = 6;
+    let nodes = node_names(n);
+    let mut raw_edges = Vec::new();
+    let mut edges_json = Vec::new();
+    let mut rng = Rng::new(0x5407_7357);
+    for i in 0..n {
+        for j in (i + 1)..n {
+            if rng.chance(0.5) {
+                let weight = (1 + rng.range(9)) as f64 * 1e-14; // 1e-14..9e-14 量级
+                raw_edges.push((i, j, weight));
+                edges_json.push(json!({"u": nodes[i], "v": nodes[j], "w": weight}));
+            }
+        }
+    }
+    let input = json!({
+        "edges": edges_json, "nodes": nodes, "source": nodes[0], "target": nodes[n - 1],
+    });
+    let out = call(&actions, "graph:shortest_path", input).expect("tiny-weight shortest_path");
+    let dist = floyd_warshall(n, &raw_edges, false);
+    let expected = dist[0][n - 1];
+    if expected.is_infinite() {
+        assert_eq!(out["reachable"], json!(false));
+    } else {
+        assert_eq!(out["reachable"], json!(true));
+        let got = out["distance"].as_f64().unwrap();
+        assert_eq!(
+            got, expected,
+            "全体边权 ~1e-14 时应与 Floyd–Warshall 暴力解逐位相同，got={got} expected={expected}"
+        );
+    }
+}
+
+/// 精确位掩码 set_cover：全体成本都在 `1e-13` 量级时，旧版 `-1e-12` 的「改进幅度」门槛会
+/// 让 DP 停在次优解上；去掉门槛后应该选出真正的最小覆盖，与暴力解一致。
+#[test]
+fn set_cover_exact_tiny_costs_still_optimal() {
+    let actions = registry();
+    let u = 6;
+    let universe: Vec<String> = (0..u).map(|i| format!("e{i}")).collect();
+    let mut rng = Rng::new(0x5E7C_0B7E);
+    let k = 6;
+    let mut sets_bits = Vec::with_capacity(k);
+    let mut sets_json = Vec::with_capacity(k);
+    for si in 0..k {
+        let mut mask = 0u32;
+        let mut elems = Vec::new();
+        for ei in 0..u {
+            if rng.chance(0.45) {
+                mask |= 1 << ei;
+                elems.push(universe[ei].clone());
+            }
+        }
+        let cost = (1 + rng.range(5)) as f64 * 1e-14; // 1e-14..5e-14 量级
+        sets_bits.push((mask, cost));
+        sets_json.push(json!({"id": format!("s{si}"), "elements": elems, "cost": cost}));
+    }
+    let input = json!({"universe": universe, "sets": sets_json});
+    let out = call(&actions, "graph:set_cover", input).expect("tiny-cost set_cover");
+    let expected = brute_force_set_cover(u, &sets_bits);
+    match expected {
+        Some(exp) => {
+            assert_eq!(out["covers_universe"], json!(true));
+            let got = out["total_cost"].as_f64().unwrap();
+            assert_eq!(
+                got, exp,
+                "全体成本 ~1e-14 时应与暴力解逐位相同，got={got} expected={exp}"
+            );
+        }
+        None => assert_eq!(out["covers_universe"], json!(false)),
+    }
+}

@@ -29,9 +29,24 @@ fn jpp(cwd: &Path, args: &[&str]) -> (bool, String) {
     )
 }
 
+/// `do("check_tests", …)` 字面出现在程序里，检查期就要求本机有真的能跑通的沙箱
+/// （`E-action-no-sandbox`，B164）。复用生产同一套探测（内含真实冒烟测试，不是只看文件
+/// 存不存在；主会话复核追加，公开仓库 CI 上沙箱工具可能存在但跑不起来）。
+macro_rules! require_sandbox_or_skip {
+    () => {
+        if !jpp::actions::sandbox_available() {
+            eprintln!(
+                "跳过：本机没有可用（探测到且冒烟测试通过）的沙箱工具，环境依赖，非失败"
+            );
+            return;
+        }
+    };
+}
+
 /// 首跑记 `passed`/`failed`；只凭账本重放零调用、值逐字段相同。
 #[test]
 fn check_tests经do调用并且只凭账本重放零调用() {
+    require_sandbox_or_skip!();
     let d = tmp("basic");
     let src = r#"
 budget {calls: 2, cost: 0, depth: 8};
@@ -69,6 +84,7 @@ content(do("check_tests", ["x = 2", ["assert x == 2", "assert x == 3"], 5], 0))
 /// 静态拒绝表对 `code`+`tests` 合并文本同样生效。
 #[test]
 fn check_tests静态拒绝命中tests参数() {
+    require_sandbox_or_skip!();
     let d = tmp("reject");
     let src = r#"
 budget {calls: 2, cost: 0, depth: 8};

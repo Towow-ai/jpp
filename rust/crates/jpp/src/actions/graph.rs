@@ -459,7 +459,11 @@ fn run_matching_general(input: &Json) -> Result<Json, String> {
     while mask != 0 {
         let i = mask.trailing_zeros() as usize;
         let without_i = mask & !(1 << i);
-        if (dp[without_i] - dp[mask]).abs() < 1e-9 {
+        // 精确相等，不是放宽的阈值比较（PR #36 复核 P2）：`dp[mask]` 在正向 DP 里是直接赋值
+        // 成 `dp[without_i]` 或某个候选 `dp[rest]+w` 本身（不是多个和的再运算），重放同一个
+        // 加法一定逐位相同——用 `1e-9` 的绝对阈值反而会在权重远小于 1e-9 时把「真实存在的
+        // 匹配」错判成「未匹配」，静默丢边却仍标 `exact:true`（过程记录 §二）。
+        if dp[without_i] == dp[mask] {
             mask = without_i;
             continue;
         }
@@ -474,7 +478,7 @@ fn run_matching_general(input: &Json) -> Result<Json, String> {
             }
             if let Some(&(w, orig_idx)) = best.get(&(i.min(j), i.max(j))) {
                 let rest = without_i & !jb;
-                if (dp[rest] + w - dp[mask]).abs() < 1e-9 {
+                if dp[rest] + w == dp[mask] {
                     found = Some((j, w, orig_idx, rest));
                     break;
                 }
@@ -580,7 +584,10 @@ fn run_shortest_path(input: &Json) -> Result<Json, String> {
         }
         for &(v2, w, ei) in &adj[u] {
             let nd = d + w;
-            if nd < dist[v2] - 1e-12 {
+            // 标准 Dijkstra 配合 `visited` 标记不需要「改进幅度」门槛（PR #36 复核 P2）：
+            // `- 1e-12` 的绝对阈值在边权远小于它时会把真实的更优路径当成「没有改进」而吞掉，
+            // 静默算出错误的最短路却仍标 `exact:true`；纯 `<` 既正确又不受量纲影响。
+            if nd < dist[v2] {
                 dist[v2] = nd;
                 prev[v2] = Some((u, ei));
                 heap.push(std::cmp::Reverse((OrderedF64(nd), v2)));
@@ -901,7 +908,9 @@ fn set_cover_exact(universe: &[String], sets: &[SetIn]) -> Result<Json, String> 
             }
             let nm = (m32 | masks[si]) as usize;
             let nc = dp[mask] + s.cost;
-            if nc < dp[nm] - 1e-12 {
+            // 单趟正向松弛、掩码按升序处理，不需要「改进幅度」门槛，理由同 shortest_path
+            // （PR #36 复核 P2）：`- 1e-12` 在成本远小于它时会吞掉真实更优的覆盖方案。
+            if nc < dp[nm] {
                 dp[nm] = nc;
                 choice[nm] = Some((mask, si));
             }
@@ -998,14 +1007,20 @@ struct Dinic {
     graph: Vec<Vec<usize>>,
     edges: Vec<FlowEdge>,
     n: usize,
+    /// 残量比较用的阈值，按输入容量的量纲取相对值（`new` 里算），不是写死的绝对数
+    /// （PR #36 复核 P2：固定 `1e-9` 在所有容量都远小于它时会把真实容量当成零，
+    /// 静默丢掉网络里的边却仍标 `exact:true`）。阈值本身不能省——Dinic 需要它避免浮点残量
+    /// 在 0 附近抖动导致的死循环，只是刻度要跟着输入走。
+    eps: f64,
 }
 
 impl Dinic {
-    fn new(n: usize) -> Self {
+    fn new(n: usize, max_cap: f64) -> Self {
         Dinic {
             graph: vec![Vec::new(); n],
             edges: Vec::new(),
             n,
+            eps: (max_cap * 1e-9).max(0.0),
         }
     }
 
@@ -1038,7 +1053,7 @@ impl Dinic {
         while let Some(u) = q.pop_front() {
             for &ei in &self.graph[u] {
                 let e = &self.edges[ei];
-                if level[e.to] < 0 && e.cap - e.flow > 1e-9 {
+                if level[e.to] < 0 && e.cap - e.flow > self.eps {
                     level[e.to] = level[u] + 1;
                     q.push_back(e.to);
                 }
@@ -1057,9 +1072,9 @@ impl Dinic {
                 let e = &self.edges[ei];
                 (e.to, e.cap, e.flow)
             };
-            if level[to] == level[u] + 1 && cap - flow > 1e-9 {
+            if level[to] == level[u] + 1 && cap - flow > self.eps {
                 let d = self.dfs(to, t, f.min(cap - flow), level, it);
-                if d > 1e-9 {
+                if d > self.eps {
                     self.edges[ei].flow += d;
                     let rev = ei ^ 1;
                     self.edges[rev].flow -= d;
@@ -1078,7 +1093,7 @@ impl Dinic {
             let mut it = vec![0usize; self.n];
             loop {
                 let f = self.dfs(s, t, f64::INFINITY, &level, &mut it);
-                if f <= 1e-9 {
+                if f <= self.eps {
                     break;
                 }
                 flow += f;
@@ -1109,18 +1124,22 @@ fn run_max_flow(input: &Json) -> Result<Json, String> {
     }
 
     let n = nodes.len();
-    let mut din = Dinic::new(n);
+    // 相对阈值：按这张图自己的容量量纲取（PR #36 复核 P2），不是写死的绝对数——
+    // `parse_edges(..., false)` 已经拒绝了负容量，`fold` 从 0.0 开始安全。
+    let max_cap = edges_raw.iter().map(|e| e.w).fold(0.0_f64, f64::max);
+    let mut din = Dinic::new(n, max_cap);
     for e in &edges_raw {
         let a = idx[e.u.as_str()];
         let b = idx[e.v.as_str()];
         din.add_edge(a, b, e.w, Some(e.index));
     }
     let flow = din.max_flow(s, t);
+    let eps = din.eps;
 
     let mut flow_edges_json = Vec::new();
     for e in &din.edges {
         if let Some(orig) = e.orig_index
-            && e.flow > 1e-9
+            && e.flow > eps
         {
             flow_edges_json.push(json!({
                 "u": nodes[e.from], "v": nodes[e.to], "flow": e.flow, "edge_index": orig,

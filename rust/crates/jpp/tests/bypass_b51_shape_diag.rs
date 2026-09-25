@@ -121,6 +121,7 @@ fn 动作表(settled: &[&str]) -> ActionTable {
         ActionFacts {
             reversible: true,
             output_untrusted: false,
+            no_sandbox: false,
         },
     );
     t.shapes.insert("取材料".into(), 形状(settled));
@@ -213,6 +214,7 @@ fn 动作未登记形状_不报() {
         ActionFacts {
             reversible: true,
             output_untrusted: false,
+            no_sandbox: false,
         },
     );
     let p = lower(&parse(子集程序).expect("解析")).expect("降级");
