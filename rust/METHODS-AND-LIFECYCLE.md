@@ -40,7 +40,7 @@ From this directory, build the CLI and copy the source tree into a scratch folde
 so the file actions have a disposable working directory:
 
 ```sh
-cargo build --locked -p jpp-cli
+cargo build --locked -p jpp
 demo=$(mktemp -d)
 cp -R examples lib "$demo/"
 cp target/debug/jpp "$demo/jpp"
@@ -92,21 +92,20 @@ context-sensitive generation or implement an algorithm in the CLI.
 
 ## Source versus direct core use
 
-The existing [comparison](COMPARISON.md) remains executable. Its test now runs
-three equivalent representations: old source function types, explicit pure
-method types, and a program constructed directly with core AST builders. All
-return `{expected:43,result:43}` through `jpp_core::run`. File imports only assemble
-declarations before lowering; they do not add a second execution path.
+The existing [comparison](COMPARISON.md) remains executable. Since step 12d the
+source is lowered directly to the IR; the separate core-AST builder path and its
+`core_equivalence` test were removed with it, so there is one representation to
+test. File imports only assemble declarations before lowering; they do not add a
+second execution path.
 
 ```sh
 cargo test --locked --workspace
-cargo test --locked -p jpp-frontend --test core_equivalence
-cargo test --locked -p jpp-cli --test library_lifecycle
+cargo test --locked -p jpp --test library_lifecycle
 ```
 
-The current CLI exposes fixed clients, not a live JEV connection. Broader algorithm
-library migration, live adapters, complete pending-responsibility transfer and
-optimizer work remain in their existing owners' version plan. This package neither
-declares those complete nor adds them as new acceptance gates.
+The live JEV backend (`--backend live`, which requires a capability profile) and
+the calibration workflow are described in [GUIDE.md](GUIDE.md). Broader library
+migration and optimizer work remain in the engineering plan and are not declared
+complete here.
 
 [中文说明](METHODS-AND-LIFECYCLE.zh-CN.md)

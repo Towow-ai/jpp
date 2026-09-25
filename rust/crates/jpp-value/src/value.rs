@@ -2,19 +2,21 @@
 //! 函数值带显式环境链 `Env`，没有 Rust 闭包，可打印、可序列化成名字→值。
 
 use std::cell::{Cell, RefCell};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::rc::Rc;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{Value as Json, json};
 
 use jpp_ir::ir::Span;
+
+pub use crate::guard_ev::GuardEv;
 // 闭包持有 IR 函数（步 12c：运行时读 IR）
 use jpp_ir::ir::Function;
 
-pub use jpp_ir::key::{canon, hash_of};
+pub use jpp_ir::key::{LineGrade, canon, hash_of};
 
-pub use crate::prov::{Provenance, Sources, join as prov_join};
+pub use crate::prov::{Edge, EdgeKind, Provenance, Sources, join as prov_join};
 pub use jpp_ir::question_kind::{
     OnShape, OverKind, OverShape, QuestionKind, Request, SlotDecls, SlotShape, question_kind,
 };
@@ -57,6 +59,11 @@ pub struct Mat {
     /// 经普通值（`content()` 读出、`e.item` 取出）的依赖不计，待候选 B84（值级来源）。
     #[serde(default, skip_serializing_if = "BTreeSet::is_empty")]
     pub from_key: BTreeSet<String>,
+    /// `from_key` 里的值依赖边：键 → 题哈希（B92，步 18c）。不在这里的键是选择依赖边。
+    /// 并入值依赖边时其题哈希同步并进 `derived_from`，所以 `derived_from` 就是 J-02 的投影
+    /// （∪ 从账本解码的效应输出自带的 `derived_from`）。不进 `hash`，空不序列化。
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub value_q: BTreeMap<String, String>,
 }
 
 impl Mat {
@@ -77,17 +84,52 @@ impl Mat {
             derived_from,
             hash,
             from_key: BTreeSet::new(),
+            value_q: BTreeMap::new(),
         }
     }
     /// 材料的来源标签（B84）：`(taint, from_key)`。两个字段分存（报告 JSON 与 `.taint` 读取不变），
     /// 传播只经这里与 [`Value::with_prov`]。
     pub fn prov(&self) -> Provenance {
-        Provenance::new(self.taint, Sources::from_set(self.from_key.clone()))
+        let map = self
+            .from_key
+            .iter()
+            .map(|k| {
+                let e = match self.value_q.get(k) {
+                    Some(q) => Edge {
+                        kind: EdgeKind::Value,
+                        q: q.clone(),
+                    },
+                    None => Edge {
+                        kind: EdgeKind::Select,
+                        q: String::new(),
+                    },
+                };
+                (k.clone(), e)
+            })
+            .collect();
+        Provenance::new(self.taint, Sources::from_map(map))
     }
-    /// 并入来源出口的账本键（B59）。空键不记。不改哈希。
+    /// 并入来源出口的账本键（B59），作选择依赖边（只有键）。空键不记。不改哈希。
     pub fn with_from_key<I: IntoIterator<Item = String>>(mut self, keys: I) -> Mat {
         self.from_key
             .extend(keys.into_iter().filter(|k| !k.is_empty()));
+        self
+    }
+    /// 并入来源边（B92，步 18c）：键进 `from_key`；值依赖边另记题哈希并进 `derived_from`
+    /// （J-02 的投影）。同键已有值边不降为选择边。不改哈希。
+    pub fn with_sources(mut self, s: &Sources) -> Mat {
+        for (k, e) in s.edges() {
+            if k.is_empty() {
+                continue;
+            }
+            self.from_key.insert(k.clone());
+            if e.kind == EdgeKind::Value {
+                self.value_q.insert(k.clone(), e.q.clone());
+                if !e.q.is_empty() {
+                    self.derived_from.insert(e.q.clone());
+                }
+            }
+        }
         self
     }
     pub fn literal(content: Json) -> Mat {
@@ -158,6 +200,24 @@ pub struct Question {
     /// 题式对 `over` 的声明（B76，步 12e-2），由 [`Form::fill`] 带过来。不进题哈希，空不序列化。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub over_kind: Option<OverKind>,
+    /// 置换声明（B64，步 15f）：`select` 站点要求判断器按正逆两序各读一次，`cut` 据置换众数一致给
+    /// `Pick`。测量声明，**不进题哈希**（换不换置换是同一道题、同一条校准键），为假不序列化。
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub permute: bool,
+    /// 题面 taint（B58，步 17b）：各槽填入值、计算出的题面文本与题式模板的 taint 之 ∨，字面题为 Trusted。
+    /// 判断器读到的题面与读到的材料同样可能被注入，读数与出口 taint = 状态 ∨ 题。
+    /// **不进题哈希、不进任何账本键**（同一题面就是同一道题）；Trusted 不序列化。
+    /// 依据：B58（`12` §2.11 第 4 条；`20` v2 §3.10「文本 → 题面」行）
+    #[serde(default, skip_serializing_if = "is_trusted")]
+    pub taint: Taint,
+}
+
+fn is_false(b: &bool) -> bool {
+    !*b
+}
+
+fn is_trusted(t: &Taint) -> bool {
+    *t == Taint::Trusted
 }
 
 impl Question {
@@ -208,6 +268,8 @@ impl Question {
             fill: None,
             from_key: BTreeSet::new(),
             over_kind: None,
+            permute: false,
+            taint: Taint::Trusted,
         }
     }
 
@@ -263,6 +325,13 @@ pub struct Form {
     /// `over` 的声明（B76）：`labels`/`candidates`/`questions`/`actions`。只决定题类，不进 `form_hash`。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub over_kind: Option<OverKind>,
+    /// 置换声明（B64，步 15f），由 `fill` 带到题上。不进 `form_hash`，为假不序列化。
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub permute: bool,
+    /// 模板文本的 taint（B58 的解释，步 17b）：`form(计算文本, …)` 的模板也是判断器读到的题面，
+    /// `fill` 时并进题。不进 `form_hash`；Trusted 不序列化。
+    #[serde(default, skip_serializing_if = "is_trusted")]
+    pub taint: Taint,
 }
 
 impl Form {
@@ -316,6 +385,8 @@ impl Form {
             request,
             hash,
             over_kind: None,
+            permute: false,
+            taint: Taint::Trusted,
         })
     }
     /// 按填法得到一道题。槽必须恰好填满：缺槽、多槽都是错——多出来的键多半是拼错的槽名。
@@ -349,7 +420,10 @@ impl Form {
         q.request = self.request.clone();
         q.form_hash = Some(self.hash.clone());
         q.over_kind = self.over_kind;
+        q.permute = self.permute;
         q.template = Some(self.template.clone());
+        // B58（步 17b）：模板的 taint 带到题上；填入值的 taint 由调用处（`fill` 内置）并入
+        q.taint = self.taint;
         q.fill = Some(
             self.slots
                 .iter()
@@ -539,6 +613,7 @@ pub struct Reading {
     /// 被判断的那个状态的 taint。`cut` 据此给出口定 taint
     /// （`12`:150「出口 taint 继承状态 taint」、§2.11「cut 继承」）。
     /// 以前没有这个字段，`cut` 只好一律给 `Trusted`——**状态算好的 taint 被丢掉了**。
+    /// 步 17b（B58）起是「状态 ∨ 题面」：判断器读到的题面与材料同样计入，字段名沿用。
     #[serde(default)]
     pub state_taint: Taint,
     /// 题来自哪个题式（件 b 的 `form_hash`）。`cut` 在题键没有上岗记录时据此退到题式键
@@ -599,35 +674,52 @@ pub struct Exit {
     /// 这个出口来自哪一条账本记录（`cut` 时写入；其余出口为空）。
     /// 组合封闭性契约的证据只存这个键，不存读数或材料的副本（B17 不变量 3）。
     pub ledger_key: RefCell<String>,
-    /// **这个出口过的是夹具线**（B29）：线来自宿主 `put` 的测试记录或没有证书的记录。
-    /// 夹具线的出口不算放行不可逆 `do` 的可信合取项。
-    pub fixture_line: Cell<bool>,
-    /// **这条线是停岗候选**（B25）：出口照常路由，不算放行不可逆 `do` 的可信合取项。
+    /// **这个出口的线等级**（步 20a-1，`LineGrade`，`20` v2 §3.4）：`cut` 出口一律有值（没用上线即
+    /// `Cold`）；`None` = 出口不来自 `cut`（`ask` 与构造派生的出口），没有「线」可谈，放行由它自己的
+    /// 来源决定（taint、`from_ask`）。取代原来的 `fixture_line`（B29）、`class_line`（B75）、
+    /// `trial_line`（B72）三个布尔位；等级派生读有效 α（B89，见 `jpp-calib::cert_view`）。
+    pub grade: Cell<Option<LineGrade>>,
+    /// **这条线是停岗候选**（B25）：正交位，可与任何等级叠加；出口照常路由，不放行不可逆 `do`。
     pub suspend_candidate: Cell<bool>,
-    /// **材料在这条线的认证范围之外**（B68）：出口照常路由，不算放行不可逆 `do` 的可信合取项。
-    /// 步 20a 的 `LineGrade::OutOfScope` 落地前由这一位承载。
+    /// **材料在这条线的认证范围之外**（B68）：正交位（补遗 12(a)：范围外不是等级，是这次使用失去了保证）；
+    /// 出口照常路由，不放行不可逆 `do`。
     pub scope_out: Cell<bool>,
-    /// **这个出口过的是类线**（B34 类键借线，步 20b）：出口照常路由，不算放行不可逆 `do` 的可信合取项。
-    /// 依据：B75（`Class` 等级不放行：类线是跨题式借线，α 保证只在混合分布上成立；`20` §3.4 等级表为准，
-    /// `12` §2.2 B34 条第 (2) 句已按 B75 改。升格路径 `class_release`（留一来源认证）本版不实现）。
-    /// 放行判定只在 `guard_trusted` 这一处；步 20a 的 `LineGrade::Class` 落地前由这一位承载。
-    pub class_line: Cell<bool>,
-    /// **这个出口过的是试用线**（B72：试用 α 认证的线）：出口照常路由，不算放行不可逆 `do` 的可信合取项。
-    /// 步 17b 之前等级不随材料传递（谱系放行随 17b）。步 20a 的 `LineGrade::Trial` 落地前由这一位承载。
-    pub trial_line: Cell<bool>,
+    /// **线的证书没有记录认证带宽**（B104-1：按 δ 平移过的旧证书，`selection` 在而 `selection.delta` 缺）：
+    /// 出口照常路由，不算放行不可逆 `do` 的可信合取项，直到 `load`（步 20c）重跑写回 δ 或重新导入。
+    pub delta_unknown: Cell<bool>,
+    /// **线的认证范围未知**（B104-2：记录没有材料指纹）：出口照常路由，不算放行不可逆 `do` 的可信合取项，
+    /// 直到带文本重新导入或经 B91 扩展并入。
+    pub scope_unknown: Cell<bool>,
+    /// **合成出口的分量**（B131，步 25-2b）：由内核合成构造 `compose` 从这些出口按封闭规则派生，是合成出口的
+    /// 谱系入口；非合成出口为空。不序列化。放行合取与谱系穿过它在步 25-9 落（此前合成出口一律按冷线不放行，25-1）。
+    pub parts: RefCell<Vec<Rc<Exit>>>,
 }
 
 impl Exit {
-    /// J-08 的可信合取项：状态可信、且线的等级放行（B29 夹具、B25 停岗候选、B68 范围外、B75 类线、B72 试用线都不放行）。
-    pub fn guard_trusted(&self) -> bool {
-        self.taint == Taint::Trusted
-            && !self.fixture_line.get()
-            && !self.suspend_candidate.get()
+    /// **放行的唯一判定点**（步 20a-1；补遗 12(a)）：
+    /// `releases() = grade ∈ {Certified, Form} ∧ ¬scope_out ∧ ¬suspend_candidate ∧ untested = None
+    /// ∧ ¬delta_unknown ∧ ¬scope_unknown`。
+    ///
+    /// 不看 taint：taint 是材料的属性，由 [`Exit::guard_trusted`] 合取。报告 `exits` 表的 `releases`
+    /// 就是这个函数的值。`grade` 为 `None` 的出口（不来自 `cut`）没有线，等级一项不适用，只看正交位。
+    pub fn releases(&self) -> bool {
+        self.grade.get().is_none_or(LineGrade::releases)
             && !self.scope_out.get()
-            // B75：类线不放行
-            && !self.class_line.get()
-            // B72：试用线不放行
-            && !self.trial_line.get()
+            && !self.suspend_candidate.get()
+            // J-15：本次路径上有未测的判据，不放行（步 20a-1 起；此前不查）
+            && self.untested.is_none()
+            // B104：认证带宽未记录、认证范围未知都不放行
+            && !self.delta_unknown.get()
+            && !self.scope_unknown.get()
+    }
+    /// J-08 的可信合取项：出口已决，状态可信，且 [`Exit::releases`]。
+    ///
+    /// 未决出口不是放行判定：unsure 臂拿到的是责任，不是判定，不论 taint 与等级（B121-2，
+    /// 步 16-0）。此前这里不看出口种类，正式线上的 `Unsure(band)` 也 `releases()`，于是可信
+    /// 材料上 unsure 臂里的不可逆 `do` 被放行（`tests/bypass_j08_unsure_arm.rs`）。
+    /// 依据：B121（地基/附注/2026-09-25-B121守卫证据裁定.md §二）
+    pub fn guard_trusted(&self) -> bool {
+        !self.is_unsure() && self.taint == Taint::Trusted && self.releases()
     }
     pub fn is_unsure(&self) -> bool {
         matches!(self.kind, ExitKind::Unsure(_))
@@ -763,6 +855,13 @@ pub struct Closure {
     pub span: Span,
     /// 函数体的结构哈希（transform 的键用）
     pub hash: String,
+    /// 创建时经捕获环境可达的未销账未决责任（出口 id；B52，步 21）。只作运行期记账，
+    /// 不进 `hash`、不序列化。
+    pub captures: Vec<usize>,
+    /// Fn¹（B52）：本闭包是其中每条责任的**唯一可达路径**，由创建它的帧返回时判定；非空即 Fn¹。
+    pub linear: RefCell<Vec<usize>>,
+    /// 判为 Fn¹ 之后是否已被调用过一次（第二次调用是 J-05）
+    pub linear_called: Cell<bool>,
 }
 
 #[derive(Clone, Debug)]
@@ -774,7 +873,8 @@ pub enum Value {
     /// 步 17c（B84）起第二字段是来源标签 `Provenance = (taint, sources)`，taint 分量的规则同 B33。
     Int(i64, Provenance),
     Float(f64, Provenance),
-    Bool(bool, Provenance),
+    /// 第三字段是守卫证据（J-08，`20` v2 §3.1；步 16），不参与相等与序列化。
+    Bool(bool, Provenance, GuardEv),
     Text(Rc<str>, Provenance),
     List(Rc<Vec<Value>>),
     Record(Rc<Vec<(String, Value)>>),
@@ -810,14 +910,14 @@ impl Value {
         Value::Float(f, Provenance::trusted())
     }
     pub fn bool(b: bool) -> Value {
-        Value::Bool(b, Provenance::trusted())
+        Value::Bool(b, Provenance::trusted(), GuardEv::EMPTY)
     }
     /// 这个值携带的来源标签（B84）：标量取自身；容器递归 join；材料取 `(taint, from_key)`；
     /// 出口取 `(taint, {账本键})`；题取 `(trusted, from_key)`；其余 `(trusted, ∅)`。
     /// taint 分量与 [`Value::taint`] 逐值相同（B33 第 1 点）。
     pub fn prov(&self) -> Provenance {
         match self {
-            Value::Int(_, p) | Value::Float(_, p) | Value::Bool(_, p) | Value::Text(_, p) => {
+            Value::Int(_, p) | Value::Float(_, p) | Value::Bool(_, p, _) | Value::Text(_, p) => {
                 p.clone()
             }
             Value::Fail(_, p) => p.clone(),
@@ -828,13 +928,40 @@ impl Value {
             Value::Record(fs) => fs
                 .iter()
                 .fold(Provenance::trusted(), |a, (_, x)| prov_join(&a, &x.prov())),
-            Value::Exit(e) => Provenance::new(e.taint, Sources::from_key(&e.ledger_key.borrow())),
-            Value::Question(q) => Provenance::sources_only(Sources::from_set(q.from_key.clone())),
+            // B92：出口读出是值依赖边
+            Value::Exit(e) => {
+                Provenance::new(e.taint, Sources::value(&e.ledger_key.borrow(), &e.q_hash))
+            }
+            // B58（步 17b）：题带题面 taint
+            Value::Question(q) => Provenance::new(q.taint, Sources::from_set(q.from_key.clone())),
+            Value::Form(f) => Provenance::from(f.taint),
             Value::Stop(x) => x.prov(),
             _ => Provenance::trusted(),
         }
     }
-    /// 把标签 join 进值（B33 `tainted` 的推广）。taint 分量只进标量叶子（与 `tainted` 完全相同，
+    /// 这个值自带的守卫证据：`Bool` 取自身，其他为空（B121-1）。
+    pub fn guard_ev(&self) -> GuardEv {
+        match self {
+            Value::Bool(_, _, g) => *g,
+            _ => GuardEv::EMPTY,
+        }
+    }
+    /// 把守卫证据并进值里每个 `Bool` 叶子（递归 `List`、`Record`，其他原样）。
+    /// 只由 `handle` 分派调用：臂返回值带分派出口的证据（B121-1）。
+    pub fn stamp(self, ev: GuardEv) -> Value {
+        if ev.is_empty() {
+            return self;
+        }
+        match self {
+            Value::Bool(b, p, g) => Value::Bool(b, p, g.join(ev)),
+            Value::List(l) => Value::list(l.iter().cloned().map(|x| x.stamp(ev)).collect()),
+            Value::Record(r) => {
+                Value::record(r.iter().cloned().map(|(k, v)| (k, v.stamp(ev))).collect())
+            }
+            other => other,
+        }
+    }
+    /// 把标签 join 进值（B33 `tainted` 的推广）。taint 分量进标量叶子与题、题式的题面 taint（B58，步 17b；
     /// 材料的位不动）；sources 分量进标量叶子、材料的 `from_key`、题的 `from_key`。单位元原样返回。
     pub fn with_prov(self, p: &Provenance) -> Value {
         if p.is_unit() {
@@ -843,7 +970,7 @@ impl Value {
         match self {
             Value::Int(i, q) => Value::Int(i, prov_join(&q, p)),
             Value::Float(f, q) => Value::Float(f, prov_join(&q, p)),
-            Value::Bool(b, q) => Value::Bool(b, prov_join(&q, p)),
+            Value::Bool(b, q, g) => Value::Bool(b, prov_join(&q, p), g),
             Value::Text(s, q) => Value::Text(s, prov_join(&q, p)),
             Value::List(l) => Value::list(l.iter().cloned().map(|x| x.with_prov(p)).collect()),
             Value::Record(r) => Value::record(
@@ -852,13 +979,19 @@ impl Value {
                     .map(|(k, v)| (k, v.with_prov(p)))
                     .collect(),
             ),
-            Value::Mat(m) if !p.sources.is_empty() => Value::Mat(Rc::new(
-                (*m).clone().with_from_key(p.sources.iter().cloned()),
-            )),
-            Value::Question(q) if !p.sources.is_empty() => {
+            Value::Mat(m) if !p.sources.is_empty() => {
+                Value::Mat(Rc::new((*m).clone().with_sources(&p.sources)))
+            }
+            Value::Question(q) => {
                 let mut q = (*q).clone();
                 q.from_key.extend(p.sources.iter().cloned());
+                q.taint = Taint::join(q.taint, p.taint);
                 Value::Question(Rc::new(q))
+            }
+            Value::Form(f) if p.taint == Taint::Untrusted => {
+                let mut f = (*f).clone();
+                f.taint = Taint::Untrusted;
+                Value::Form(Rc::new(f))
             }
             other => other,
         }
@@ -867,7 +1000,7 @@ impl Value {
     /// 其余（函数、题、状态……）是程序自己造的，按 trusted（B33 第 1 点）。
     pub fn taint(&self) -> Taint {
         match self {
-            Value::Int(_, t) | Value::Float(_, t) | Value::Bool(_, t) | Value::Text(_, t) => {
+            Value::Int(_, t) | Value::Float(_, t) | Value::Bool(_, t, _) | Value::Text(_, t) => {
                 t.taint
             }
             Value::Mat(m) => m.taint,
@@ -880,6 +1013,8 @@ impl Value {
             Value::Exit(e) => e.taint,
             Value::Stop(x) => x.taint(),
             Value::Fail(_, t) => t.taint,
+            Value::Question(q) => q.taint,
+            Value::Form(f) => f.taint,
             _ => Taint::Trusted,
         }
     }
@@ -894,7 +1029,7 @@ impl Value {
         match self {
             Value::Int(i, q) => Value::Int(i, set(q)),
             Value::Float(f, q) => Value::Float(f, set(q)),
-            Value::Bool(b, q) => Value::Bool(b, set(q)),
+            Value::Bool(b, q, g) => Value::Bool(b, set(q), g),
             Value::Text(s, q) => Value::Text(s, set(q)),
             Value::List(l) => Value::list(l.iter().cloned().map(|x| x.tainted(t)).collect()),
             Value::Record(r) => {
@@ -914,7 +1049,7 @@ impl Value {
             Value::Unit => "Unit",
             Value::Int(_, _) => "Int",
             Value::Float(_, _) => "Float",
-            Value::Bool(_, _) => "Bool",
+            Value::Bool(_, _, _) => "Bool",
             Value::Text(_, _) => "Text",
             Value::List(_) => "List",
             Value::Record(_) => "Record",
@@ -943,7 +1078,7 @@ impl Value {
             Value::Unit => Json::Null,
             Value::Int(i, _) => json!(i),
             Value::Float(f, _) => json!(f),
-            Value::Bool(b, _) => json!(b),
+            Value::Bool(b, _, _) => json!(b),
             Value::Text(s, _) => json!(s.as_ref()),
             Value::List(l) => Json::Array(l.iter().map(|v| v.to_json()).collect()),
             Value::Record(r) => {
@@ -998,7 +1133,7 @@ impl Value {
             (Value::Int(a, _), Value::Float(b, _)) | (Value::Float(b, _), Value::Int(a, _)) => {
                 (*a as f64) == *b
             }
-            (Value::Bool(a, _), Value::Bool(b, _)) => a == b,
+            (Value::Bool(a, _, _), Value::Bool(b, _, _)) => a == b,
             (Value::Text(a, _), Value::Text(b, _)) => a == b,
             // 容器里的「不可比」要传上来，不能被 `== Some(true)` 悄悄吃成 false：
             // 读数装进列表或记录还是读数，没有可读的值（J-01）。

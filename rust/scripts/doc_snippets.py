@@ -8,7 +8,7 @@
     ```json 片段先解析；带 observations 的当夹具喂给 examples/composition.jpp，核对夹具加载器收得下。
   - tests/golden/manifest.json 登记的每个示例：check 源文件，再按清单的 fixtures / calib / files /
     resume_from 跑一次；登记为 expect=error 的必须失败。examples/ 下没登记的 .jpp 只 check 并列出来。
-    逐字节比对金样与重放在 `cargo test -p jpp-cli --test golden` 里做，这里不重复。
+    逐字节比对金样与重放在 `cargo test -p jpp --test golden` 里做，这里不重复。
 
 跳过（逐行打印原因）：需要真机的行（`--features live` 构建、`--backend live` 调用），以及读这些行产物的行
 （`--replay` / `--resume` / `--calib` 指向被跳过行的 `--ledger-out` / `--output` / `--calib-out`）。
@@ -294,9 +294,9 @@ def summary():
 
 
 def main():
-    b = subprocess.run(["cargo", "build", "--locked", "-q", "-p", "jpp-cli"], cwd=ROOT)
+    b = subprocess.run(["cargo", "build", "--locked", "-q", "-p", "jpp"], cwd=ROOT)
     if b.returncode != 0:
-        sys.exit("cargo build -p jpp-cli 失败")
+        sys.exit("cargo build -p jpp 失败")
     docs()
     examples()
     failed = summary()

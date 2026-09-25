@@ -11,6 +11,6 @@ let notes = [
 ];
 let r = sieve(notes, test("这段话给出了具体价格或折扣吗？", "price"));
 let t = tally(r);
-{observed: len(accepted(r)) + len(ignored(r)) + len(undecided(r)), unobserved: map(unobserved(r), fn(p) { p.element.index }),
+{observed: len(accepted(r)) + len(ignored(r)) + len(undecided(r)), unobserved: map(unobserved(r), fn(p) { p.index }),
  count: t.value.count, stopped: stopped(t),
  exists: t.value.exists, all: t.value.all, pending: t.pending}

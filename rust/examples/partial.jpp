@@ -1,5 +1,5 @@
 // Algorithms and continuation are source methods, not hidden domain solvers.
-budget {calls: 6, cost: 0, depth: 256};
+budget {calls: 9, cost: 0, depth: 256};
 fn observe(m: Mat, q: Question) -> Record !{judge} {
     let exit = cut(judge(state(m), q));
     let result = handle(exit, {

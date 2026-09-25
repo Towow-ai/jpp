@@ -17,10 +17,14 @@ mod b76;
 mod e07;
 mod j01;
 mod j03;
+mod j04;
 mod j05;
 mod j06;
 mod j07;
+mod j08;
+mod j09;
 mod j10;
+mod j11;
 mod j12;
 mod j13;
 mod j14;
@@ -36,6 +40,7 @@ pub(crate) const RULES: &[&Rule] = &[
     &j05::RULE,
     &j01::RULE,
     &j03::RULE,
+    &j04::RULE,
     &j06::RULE,
     &e07::RULE,
     &j13::RULE,
@@ -43,6 +48,9 @@ pub(crate) const RULES: &[&Rule] = &[
     &j12::RULE,
     &b13::RULE,
     &b76::RULE,
+    &j08::RULE,
+    &j09::RULE,
+    &j11::RULE,
 ];
 
 pub(crate) struct Rule {
@@ -73,6 +81,8 @@ pub(crate) struct Cx<'a> {
     pub sites: &'a SiteFacts<'a>,
     pub profile: Option<&'a jpp_effects::Profile>,
     pub calib: Option<&'a dyn CalibView>,
+    /// 宿主动作表（B108，步 24-0）：`Session` 执行前那次检查才有；`None` = 检查时不知动作表
+    pub actions: Option<&'a crate::ActionTable>,
     /// 名字分析的只读视图：名字趟的钩子点收到正在进行的视图，其余钩子点为 `None`
     /// （本版名字趟之外的钩子点没有规则声明 `Names` 以外的读法：J-13 的「这一轮会变的名字」随
     /// [`CallSite::iter_params`] 给出）

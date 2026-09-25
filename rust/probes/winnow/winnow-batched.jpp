@@ -6,20 +6,18 @@ budget {calls: 12, cost: 0.2, depth: 256};
 let useful = form("test", "状态里编号为 {id} 的输出块，对完成状态里的 task 是否有用？", {calib: "winnow-block"});
 let has_error = test("这段工具输出里是否含有报错、失败或异常信息？", "winnow-error");
 let min_prune_percent = 20;
-let input = content(do("read_json", ["input.json"], 0));
 
 fn winnow(result) {
     let blocks = map(range(0, len(result.chunks)), fn(i) { {id: "b" + text(i), text: result.chunks[i]} });
-    let whole = mat({task: input.task, blocks: blocks});
+    let whole = mat({task: input.tool_outputs.task, blocks: blocks});
     // 报错题与逐块题同一状态：融合成一次调用
     let rs = sieve([whole], concat([has_error], map(blocks, fn(b) { fill(useful, {id: b.id}) })));
-    let err = rs[0];
-    let per_block = slice(rs, 1, len(rs));
-    let folded = filter(range(0, len(blocks)), fn(i) { len(ignored(per_block[i])) == 1 });
-    let unsure_blocks = filter(range(0, len(blocks)), fn(i) { len(per_block[i].pending) == 1 });
+    let err = by_q(rs, 0);
+    let folded = map(filter(ignored(rs), fn(e) { e.qi > 0 }), fn(e) { e.qi - 1 });
+    let unsure_blocks = map(filter(undecided(rs), fn(e) { e.qi > 0 }), fn(e) { e.qi - 1 });
     let pruned_chars = sum(map(folded, fn(i) { len(result.chunks[i]) }));
     let total = sum(map(result.chunks, fn(c) { len(c) }));
-    let open = concat(err.pending, fold(per_block, [], fn(acc, r) { concat(acc, r.pending) }));
+    let open = rs.pending;
     let keep_all = fn(reason) { {id: result.id, reason: reason, text: result.chunks, pruned: [], pending: open} };
     if len(accepted(err)) == 1 { keep_all("error_present") } else {
     if len(err.pending) == 1 { keep_all("error_unsure") } else {
@@ -34,4 +32,4 @@ fn winnow(result) {
     } } }
 }
 
-{task: input.task, results: map(input.results, winnow)}
+{task: input.tool_outputs.task, results: map(input.tool_outputs.results, winnow)}

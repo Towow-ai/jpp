@@ -7,10 +7,12 @@
     "tokens": 0,
     "usd": 0.0
   },
+  "entry": [],
   "exits": [
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "item": "72a7a012e6cb",
       "key": "fixture",
       "releases": false,
       "site": 190
@@ -18,6 +20,7 @@
     {
       "exit": "act",
       "grade": "Fixture",
+      "item": "72a7a012e6cb",
       "key": "fixture",
       "releases": false,
       "site": 190
@@ -25,6 +28,7 @@
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "item": "72a7a012e6cb",
       "key": "fixture",
       "releases": false,
       "site": 190
@@ -32,6 +36,7 @@
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "item": "72a7a012e6cb",
       "key": "fixture",
       "releases": false,
       "site": 190
@@ -39,6 +44,7 @@
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "item": "72a7a012e6cb",
       "key": "fixture",
       "releases": false,
       "site": 190
@@ -46,6 +52,7 @@
     {
       "exit": "act",
       "grade": "Fixture",
+      "item": "72a7a012e6cb",
       "key": "fixture",
       "releases": false,
       "site": 190
@@ -53,6 +60,7 @@
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "item": "72a7a012e6cb",
       "key": "fixture",
       "releases": false,
       "site": 190
@@ -60,6 +68,7 @@
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "item": "72a7a012e6cb",
       "key": "fixture",
       "releases": false,
       "site": 190
@@ -67,6 +76,7 @@
     {
       "exit": "act",
       "grade": "Fixture",
+      "item": "72a7a012e6cb",
       "key": "fixture",
       "releases": false,
       "site": 190
@@ -74,6 +84,7 @@
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "item": "72a7a012e6cb",
       "key": "fixture",
       "releases": false,
       "site": 190
@@ -83,6 +94,48 @@
   "local_checks": [],
   "mode": "replay; no model API requests",
   "pending": [],
+  "questions": [
+    {
+      "kind": "attr",
+      "q": "3015dd4fb8fdd71dde08ac67"
+    },
+    {
+      "kind": "attr",
+      "q": "493a190b479b359e3123bb6f"
+    },
+    {
+      "kind": "attr",
+      "q": "8ee4845aae26a610b3344aeb"
+    },
+    {
+      "kind": "attr",
+      "q": "bff20ecb5635a687878b1bf2"
+    },
+    {
+      "kind": "attr",
+      "q": "c24b6a3727ec20a58e331f05"
+    },
+    {
+      "kind": "attr",
+      "q": "7480382c6d54590f47b10b92"
+    },
+    {
+      "kind": "attr",
+      "q": "8445123c5921981f1eaf9807"
+    },
+    {
+      "kind": "attr",
+      "q": "bb69663b498750389e0336df"
+    },
+    {
+      "kind": "attr",
+      "q": "6d8550c61e1e0104e0bee1aa"
+    },
+    {
+      "kind": "attr",
+      "q": "5a03ce631d31cf4abbb85b7e"
+    }
+  ],
   "replay": true,
   "resumed": false,
   "returned_unsure": [],
@@ -201,6 +254,7 @@
       }
     ],
     "warnings": [
+      "W-window-untested: @194 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
       "W-fixture-line: @190 键 fixture 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
       "W-fixture-line: @190 键 fixture 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
       "W-fixture-line: @190 键 fixture 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线"

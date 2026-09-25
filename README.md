@@ -34,9 +34,9 @@ The [composable discovery application](https://towow-ai.github.io/jpp/demos/towo
 git clone https://github.com/towow-ai/jpp.git
 cd jpp/rust
 cargo build --locked --workspace
-cargo run -p jpp-cli -- run examples/composition.jpp
-cargo run -p jpp-cli -- run examples/adaptive.jpp --fixtures examples/fixtures/adaptive.json
-cargo run -p jpp-cli -- run examples/partial.jpp --fixtures examples/fixtures/partial.json
+cargo run -p jpp -- run examples/composition.jpp
+cargo run -p jpp -- run examples/adaptive.jpp --fixtures examples/fixtures/adaptive.json
+cargo run -p jpp -- run examples/partial.jpp --fixtures examples/fixtures/partial.json
 ```
 
 The three programs compose methods, locate 731 among 1,000 candidates in ten

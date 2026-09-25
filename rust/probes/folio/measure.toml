@@ -21,8 +21,8 @@ projection = "folio"   # probes/_baseline/accept.py 里的投影函数
 run_dir = "."
 source = "folio.jpp"
 fixture = "fixture.json"
-data = "10-19,24"               # 数据行：字面材料、候选列表、标签集、只做装载的行
-coordination = "8,36,57"      # 协调行：budget、未决去向、pending 转交等服务于八条缝的行
+input = "baseline/materials.json"          # 材料经 jpp run --input 交给程序（步 14b-0）；J++ 侧不再有数据行
+coordination = "8,23,42"      # 协调行：budget、未决去向、pending 转交等服务于八条缝的行
 minutes = "无数"
 minutes_note = "探针首轮未计时"
 
@@ -30,7 +30,7 @@ minutes_note = "探针首轮未计时"
 what = "夹具脚本"
 shared = true
 file = "make_fixture.py"
-data = "5-9,14-15,19-21,26-27"          # 本体子树、合成读数、校准记录字面量
+data = "4-5,10-11,15-17,22-23"          # 读 materials.json 的文书与本体（步 14b-0）、合成读数、校准记录字面量
 
 [[jpp.glue]]                       # 口径二计入：生产运行必需的胶水（CLI 或 Session 调用、动作登记、calib-import）
 what = "CLI 调用（jpp run … --fixtures …）"
@@ -59,7 +59,7 @@ minutes = 1.75
 passed = "2026-09-24 --check folio：通过（代理墙钟 20:05:30→20:07:15）"
 
 [[baseline.impl]]                  # T1 基线（步 31-1，Sonnet 代理，只见任务书 T0+T1 节、t1/materials.json、labels.jsonl 与判断接口）
-tier = "t1"
+tier = "t1-strict"                # 步 31-1b（B96）：旧 (d) 逐位口径，只报不判；验收用冻结的 t1/labels-strict.jsonl
 file = "t1/folio_t1_a.py"
 author = "Sonnet 5 子代理（未参与 J++ 设计；2026-09-24 步 31-1 派发）"
 data = "308-313"
@@ -69,6 +69,26 @@ minutes = 21.6
 
 # —— T1（完整职责任务书，B79；步 31-1）——
 passed = "2026-09-24 --check folio --tier t1：一次全过（20:08:56→20:30:32）"
+
+[[baseline.impl]]                  # T1 基线（步 31-1b，B96 性质口径：(d) 只写性质、考官留出集验收）
+tier = "t1"
+file = "t1/folio_t1_b.py"
+author = "Sonnet 5 子代理（未参与 J++ 设计；2026-09-24 步 31-1b 派发，只见 T0+T1 任务书、t1/materials.json、labels.jsonl 与判断接口）"
+data = ""
+runtime = ""
+coordination = ""
+minutes = 8.88
+passed = "2026-09-25 --check folio --tier t1：一次全过（23:11:48→23:20:41）；(d) 按 item 奇偶分半，一半从两端收到首个错误，另一半核 CP"
+
+[[baseline.impl]]                  # T1 基线（步 31-1b，B96 性质口径：(d) 只写性质、考官留出集验收）
+tier = "t1"
+file = "t1/folio_t1_c.py"
+author = "Sonnet 5 子代理（未参与 J++ 设计；2026-09-24 步 31-1b 派发，只见 T0+T1 任务书、t1/materials.json、labels.jsonl 与判断接口）"
+data = ""
+runtime = ""
+coordination = ""
+minutes = 39.73
+passed = "2026-09-25 --check folio --tier t1：一次全过（00:40:43→01:20:27）；(d) 合格候选中点里取间隙最宽者"
 
 [t1]
 fixture = "fixture-t1.json"        # 与 T0 夹具同一份读数，去掉校准记录字面量；线只从 baseline/t1/labels.jsonl 经 calib-import 来
@@ -85,8 +105,8 @@ source = "t1/folio_t1.jpp"
 run_dir = "t1"
 projection = "folio"
 author = "设计者版 T0 + 施工代理按 T1 任务书改写"
-data = "10-19,24"
-coordination = "8,36,53,54,55,61,68,70,71"
+input = "baseline/t1/materials.json"          # 材料经 jpp run --input 交给程序（步 14b-0）；J++ 侧不再有数据行
+coordination = "8,23,40,41,42,47,55,57,58"
 
 [[jpp.impl]]                       # J++ 非设计者 T0 版（步 31-1，Sonnet 代理，只见任务书、GUIDE.md 与 lib/outcome.jpp）
 tier = "t0"
@@ -101,6 +121,8 @@ passed = "2026-09-24 --check folio：通过（20:33:55→21:18:16）"
 [[jpp.impl]]                       # J++ 非设计者 T1 版（步 31-1，Sonnet 代理，只见任务书、GUIDE.md 与 lib/outcome.jpp）
 tier = "t1"
 source = "jpp-nd/folio_t1.jpp"
+redispatch = "待重派（步 25-0 形状变更）"   # 源文件不改；仪表跳过验收，读数冻结在迁移前（主会话 2026-09-24）
+frozen_ok = true                   # 冻结前的验收记录（见 passed）；「只计验收全过」按它计（步 31-1b，B96）
 run_dir = "jpp-nd"
 author = "Sonnet 5 子代理（未参与 J++ 设计；2026-09-24 步 31-1 派发）"
 data = "5-8"

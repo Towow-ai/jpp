@@ -12,7 +12,7 @@
 
 用法：
     fixture_from_ledger.py <程序.jpp> --ledger <真机账本.jsonl> --report <真机报告.json> -o <夹具.json>
-        [--calib <校准目录>]      用这个目录里的线跑；不给时用账本头 calib_used 记下的、真机运行实际用过的线
+        [--calib <校准目录>]      用这个目录里的线跑；不给时用账本记下的（v3：CalibUsed 条目；v2：头行 calib_used）、真机运行实际用过的线
                                   （写到临时目录，不进夹具），这样固定观察的控制流与真机运行相同
         [--run-dir <目录>]        程序的运行目录（默认程序所在目录）
         [--max-rounds 500]
@@ -58,6 +58,20 @@ def parse_json_prefix(s: str):
     return json.JSONDecoder().raw_decode(s)[0]
 
 
+def calib_used(ledger):
+    """账本实际命中的校准记录：v3 起是 `CalibUsed` 条目（按键取最后一条，步 18a）；v2 在头行 `calib_used`。"""
+    lines = ledger.read_text(encoding="utf-8").splitlines()
+    head = json.loads(lines[0])
+    if head.get("version") == 2:
+        return head.get("calib_used") or {}
+    used = {}
+    for l in lines[1:]:
+        e = json.loads(l).get("entry", {}).get("CalibUsed")
+        if e:
+            used[e["key"]] = {"hash": e["hash"], "record": e["record"]}
+    return used
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("program")
@@ -66,6 +80,7 @@ def main():
     ap.add_argument("-o", "--out", required=True)
     ap.add_argument("--calib")
     ap.add_argument("--run-dir")
+    ap.add_argument("--input", help="程序的宿主入口材料（jpp run --input，步 14b-0）")
     ap.add_argument("--max-rounds", type=int, default=500)
     a = ap.parse_args()
     prog = Path(a.program).resolve()
@@ -78,10 +93,9 @@ def main():
     with tempfile.TemporaryDirectory() as td:
         rep = Path(td) / "r.json"
         if not a.calib:
-            head = json.loads(Path(a.ledger).read_text(encoding="utf-8").splitlines()[0])
             cd = Path(td) / "calib"
             cd.mkdir()
-            for k, v in (head.get("calib_used") or {}).items():
+            for k, v in calib_used(Path(a.ledger)).items():
                 (cd / (k.replace("\x1f", "_") + ".json")).write_text(json.dumps(v["record"], ensure_ascii=False),
                                                                        encoding="utf-8")
             a.calib = str(cd)
@@ -90,6 +104,8 @@ def main():
             args = [str(JPP), "run", os.path.relpath(prog, cwd), "--fixtures", str(out), "--output", str(rep)]
             if a.calib:
                 args += ["--calib", str(Path(a.calib).resolve())]
+            if a.input:
+                args += ["--input", str(Path(a.input).resolve())]
             p = subprocess.run(args, cwd=cwd, capture_output=True, text=True)
             i = p.stderr.find("固定观察未命中")
             if i < 0:

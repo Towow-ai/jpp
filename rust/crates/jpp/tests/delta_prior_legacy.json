@@ -1,0 +1,9 @@
+{
+  "model_version": "fixed-0",
+  "notes": "测试用画像，只有 δ 先验：取步 15d-2 之前代码兜底的 δ（noul 0.05 / choice 0.15 / score 0.15），让不带画像的认证测试保持原来的线。不是测量，不进发行。依据：21 步 15d-2",
+  "delta": {
+    "noul": {"immediate": {"p99": 0.05}},
+    "choice_prob_chosen": {"immediate": {"p99": 0.15}},
+    "score": {"immediate": {"p99": 0.15}}
+  }
+}

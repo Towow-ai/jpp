@@ -45,7 +45,7 @@ fn latency(cx: &Cx) -> Vec<Diagnostic> {
     if 一次 + 多次 == 0 {
         return out;
     }
-    let Some(p95) = profile.and_then(|pr| pr.latency_p95) else {
+    let Some(p95) = profile.and_then(|pr| pr.latency_p95()) else {
         out.push(Diagnostic::warning(
                 "W-untested",
                 format!("budget.latency_p95 = {limit}s，但没有档案的 p95 时延，估计不了层数 × p95（B32）。修法：--profile 加载档案"),

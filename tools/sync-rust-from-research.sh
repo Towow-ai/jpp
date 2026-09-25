@@ -21,11 +21,14 @@ REV="${2:-HEAD}"
 HERE="$(cd "$(dirname "$0")/.." && pwd)"
 DEST="$HERE/rust"
 
+# 2026-09-25（研究树步 14a）：jpp-core 与 jpp-cli 合并改名为 jpp（lib + bin）。
+# 只在公开侧的两个文件随之从 crates/jpp-core/tests/ 手动搬到 crates/jpp/tests/（一次性，
+# 已在当次同步提交里做完）；这里的 KEEP 路径改指向新位置。
 KEEP=(
   /.gitignore
   /target/
-  /crates/jpp-core/tests/fixtures/
-  /crates/jpp-core/tests/known_defects.rs
+  /crates/jpp/tests/fixtures/
+  /crates/jpp/tests/known_defects.rs
   /scripts/ci_public.sh
   /scripts/doc_snippets.py
   /PUBLIC-SNAPSHOT.md
@@ -65,12 +68,16 @@ def rewrite(rel, old, new, count=None, optional=False):
 
 prof_old = '"../../../foundation/profile/profiles/'
 prof_new = '"../../../src/foundation/profile/profiles/'
-for f in sorted((root / "crates").glob("*/tests/*.rs")):
-    if prof_old in f.read_text(encoding="utf-8"):
-        rewrite(f.relative_to(root), prof_old, prof_new)
-rewrite("crates/jpp-cli/tests/wiring.rs",
+# 2026-09-25：扫描面从 crates/*/tests/*.rs 放宽到每个 crate 的 src/ 与 tests/ 全树（rglob），
+# 因为这条路径也会出现在 src 内嵌单元测试里（crates/jpp-effects/src/profile.rs 曾漏改，报
+# 「读不到档案」，cargo test 才发现——见 docs/progress.md 2026-09-25 条目）。
+for sub in ("src", "tests"):
+    for f in sorted((root / "crates").glob(f"*/{sub}/**/*.rs")):
+        if prof_old in f.read_text(encoding="utf-8"):
+            rewrite(f.relative_to(root), prof_old, prof_new)
+rewrite("crates/jpp/tests/wiring.rs",
         '"../foundation/profile/profiles/', '"../src/foundation/profile/profiles/')
-rewrite("crates/jpp-core/tests/calib_load.rs",
+rewrite("crates/jpp/tests/calib_load.rs",
         '''fn 真records() -> std::path::PathBuf {
     std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../foundation/runs/jv/e-cal/calib")
 }

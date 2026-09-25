@@ -7,54 +7,79 @@
     "tokens": 0,
     "usd": 0.0
   },
+  "entry": [],
   "exits": [
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 0,
+      "item": "5f1f84abd047",
       "key": "cand",
+      "pos": 0,
       "releases": false,
       "site": 412
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 1,
+      "item": "560bf5156d0b",
       "key": "cand",
+      "pos": 1,
       "releases": false,
       "site": 412
     },
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 0,
+      "item": "c3a2b9e059ad",
       "key": "cand",
+      "pos": 0,
       "releases": false,
-      "site": 3064
+      "site": 4673
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 1,
+      "item": "813c9b46a74f",
       "key": "cand",
+      "pos": 1,
       "releases": false,
-      "site": 3064
+      "site": 4673
     },
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 0,
+      "item": "afbb17e54c1a",
       "key": "cand",
+      "pos": 0,
       "releases": false,
-      "site": 3201
+      "site": 4810
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 1,
+      "item": "200d5c3b63ee",
       "key": "cand",
+      "pos": 1,
       "releases": false,
-      "site": 3201
+      "site": 4810
     }
   ],
   "fixture_description": "Synthetic fixed observations for unsure-causes.jpp (construction check only; not model evaluation). The calibration record is hand-written to exercise routing, not calibration.",
   "local_checks": [],
   "mode": "fixed observations; no model API requests",
   "pending": [],
+  "questions": [
+    {
+      "kind": "attr",
+      "q": "2c5c68696e358df366fd4f68"
+    }
+  ],
   "replay": false,
   "resumed": false,
   "returned_unsure": [],
@@ -85,67 +110,70 @@
       },
       {
         "cost": 0.0,
-        "key": "e4151089ad62611abd48ba32",
+        "key": "883a4f501524d8bd2da5520d",
         "kind": "judge",
         "note": "「这个候选是否会写 Rust？」",
         "replayed": false,
         "site": {
-          "end": 3083,
-          "start": 3064
+          "end": 4692,
+          "start": 4673
         }
       },
       {
         "cost": 0.0,
-        "key": "9db477fb1fae6b19c7937b36",
+        "key": "541ebf4cfeed6b25df1c1474",
         "kind": "judge",
         "note": "「这个候选是否会写 Rust？」",
         "replayed": false,
         "site": {
-          "end": 3083,
-          "start": 3064
+          "end": 4692,
+          "start": 4673
         }
       },
       {
         "cost": 0.0,
-        "key": "90b3d467997e87f9069149ab",
+        "key": "972cd313deb3ff0647bafdca",
         "kind": "gen",
         "note": "写两份会写 Rust 的候选人简介",
         "replayed": false,
         "site": {
-          "end": 3228,
-          "start": 3207
+          "end": 4837,
+          "start": 4816
         }
       },
       {
         "cost": 0.0,
-        "key": "2a7b2098a9e41e74d2980ae7",
+        "key": "5d338c6fbf5d38e7a0e7bacd",
         "kind": "judge",
         "note": "「这个候选是否会写 Rust？」",
         "replayed": false,
         "site": {
-          "end": 3232,
-          "start": 3201
+          "end": 4841,
+          "start": 4810
         }
       },
       {
         "cost": 0.0,
-        "key": "c43ce34c68a666c7174db2d9",
+        "key": "c1a9e1f6f19a5202574fa024",
         "kind": "judge",
         "note": "「这个候选是否会写 Rust？」",
         "replayed": false,
         "site": {
-          "end": 3232,
-          "start": 3201
+          "end": 4841,
+          "start": 4810
         }
       }
     ],
     "warnings": [
+      "W-window-untested: @412 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
       "W-untyped-transfer: find 把 unsure(rejected_all) 装在返回值里交了出去，但返回类型没提 Exit，调用者从签名上看不出自己收到了一份未决。修法：把返回类型标为含 Exit（如 `-> Exit`、`-> Record<Exit>`）",
       "W-untyped-transfer: find 把 unsure(no_candidate) 装在返回值里交了出去，但返回类型没提 Exit，调用者从签名上看不出自己收到了一份未决。修法：把返回类型标为含 Exit（如 `-> Exit`、`-> Record<Exit>`）",
       "W-drop-vs-escalate: 显式丢弃了未决责任 unsure(rejected_all)（题 first_k）；drop 合法且已记账，但只有 escalate 会把它交给人",
-      "W-fixture-line: @3064 键 cand 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-window-untested: @4673 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
+      "W-fixture-line: @4673 键 cand 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
       "W-drop-vs-escalate: 显式丢弃了未决责任 unsure(no_candidate)（题 first_k）；drop 合法且已记账，但只有 escalate 会把它交给人",
-      "W-fixture-line: @3201 键 cand 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线"
+      "W-window-untested: @4810 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
+      "W-fixture-line: @4810 键 cand 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线"
     ]
   },
   "value": {
@@ -162,7 +190,7 @@
           "content": "戊：维护过 Rust 网络库",
           "mat": "1cbd2ca2b0ce848b790b3a2b",
           "origin": [
-            "gen:90b3d467997e87f9069149ab"
+            "gen:972cd313deb3ff0647bafdca"
           ],
           "taint": "Trusted"
         }

@@ -18,11 +18,11 @@ shape = "是非题两道；链式两层"
 projection = "refund"   # probes/_baseline/accept.py 里的投影函数
 
 [jpp]
-run_dir = "../../../评估/2026-09-24-试写/refund"
-source = "../../../评估/2026-09-24-试写/refund/refund.jpp"
+run_dir = "."
+source = "refund.jpp"                # 步 14b-0：评估/2026-09-24-试写/refund/refund.jpp 的探针副本，材料改读 --input；原件留作评估记录
 fixture = "../../../评估/2026-09-24-试写/refund/fixture.json"
-data = "11-22"               # 数据行：字面材料、候选列表、标签集、只做装载的行
-coordination = "6,37,39,40"      # 协调行：budget、未决去向、pending 转交等服务于八条缝的行
+input = "baseline/materials.json"          # 材料经 jpp run --input 交给程序（步 14b-0）；J++ 侧不再有数据行
+coordination = "7,23,26"      # 协调行：budget、未决去向、pending 转交等服务于八条缝的行
 minutes = "无数"
 minutes_note = "两个试写程序合计：读文档约 25 分钟，写两个程序与两份夹具脚本 5 分钟、修通 1 分钟（阶段评估① §2.2），未按程序拆分"
 
@@ -59,7 +59,7 @@ minutes = 0.85
 passed = "2026-09-24 --check trial-refund：通过（一次通过；代理墙钟 20:05:43→20:06:34）"
 
 [[baseline.impl]]                  # T1 基线（步 31-1，Sonnet 代理，只见任务书 T0+T1 节、t1/materials.json、labels.jsonl 与判断接口）
-tier = "t1"
+tier = "t1-strict"                # 步 31-1b（B96）：旧 (d) 逐位口径，只报不判；验收用冻结的 t1/labels-strict.jsonl
 file = "t1/refund_t1_a.py"
 author = "Sonnet 5 子代理（未参与 J++ 设计；2026-09-24 步 31-1 派发）"
 data = "229-232"
@@ -69,6 +69,26 @@ minutes = 13.82
 
 # —— T1（完整职责任务书，B79；步 31-1）——
 passed = "2026-09-24 --check trial-refund --tier t1：一次全过（20:09:10→20:22:59）"
+
+[[baseline.impl]]                  # T1 基线（步 31-1b，B96 性质口径：(d) 只写性质、考官留出集验收）
+tier = "t1"
+file = "t1/refund_t1_b.py"
+author = "Sonnet 5 子代理（未参与 J++ 设计；2026-09-24 步 31-1b 派发，只见 T0+T1 任务书、t1/materials.json、labels.jsonl 与判断接口）"
+data = ""
+runtime = ""
+coordination = ""
+minutes = 21.65
+passed = "2026-09-25 --check trial-refund --tier t1：一次全过（23:12:00→23:33:39）；(d) 全集零错误 / 最大覆盖 CP，不分半"
+
+[[baseline.impl]]                  # T1 基线（步 31-1b，B96 性质口径：(d) 只写性质、考官留出集验收）
+tier = "t1"
+file = "t1/refund_t1_c.py"
+author = "Sonnet 5 子代理（未参与 J++ 设计；2026-09-24 步 31-1b 派发，只见 T0+T1 任务书、t1/materials.json、labels.jsonl 与判断接口）"
+data = ""
+runtime = ""
+coordination = ""
+minutes = 18.47
+passed = "2026-09-25 --check trial-refund --tier t1：第二次全过（00:40:50→00:59:18）；第一次 (d) ① 被留出检验拦下：在同 p 值的 15 行墙中间切开，留出集上 n=87 k=15 U=0.236；改为只在不同 p 值处切"
 
 [t1]
 fixture = "fixture-t1.json"        # 与 T0 夹具同一份读数，去掉校准记录字面量；线只从 baseline/t1/labels.jsonl 经 calib-import 来
@@ -85,12 +105,14 @@ source = "t1/refund_t1.jpp"
 run_dir = "t1"
 projection = "refund"
 author = "设计者版 T0（Fable 试写）+ 施工代理按 T1 任务书加输出"
-data = "11-22"
-coordination = "6,37,40,41,42"
+input = "baseline/t1/materials.json"          # 材料经 jpp run --input 交给程序（步 14b-0）；J++ 侧不再有数据行
+coordination = "6,24,27,28"
 
 [[jpp.impl]]                       # J++ 非设计者 T0 版（步 31-1，Sonnet 代理，只见任务书、GUIDE.md 与 lib/outcome.jpp）
 tier = "t0"
 source = "jpp-nd/refund_t0.jpp"
+redispatch = "待重派（步 25-0 形状变更）"   # 源文件不改；仪表跳过验收，读数冻结在迁移前（主会话 2026-09-24）
+frozen_ok = true                   # 冻结前的验收记录（见 passed）；「只计验收全过」按它计（步 31-1b，B96）
 run_dir = "jpp-nd"
 author = "Sonnet 5 子代理（未参与 J++ 设计；2026-09-24 步 31-1 派发）"
 data = "5-6"
@@ -101,6 +123,8 @@ passed = "2026-09-24 --check trial-refund：通过（20:34:08→20:48:54）"
 [[jpp.impl]]                       # J++ 非设计者 T1 版（步 31-1，Sonnet 代理，只见任务书、GUIDE.md 与 lib/outcome.jpp）
 tier = "t1"
 source = "jpp-nd/refund_t1.jpp"
+redispatch = "待重派（步 25-0 形状变更）"   # 源文件不改；仪表跳过验收，读数冻结在迁移前（主会话 2026-09-24）
+frozen_ok = true                   # 冻结前的验收记录（见 passed）；「只计验收全过」按它计（步 31-1b，B96）
 run_dir = "jpp-nd"
 author = "Sonnet 5 子代理（未参与 J++ 设计；2026-09-24 步 31-1 派发）"
 data = "5-6"

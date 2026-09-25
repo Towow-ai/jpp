@@ -27,7 +27,7 @@ import sys
 from _baseline import BASE, ROOT
 
 MANIFEST = ROOT / "tests" / "equiv_pairs" / "manifest.json"
-CLI = ["cargo", "run", "-p", "jpp-cli", "--offline", "-q", "--"]
+CLI = ["cargo", "run", "-p", "jpp", "--offline", "-q", "--"]
 
 
 def run(source: str, fixtures: str) -> dict:

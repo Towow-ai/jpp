@@ -1,12 +1,8 @@
 """Fixed-observation fixture for folio.jpp (synthetic readings; construction check only)."""
-import json, re
-src = open("folio.jpp", encoding="utf-8").read()
-doc = re.search(r'let doc = mat\("(.*?)"\);', src, re.S).group(1).encode().decode("unicode_escape").encode("latin1").decode("utf-8")
-tree = {
-    "法律文书": ["合同与协议", "诉讼文书", "公司治理文件", "知识产权文件"],
-    "合同与协议": ["租赁合同", "买卖合同", "劳动合同"],
-    "租赁合同": ["住宅租赁合同", "商铺租赁合同", "设备租赁合同"],
-}
+import json
+# document and ontology come from the file `jpp run --input` gives the program (step 14b-0)
+M = json.load(open("baseline/materials.json", encoding="utf-8"))
+doc, tree = M["document"], M["tree"]
 SEL = "这份法律文书最应归入下列哪一类？"
 TOPIC = "这段话的内容是否与「{concept}」这个话题相关？"
 obs = []

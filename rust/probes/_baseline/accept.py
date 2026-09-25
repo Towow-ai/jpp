@@ -19,7 +19,9 @@ def winnow(v):
     # 折叠存根的文字里含 J++ 的内容哈希，基线无法复现，所以只比被折叠 / 未决的块编号与原因
     return {"task": v["task"],
             "results": [_u(r, {"id": r["id"], "reason": r["reason"], "pruned": r["pruned"],
-                               "uncertain": r["uncertain"]}) for r in v["results"]]}
+                               # 步 25-0（B81 (c)）起 J++ 直接返回未决元素；只比它们的原始编号
+                               "uncertain": [u["index"] if isinstance(u, dict) else u
+                                             for u in r["uncertain"]]}) for r in v["results"]]}
 
 
 def folio(v):

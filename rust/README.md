@@ -13,7 +13,7 @@ passed integration tests. A native install outside the checkout runs with an emp
 PATH, without Python or Cargo. The checks use fixed observations, not a live model.
 
 本包的目标是直接写 `.jpp` 源码，通过检查后由唯一 Rust 内核执行。Python 已发布
-程序保留为行为对照。前端不执行算法；`jpp-core` 负责值、方法环境、效应和运行。
+程序保留为行为对照。前端不执行算法；`jpp-runtime` 负责值、方法环境、效应和运行（步 14a 前是 `jpp-core`）。
 
 ## Build and run / 构建与运行
 
@@ -22,11 +22,11 @@ From this directory, using a Rust toolchain supporting edition 2024:
 ```sh
 cargo build --workspace
 cargo test --workspace
-cargo run -p jpp-cli -- parse examples/composition.jpp
-cargo run -p jpp-cli -- check examples/composition.jpp
-cargo run -p jpp-cli -- run examples/composition.jpp
-cargo run -p jpp-cli -- run examples/adaptive.jpp --fixtures examples/fixtures/adaptive.json --output adaptive-report.json
-cargo run -p jpp-cli -- run examples/partial.jpp --fixtures examples/fixtures/partial.json --output partial-report.json --ledger-out partial-ledger.json
+cargo run -p jpp -- parse examples/composition.jpp
+cargo run -p jpp -- check examples/composition.jpp
+cargo run -p jpp -- run examples/composition.jpp
+cargo run -p jpp -- run examples/adaptive.jpp --fixtures examples/fixtures/adaptive.json --output adaptive-report.json
+cargo run -p jpp -- run examples/partial.jpp --fixtures examples/fixtures/partial.json --output partial-report.json --ledger-out partial-ledger.json
 ```
 
 These source programs contain the methods. The CLI loads fixed observations and
@@ -72,10 +72,10 @@ completion criterion does not claim every question is resolved.
 
 The ledger records common-core effects, not serialized native closures. Replaying
 the same source and fixtures reconstructs its method environments and uses recorded
-effects. The CLI's replay mode uses NoCallClient to reject new model requests:
+effects. The CLI's replay mode uses ReplayPorts to reject new model requests:
 
 ```sh
-cargo run -p jpp-cli -- run examples/partial.jpp --fixtures examples/fixtures/partial.json --replay partial-ledger.json --output replay-report.json
+cargo run -p jpp -- run examples/partial.jpp --fixtures examples/fixtures/partial.json --replay partial-ledger.json --output replay-report.json
 ```
 
 未决候选属于算法返回值；程序级挂起另行显示。账本保存观察和动作记录，重放重建
@@ -89,7 +89,7 @@ certified line; with no calibration record every exit is `unsure(cold)`. Lines c
 only from labelled data (J-03). The truth channel imports labels and certifies them:
 
 ```sh
-cargo build -p jpp-cli --features live --release
+cargo build -p jpp --features live --release
 # 1. run the program live once and keep the readings (report / ledger)
 # 2. label those readings: one JSON object per line, e.g.
 #    {"form": {"op": "test", "template": "这段话是否提到了{city}？"}, "item": "n1", "p": 0.99, "label": true, "source": "computed"}
@@ -105,7 +105,9 @@ Live runs need a capability profile (B73). The repository ships `profiles/jev-1.
 
 真机只给读数；出口要靠校准线，线只从带真值的标注来。做法：先真机跑一次拿读数，给读数标真值（`human`、`computed` 或 `model:<名>`），用 `calib-import` 导入并认证，再带 `--calib` 运行。按题式（`form`）导入的线由该题式的所有填法共用（B2 待批，本版为回退层），出口会注明「题式级」。只有模型标注时，需要同一题式的人工抽检一致率达到门槛（默认 0.9）才上岗；达不到时记录标为「待核」，运行时告警写明原因。账本记下了当次用到的校准记录，只凭账本重放也得到同样的出口。
 
-**样本量与两档线（B72、B75）。** 拆分认证要求四个格（选线半的正例、负例，认证半的上侧、下侧）各有足够的零错已决条数，并且随机分半。离线对照（`地基/评估/2026-09-24-B72对照/results_sweep.md`）得出的实际下限：正式线（`--alpha 0.1`）字面题式约 160 条，语义题式 200 条也不保证；试用线（`--alpha-trial 0.25`）字面题式约 60–80 条，语义题式约 80–100 条。`calib-import` 先按正式 α 认证，不过再按试用 α 认证；已有正式线的键不会被试用线覆盖。试用线的出口照常给出 act/ignore 供路由，报 `W-trial-line`，但不能放行不可逆 `do`。报告的 `exits` 表逐出口写明所用线的等级（`Certified` 正式、`Form` 题式、`Trial` 试用、`Class` 借线、`Fixture` 夹具、`Cold` 没用上线等）和是否放行。类记录（`class` 行）要来自至少两个不同题式（同一题式的不同填法算一个来源，`--class-min-sources`），每个来源的条数要够该档要求；类线同样只路由、不放行不可逆 `do`。
+**样本量与两档线（B86、B72、B75）。** `calib-import` 缺省按固定序认证（`--certify fixed-sequence`，B86）：候选阈值只由读数生成，从严到宽逐个检验，第一次不过即停，不拆分样本，每侧的保证与拆分认证同级。拆分认证丢掉的那一半样本，主要买的是「保证有证明」，而不是防止严重过拟合（嵌套阈值族上同批取最宽线的实际膨胀只有约两倍，但没有证明）；固定序不花样本就给出证明。正式线（`--alpha 0.1`，可放行不可逆 `do`）：字面题式约 60 条、语义题式约 60–80 条，外延未定的题式先改题面再标；试用线（`--alpha-trial 0.25`，可路由）：约 32 条，读数分散的题式约 40 条。`--certify split` 是旧的拆分认证（B85 起改为分层交替分半），条数约 2–3 倍。数字出处：`地基/评估/2026-09-24-新题标注门槛-对照/results.md` 与 `裁定复算/recompute.out.txt`。证书写明认证方式、候选规则版本、步长（`--step`，缺省池的 5%）与两侧停点。
+
+**新题上手：边标边导，够了就停（B87、B88）。** 先跑一次（全冷，只得读数）；用 `jpp calib-import --from-ledger 账本 --key 键 --list-out 清单.jsonl --report 首跑报告.json [--materials 材料.json]` 导出待标清单（每行有材料编号 `item`、题哈希 `q`、组号，带 `--report` 时另有题面与填法，不带读数与出口，标注者看不到判断器的答案；一道题式多个填法问同一批材料时同一 `item` 出现多次，标注行要带上 `q`，B107）；按清单顺序标，首组约 24 + 24 条即可得可路由的窄线，继续标到程序报「再标也不会更宽」即正式线；每次把累计的标注用 `jpp calib-import 标注.jsonl --from-ledger 账本 --calib-out 目录` 导入（缺省序贯认证、两端先标的顺序；没停时门控写明已标多少、各侧 E 值、还差约几条）；再带 `--calib` 运行。序贯零错门槛：正式每侧 24 条、试用 9 条。`calib-import` 先按正式 α 认证，不过再按试用 α 认证；已有正式线的键不会被试用线覆盖。试用线的出口照常给出 act/ignore 供路由，报 `W-trial-line`，但不能放行不可逆 `do`。报告的 `exits` 表逐出口写明所用线的等级（`Certified` 正式、`Form` 题式、`Trial` 试用、`Class` 借线、`Fixture` 夹具、`Cold` 没用上线等）和是否放行。类记录（`class` 行）要来自至少两个不同题式（同一题式的不同填法算一个来源，`--class-min-sources`），每个来源的条数要够该档要求；类线同样只路由、不放行不可逆 `do`。
 
 ## Source and diagnostics / 源码与诊断
 
@@ -115,15 +117,21 @@ checker defines and checks them, rather than relying on Rust's type system.
 Parser, checker and runtime errors are rendered against the `.jpp` file/line/column.
 `examples/errors/` provides malformed syntax, missing budget and wrong argument type.
 
-Structure: `crates/jpp-frontend` parses and lowers source; `crates/jpp-core` checks
-and interprets it; `crates/jpp-cli` wires input files, fixtures and reports.
+Structure (B74, step 14a): `crates/jpp-syntax` parses and lowers source to the IR
+(`crates/jpp-ir`); `crates/jpp-check` checks it, `crates/jpp-plan` plans batching, and
+`crates/jpp-runtime` interprets it, over `jpp-value`, `jpp-effects`, `jpp-ledger` and
+`jpp-calib`. `crates/jpp` is the host crate: its lib target is the facade and `Session`
+(`src/session/`) plus the live backend (`src/backends/`, feature `live`); its bin target
+`jpp` (`src/cli/`) wires input files, fixtures and reports.
+结构（B74，步 14a）：`jpp-syntax` 解析并降到 IR，`jpp-check` 检查，`jpp-plan` 做合批规划，`jpp-runtime`
+解释执行；`jpp` 是宿主 crate，lib 目标是外观与 `Session`、真机端口，bin 目标 `jpp` 是命令行。
 `examples/expected/` records behavior to compare against the retained reference.
 
 [Source versus direct core construction](COMPARISON.md) includes a runnable
 equivalence test. To install a native command outside this checkout:
 
 ```sh
-cargo install --locked --path crates/jpp-cli --root /tmp/jpp-native
+cargo install --locked --path crates/jpp --root /tmp/jpp-native
 /tmp/jpp-native/bin/jpp run examples/composition.jpp
 ```
 

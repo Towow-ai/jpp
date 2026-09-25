@@ -1,6 +1,6 @@
 {
  "description": "Synthetic fixed observations for unsure-causes.jpp (construction check only; not model evaluation). The calibration record is hand-written to exercise routing, not calibration.",
- "calibrations": [{"key": "cand", "hi": 0.75, "lo": 0.25, "n": 1, "status": "上岗"}],
+ "calibrations": [{"key": "cand", "hi": 0.75, "lo": 0.25, "n": 1, "status": "上岗", "delta": 0.05}],
  "observations": [
   {"on": ["甲：只写 Python 数据脚本"], "op": "test", "text": "这个候选是否会写 Rust？", "calib": "cand", "answer": {"Noul": 0.05}},
   {"on": ["乙：只做界面设计"], "op": "test", "text": "这个候选是否会写 Rust？", "calib": "cand", "answer": {"Noul": 0.03}},

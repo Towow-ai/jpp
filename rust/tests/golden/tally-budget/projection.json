@@ -32,69 +32,66 @@
     "pending": [
       {
         "cause": "band",
-        "element": {
-          "cause": "band",
-          "exit": {
-            "consumed": true,
-            "exit": "unsure(band)",
-            "id": 0,
-            "q": "78e15a646880a5dfabb72438"
-          },
-          "index": 0,
-          "item": "这款耳机售价三百九十九元。",
-          "source": "这款耳机售价三百九十九元。",
-          "trail": []
-        },
         "exit": {
           "consumed": true,
           "exit": "unsure(band)",
           "id": 0,
           "q": "78e15a646880a5dfabb72438"
-        }
+        },
+        "index": 0,
+        "item": "这款耳机售价三百九十九元。",
+        "key": "b11c7c0fb6ec7fc2dd3bb105",
+        "pos": 0,
+        "q": {
+          "calib": "price",
+          "op": "noul",
+          "question": "78e15a646880a5dfabb72438",
+          "text": "这段话给出了具体价格或折扣吗？"
+        },
+        "qi": 0,
+        "trail": []
       },
       {
         "cause": "budget",
-        "element": {
-          "cause": "budget",
-          "exit": {
-            "consumed": true,
-            "exit": "unsure(budget)",
-            "id": 3,
-            "q": "78e15a646880a5dfabb72438"
-          },
-          "index": 3,
-          "item": "新店开业，全场八折。",
-          "source": "新店开业，全场八折。",
-          "trail": []
-        },
         "exit": {
           "consumed": true,
           "exit": "unsure(budget)",
           "id": 3,
           "q": "78e15a646880a5dfabb72438"
-        }
+        },
+        "index": 3,
+        "item": "新店开业，全场八折。",
+        "key": "03a4f6e57b3ce8ae530fda92",
+        "pos": 3,
+        "q": {
+          "calib": "price",
+          "op": "noul",
+          "question": "78e15a646880a5dfabb72438",
+          "text": "这段话给出了具体价格或折扣吗？"
+        },
+        "qi": 0,
+        "trail": []
       },
       {
         "cause": "budget",
-        "element": {
-          "cause": "budget",
-          "exit": {
-            "consumed": true,
-            "exit": "unsure(budget)",
-            "id": 4,
-            "q": "78e15a646880a5dfabb72438"
-          },
-          "index": 4,
-          "item": "价格还没公布，据说下个月发布。",
-          "source": "价格还没公布，据说下个月发布。",
-          "trail": []
-        },
         "exit": {
           "consumed": true,
           "exit": "unsure(budget)",
           "id": 4,
           "q": "78e15a646880a5dfabb72438"
-        }
+        },
+        "index": 4,
+        "item": "价格还没公布，据说下个月发布。",
+        "key": "7e3d379907f2eb0d054f75ef",
+        "pos": 4,
+        "q": {
+          "calib": "price",
+          "op": "noul",
+          "question": "78e15a646880a5dfabb72438",
+          "text": "这段话给出了具体价格或折扣吗？"
+        },
+        "qi": 0,
+        "trail": []
       }
     ],
     "stopped": "预算耗尽：calls 3+1 / 3，cost 0.000000+0.000000 / 0.010000",

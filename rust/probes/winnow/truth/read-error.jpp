@@ -8,6 +8,6 @@ let r = sieve(chunks, has_error);
 // 每个元素的账本键，用来把读数配回材料编号（读数本身不进值，J-01）
 let keys = concat(concat(map(accepted(r), fn(e) { {i: e.index, k: key_of(e.exit)} }),
                          map(ignored(r), fn(e) { {i: e.index, k: key_of(e.exit)} })),
-                  map(r.pending, fn(p) { {i: p.element.index, k: key_of(p.exit)} }));
-consume(r, "drop");
-{n: len(chunks), spent: r.spent, keys: keys}
+                  map(r.pending, fn(p) { {i: p.index, k: key_of(p.exit)} }));
+// 未决（含预算与缺席未观察项）随返回值转交，不丢（B95，步 21）
+{n: len(chunks), spent: r.spent, keys: keys, pending: r.pending}

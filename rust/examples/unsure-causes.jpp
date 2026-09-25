@@ -15,12 +15,14 @@ fn route(r, spare, prompt) {
         ignore: fn() { {via: "not_enough", found: [], pending: r.pending} },
         unsure: fn(u) {
             let c = unsure_cause(u);
-            consume(u, "drop");
+            // 判过的两种原因才丢（B95）；其余（含预算停机、缺席、超时）的出口已在 r.pending 里，随返回值转交
             if c == "rejected_all" {
+                consume(u, "drop");
                 let r2 = retry_with(spare, fit);
                 {via: "rejected_all → 换材料", found: map(r2.value.items, fn(e) { e.item }), pending: r2.pending}
             } else {
                 if c == "no_candidate" {
+                    consume(u, "drop");
                     let r3 = generate_then_find(prompt, 2, fit);
                     {via: "no_candidate → 调生成器", found: map(r3.value.items, fn(e) { e.item }), pending: r3.pending}
                 } else {

@@ -28,109 +28,91 @@
     "pending": [
       [
         {
+          "at": [
+            0,
+            1
+          ],
           "cause": "band",
-          "element": {
-            "cause": "band",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(band)",
-              "id": 5,
-              "q": "615a0f8ed47fa7d6f0e1784d"
-            },
-            "index": 1,
-            "item": {
-              "a": "做一个带登录的网页后台",
-              "b": {
-                "name": "李工",
-                "skills": [
-                  "数据库",
-                  "后端"
-                ]
-              }
-            },
-            "source": {
-              "at": [
-                0,
-                1
-              ],
-              "item": {
-                "a": "做一个带登录的网页后台",
-                "b": {
-                  "name": "李工",
-                  "skills": [
-                    "数据库",
-                    "后端"
-                  ]
-                }
-              },
-              "left": "做一个带登录的网页后台",
-              "right": {
-                "cause": null,
-                "exit": {
-                  "consumed": true,
-                  "exit": "act",
-                  "id": 1,
-                  "q": "03d341e836e350eac190d030"
-                },
-                "index": 1,
-                "item": {
-                  "name": "李工",
-                  "skills": [
-                    "数据库",
-                    "后端"
-                  ]
-                },
-                "source": {
-                  "name": "李工",
-                  "skills": [
-                    "数据库",
-                    "后端"
-                  ]
-                },
-                "trail": []
-              },
-              "trail": []
-            },
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
             "id": 5,
             "q": "615a0f8ed47fa7d6f0e1784d"
-          }
+          },
+          "item": {
+            "a": "做一个带登录的网页后台",
+            "b": {
+              "name": "李工",
+              "skills": [
+                "数据库",
+                "后端"
+              ]
+            }
+          },
+          "key": "d7181e1ae3081ea55b77cbfb",
+          "left": "做一个带登录的网页后台",
+          "pos": 1,
+          "q": {
+            "calib": "c-fit",
+            "op": "noul",
+            "question": "615a0f8ed47fa7d6f0e1784d",
+            "text": "成员 b 的技能能完成需求 a 吗？"
+          },
+          "qi": 0,
+          "right": {
+            "cause": null,
+            "exit": {
+              "consumed": true,
+              "exit": "act",
+              "id": 1,
+              "q": "03d341e836e350eac190d030"
+            },
+            "index": 1,
+            "item": {
+              "name": "李工",
+              "skills": [
+                "数据库",
+                "后端"
+              ]
+            },
+            "key": "98b9803aa5f2140340d5e018",
+            "pos": 1,
+            "q": {
+              "calib": "c-tech",
+              "op": "noul",
+              "question": "03d341e836e350eac190d030",
+              "text": "这个人的技能里有软件开发方面的技能吗？"
+            },
+            "qi": 0,
+            "trail": []
+          },
+          "trail": []
         },
         {
           "cause": "band",
-          "element": {
-            "cause": "band",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(band)",
-              "id": 3,
-              "q": "03d341e836e350eac190d030"
-            },
-            "index": 3,
-            "item": {
-              "name": "钱设计",
-              "skills": [
-                "UI 设计"
-              ]
-            },
-            "source": {
-              "name": "钱设计",
-              "skills": [
-                "UI 设计"
-              ]
-            },
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
             "id": 3,
             "q": "03d341e836e350eac190d030"
-          }
+          },
+          "index": 3,
+          "item": {
+            "name": "钱设计",
+            "skills": [
+              "UI 设计"
+            ]
+          },
+          "key": "eaa55a81e3e0349b8d3faeb3",
+          "pos": 3,
+          "q": {
+            "calib": "c-tech",
+            "op": "noul",
+            "question": "03d341e836e350eac190d030",
+            "text": "这个人的技能里有软件开发方面的技能吗？"
+          },
+          "qi": 0,
+          "trail": []
         }
       ],
       []
@@ -210,7 +192,7 @@
         "pending": 2
       },
       {
-        "calls": 0,
+        "calls": 8,
         "evidence": 8,
         "fields": [
           "kind",

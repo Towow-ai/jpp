@@ -44,15 +44,24 @@ type Bindings = HashMap<String, Expr>;
 
 /// 程序里全部可认出的题与判断站点的题类（供测试与后续诊断规则读）。
 pub fn question_kinds(p: &Program) -> Vec<KindSite> {
-    scan(p).0
+    scan(p, None, None).0
 }
 
-/// `E-kind-conflict`：题式槽声明与可见结构矛盾。
-pub(crate) fn conflicts(p: &Program) -> Vec<Diagnostic> {
-    scan(p).1
+/// `E-kind-conflict`（题式槽声明与可见结构矛盾）与 `W-diag-shape`（B51-R2 静态消费者，步 24g；
+/// `actions`/`profile` 缺时后者不判，同 J-08/J-11 静态子面「没有表不报」口径）。
+pub(crate) fn conflicts(
+    p: &Program,
+    actions: Option<&crate::ActionTable>,
+    profile: Option<&jpp_effects::Profile>,
+) -> Vec<Diagnostic> {
+    scan(p, actions, profile).1
 }
 
-fn scan(p: &Program) -> (Vec<KindSite>, Vec<Diagnostic>) {
+fn scan(
+    p: &Program,
+    actions: Option<&crate::ActionTable>,
+    profile: Option<&jpp_effects::Profile>,
+) -> (Vec<KindSite>, Vec<Diagnostic>) {
     let mut 绑定: Bindings = HashMap::new();
     收let绑定(&p.body, &mut 绑定);
     let mut sites = vec![];
@@ -80,7 +89,11 @@ fn scan(p: &Program) -> (Vec<KindSite>, Vec<Diagnostic>) {
                     return;
                 };
                 let shape = state_shape(s, &绑定);
-                judge_site(e.span, shape, qs, &绑定, &mut sites, &mut diags);
+                // 步 24g：状态材料能静态确定来自哪个声明过 `mat_shape` 的动作时才给形状面
+                let action = do_source(s, &绑定);
+                judge_site(
+                    e.span, shape, qs, &绑定, action, actions, profile, &mut sites, &mut diags,
+                );
             }
             Some("sieve") => {
                 let (Some(m), Some(qs)) = (args.first(), args.get(1)) else {
@@ -96,7 +109,12 @@ fn scan(p: &Program) -> (Vec<KindSite>, Vec<Diagnostic>) {
                     on,
                     ..SlotShape::UNKNOWN
                 };
-                judge_site(e.span, shape, qs, &绑定, &mut sites, &mut diags);
+                // `sieve` 筛的是一批材料，不是单一 `state(...)`：`do_source` 认不出 `state` 形状，
+                // 天然给 `None`——本批不为 `sieve` 单独扩来源追溯（预注册范围收窄）
+                let action = do_source(m, &绑定);
+                judge_site(
+                    e.span, shape, qs, &绑定, action, actions, profile, &mut sites, &mut diags,
+                );
             }
             _ => {}
         }
@@ -105,17 +123,32 @@ fn scan(p: &Program) -> (Vec<KindSite>, Vec<Diagnostic>) {
 }
 
 /// 判断站点：题可以是一道题或题的列表字面量。
+#[allow(clippy::too_many_arguments)]
 fn judge_site(
     span: Span,
     shape: SlotShape,
     qs: &Expr,
     绑定: &Bindings,
+    action: Option<&str>,
+    actions: Option<&crate::ActionTable>,
+    profile: Option<&jpp_effects::Profile>,
     sites: &mut Vec<KindSite>,
     diags: &mut Vec<Diagnostic>,
 ) {
     let qs: Vec<&Expr> = match resolve(qs, 绑定, &mut HashSet::new()).kind() {
         ExprKind::List(items) => items.iter().collect(),
         _ => vec![qs],
+    };
+    // 依据：B51-R2（12 §2.2；诊断层消费者，步 24g）
+    let mat_shape = action
+        .zip(actions)
+        .and_then(|(name, t)| t.shapes.get(name))
+        .cloned();
+    let diag_cx = crate::diag::b13::DiagCx {
+        mat_shape,
+        shape_action: action.map(str::to_string),
+        one_hop: profile.map(|p| p.one_hop()).unwrap_or_default(),
+        arithmetic_capable: profile.map(|p| p.arithmetic_capable()).unwrap_or_default(),
     };
     for q in qs {
         let Some(q) = question_of(q, 绑定, &mut HashSet::new()) else {
@@ -129,12 +162,40 @@ fn judge_site(
         {
             diags.push(conflict_diag(&c.reason, span));
         }
+        if let Some(d) = crate::diag::b13::shape_check(refined.0, span, &diag_cx) {
+            diags.push(d);
+        }
         sites.push(KindSite {
             span,
             op: q.op,
             base,
             refined: Some(refined),
         });
+    }
+}
+
+/// `state(on, …)` 的 `on` 材料能否静态确定来自 `do("字面动作名", …)`：直接内联
+/// `state(mat(do("名", …)))`，或 `on` 是绑定给某个名字后解得到同一形状。判不出（容器、非字面、
+/// 多材料合并等）一律 `None`——B51-R2 消费者按此放过，零假拒绝面（步 24g）。复用 `resolve`，
+/// 与 `state_shape` 同一套「同名后写覆盖先写、往保守偏」的让位追溯（本文件既有口径，B76）。
+fn do_source<'a>(s: &'a Expr, 绑定: &'a Bindings) -> Option<&'a str> {
+    let s = resolve(s, 绑定, &mut HashSet::new());
+    if call_name(s) != Some("state") {
+        return None;
+    }
+    let on = *call_args(s).first()?;
+    let on = resolve(on, 绑定, &mut HashSet::new());
+    let on = if call_name(on) == Some("mat") {
+        resolve(*call_args(on).first()?, 绑定, &mut HashSet::new())
+    } else {
+        on
+    };
+    if call_name(on) != Some("do") {
+        return None;
+    }
+    match call_args(on).first().map(|a| a.kind()) {
+        Some(ExprKind::Text(name)) => Some(name.as_str()),
+        _ => None,
     }
 }
 

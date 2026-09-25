@@ -1,11 +1,11 @@
-"""Generate the fixed-observation fixture for winnow.jpp from input.json.
+"""Generate the fixed-observation fixture for winnow.jpp from baseline/materials.json (the file `jpp run --input` gives the program; step 14b-0).
 
 Readings are synthetic (construction check, not model evaluation). Calibration
 records are hand-written to exercise routing; the live run uses real lines instead.
 """
 import json
 
-inp = json.load(open("input.json", encoding="utf-8"))
+inp = json.load(open("baseline/materials.json", encoding="utf-8"))["tool_outputs"]
 REL = "这段话的内容是否与「{concept}」这个话题相关？".replace("{concept}", inp["task"])
 ERR = "这段工具输出里是否含有报错、失败或异常信息？"
 # synthetic readings: tool-1 has an error; tool-2 does not

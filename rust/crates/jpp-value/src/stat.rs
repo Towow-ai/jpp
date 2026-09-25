@@ -343,7 +343,8 @@ pub const FP_NAMES: [&str; 7] = [
 /// 一段材料文本的指纹（B68）：字符数；中文、拉丁字母、数字、标点与空白四类字符的比例；
 /// 行数与平均行长。比例的分母是字符数；空文本的比例全为 0。
 pub fn material_fingerprint(text: &str) -> [f64; 7] {
-    let (mut n, mut cjk, mut latin, mut digit, mut punct) = (0usize, 0usize, 0usize, 0usize, 0usize);
+    let (mut n, mut cjk, mut latin, mut digit, mut punct) =
+        (0usize, 0usize, 0usize, 0usize, 0usize);
     for c in text.chars() {
         n += 1;
         if ('\u{4e00}'..='\u{9fff}').contains(&c) || ('\u{3400}'..='\u{4dbf}').contains(&c) {
@@ -358,7 +359,15 @@ pub fn material_fingerprint(text: &str) -> [f64; 7] {
     }
     let lines = text.lines().count().max(1);
     let r = |k: usize| if n == 0 { 0.0 } else { k as f64 / n as f64 };
-    [n as f64, r(cjk), r(latin), r(digit), r(punct), lines as f64, n as f64 / lines as f64]
+    [
+        n as f64,
+        r(cjk),
+        r(latin),
+        r(digit),
+        r(punct),
+        lines as f64,
+        n as f64 / lines as f64,
+    ]
 }
 
 /// 认证集的范围：每个指纹量在认证集上的分位区间（B68）。
@@ -403,6 +412,15 @@ impl ScopeRanges {
         margins: Option<ScopeMargins>,
     ) -> Option<ScopeRanges> {
         let fps: Vec<[f64; 7]> = texts.into_iter().map(material_fingerprint).collect();
+        Self::from_fingerprints(&fps, quantiles, margins)
+    }
+
+    /// 同 [`Self::from_texts`]，输入是已算好的材料指纹（校准记录里存的是指纹，不存文本）。
+    pub fn from_fingerprints(
+        fps: &[[f64; 7]],
+        quantiles: (f64, f64),
+        margins: Option<ScopeMargins>,
+    ) -> Option<ScopeRanges> {
         if fps.is_empty() {
             return None;
         }
@@ -442,4 +460,160 @@ impl ScopeRanges {
             .find(|((_, lo, hi), v)| **v < *lo - 1e-12 || **v > *hi + 1e-12)
             .map(|((name, lo, hi), v)| (name.clone(), *v, *lo, *hi))
     }
+}
+
+// ---------------------------------------------------------------- 序贯 e 过程（B87，步 20h）
+
+/// 混合 e 过程的四个备择 p₁ ∈ {0, α/4, α/2, 3α/4}（B87 §二·1）。
+pub fn e_alternatives(alpha: f64) -> [f64; 4] {
+    [0.0, alpha / 4.0, alpha / 2.0, 3.0 * alpha / 4.0]
+}
+
+/// 一条到达样本对备择 p₁ 的似然比因子：错 × p₁/α，对 × (1 − p₁)/(1 − α)。
+/// 原假设（错误率 ≥ α）下期望 ≤ 1，乘积是非负上鞅（Ville）。
+pub fn e_factor(alpha: f64, p1: f64, error: bool) -> f64 {
+    if error {
+        p1 / alpha
+    } else {
+        (1.0 - p1) / (1.0 - alpha)
+    }
+}
+
+/// 每个分量乘积的初值
+pub const E_START: [f64; 4] = [1.0; 4];
+
+/// 拒绝门槛 1/δ
+pub fn e_threshold(conf_delta: f64) -> f64 {
+    1.0 / conf_delta
+}
+
+/// 各分量乘积 `e` 再乘 r 条全对之后的混合 E。
+pub fn e_mixture_after(e: &[f64; 4], weights: &[f64; 4], alpha: f64, r: usize) -> f64 {
+    let p1 = e_alternatives(alpha);
+    (0..4)
+        .map(|m| weights[m] * e[m] * e_factor(alpha, p1[m], false).powi(r as i32))
+        .sum()
+}
+
+/// 混合 e 过程零错过线所需条数：最小 n 使 Σ w_j ((1 − p_j)/(1 − α))^n ≥ 1/δ。缺省权重下正式 24、试用 9。
+pub fn e_zero_error_needed(alpha: f64, conf_delta: f64, weights: &[f64; 4]) -> usize {
+    (1..100_000)
+        .find(|n| e_mixture_after(&E_START, weights, alpha, *n) >= e_threshold(conf_delta))
+        .unwrap_or(100_000)
+}
+
+/// 混合权重合法：四个非负、和为 1。
+pub fn e_weights_valid(w: &[f64; 4]) -> bool {
+    w.iter().all(|x| *x >= 0.0) && (w.iter().sum::<f64>() - 1.0).abs() <= 1e-9
+}
+
+/// 覆盖：框内读数落在 p ≥ h 或 p ≤ l 的占比（无标签可算；空框为 0）。
+pub fn coverage(pool: &[f64], h: Option<f64>, l: Option<f64>) -> f64 {
+    if pool.is_empty() {
+        return 0.0;
+    }
+    let k = pool
+        .iter()
+        .filter(|p| h.is_some_and(|h| **p >= h) || l.is_some_and(|l| **p <= l))
+        .count();
+    k as f64 / pool.len() as f64
+}
+
+/// 夹到 [0, 1]
+pub fn clamp_unit(x: f64) -> f64 {
+    x.clamp(0.0, 1.0)
+}
+
+// ---------------------------------------------------------------- 有效 α（B89，步 20i）
+
+/// 一致率的单侧置信下界（Clopper–Pearson）：`1 − 不一致率的上界`。`n = 0` 时为 0（没有复核就没有下界）。
+pub fn agreement_lower(agree: u64, n: u64, conf: f64) -> f64 {
+    if n == 0 {
+        return 0.0;
+    }
+    1.0 - binomial_upper((n - agree) as usize, n as usize, 1.0 - conf)
+}
+
+/// 复核下界缺置信时的缺省（B19 修正：单侧 95%）
+pub const REVIEW_CONF_DEFAULT: f64 = 0.95;
+
+/// B89 并集界：复核批次落在已决区 A 内时 `α + (1 − a_lb(A))`；不是从 A 抽的（旧记录）时
+/// `α + (1 − a_lb) / c`，c 为认证集在 A 内的占比。`c = 0` 或没有复核时为 1（不放行）。
+pub fn alpha_eff(alpha: f64, a_lb: f64, c: Option<f64>) -> f64 {
+    match c {
+        None => alpha + (1.0 - a_lb),
+        Some(c) if c > 0.0 => alpha + (1.0 - a_lb) / c,
+        Some(_) => 1.0,
+    }
+}
+
+/// alpha_eff 的置信：全覆盖 1 − δ；部分覆盖 1 − δ − (1 − 复核下界置信)。
+pub fn alpha_eff_conf(conf_delta: f64, review_conf: Option<f64>) -> f64 {
+    match review_conf {
+        None => 1.0 - conf_delta,
+        Some(rc) => 1.0 - conf_delta - (1.0 - rc),
+    }
+}
+
+/// 没有复核可依时的有效 α：1（不放行）
+pub const ALPHA_EFF_NONE: f64 = 1.0;
+
+/// 试用 α 的缺省（B72；与 `calib-import --alpha-trial` 缺省同值）。B89 解读 (b)（步 20c）：有效 α 超过试用 α 的线
+/// 等级为 `Provisional`；证书没记导入时的试用 α（`AlphaEff.trial_alpha` 为空）时按这个值。
+pub const ALPHA_TRIAL_DEFAULT: f64 = 0.25;
+
+/// 旧证书（缺 δ）的候选 δ（B117 (c)，步 20c 的 `load` 重跑用）：候选阈值网格 = 带标注读数的去重值加两两中点（值种类多时相邻中点）；上侧 δ = g − hi
+/// （g ≥ hi，按 12 位小数规整掉浮点减法的尾差），有下侧证书时只留 lo − δ 也落在网格上的那些。
+pub fn shift_candidates(ps: &[f64], hi: f64, lo: Option<f64>) -> Vec<f64> {
+    let mut v: Vec<f64> = ps.to_vec();
+    v.sort_by(|a, b| a.total_cmp(b));
+    v.dedup();
+    // 拆分认证的阈值是**选线半**里相邻两值的中点，在全体读数里未必相邻（中间的值可能全落在认证半）：
+    // 所以取任意两值的中点。读数值种类多时（连续读数）两两中点太多，退为相邻中点——这时选线半与全体
+    // 的相邻关系几乎处处相同。上限是规则常数，不是判断器属性。
+    const 两两上限: usize = 64;
+    let mut grid = v.clone();
+    if v.len() <= 两两上限 {
+        for (i, a) in v.iter().enumerate() {
+            for b in &v[i + 1..] {
+                grid.push((a + b) / 2.0);
+            }
+        }
+    } else {
+        for w in v.windows(2) {
+            grid.push((w[0] + w[1]) / 2.0);
+        }
+    }
+    let 规整 = |x: f64| (x * 1e12).round() / 1e12;
+    let 在网格 = |x: f64| grid.iter().any(|g| (g - x).abs() < 1e-9);
+    let mut out: Vec<f64> = grid
+        .iter()
+        .filter(|g| **g >= hi)
+        .map(|g| 规整(g - hi))
+        .filter(|d| lo.is_none_or(|l| 在网格(l - d)))
+        .collect();
+    out.sort_by(|a, b| a.total_cmp(b));
+    out.dedup();
+    out
+}
+
+// ---------------------------------------------------------------- 已决区的边界（步 15d-2）
+
+/// 已决区边界的往返容差。线存成 `hi = h − δ`（`lo = l + δ`），判区算 `hi + δ`：浮点下这一减一加
+/// 可能差 1ulp，读数恰好等于证书的 h 时会被判成 band（27a F3 实测 5 条）。取值理由：h、δ 都在 [0, 1]，
+/// 一减一加的舍入误差不超过 2ulp(1) ≈ 4.4e-16；1e-12 比它大三个数量级、比读数精度（1e-3）小九个数量级，
+/// 只收回往返误差，不放宽任何真实读数（放行方向的放宽上界是 1e-12）。不改记录格式（直接存 h 要改校准
+/// 记录格式，20a 后冻结，走格式步）。Python 内核 `foundation/jv/runtime.py::_decide` 用同一容差。
+/// 依据：主会话 2026-09-25（15d-2 统一边界比较；容差取 1e-12 量级并写明理由）；认证、`unsure_rate`、复核已决区、
+/// 范围扩展与 `cut` 共用下面两个函数。
+pub const BOUNDARY_EPS: f64 = 1e-12;
+
+/// 读数落在上侧已决区：`p ≥ h`，`h = hi + δ`（按容差比较）。
+pub fn decided_up(p: f64, hi: f64, delta: f64) -> bool {
+    p >= hi + delta - BOUNDARY_EPS
+}
+
+/// 读数落在下侧已决区：`p ≤ l`，`l = lo − δ`（按容差比较）。
+pub fn decided_down(p: f64, lo: f64, delta: f64) -> bool {
+    p <= lo - delta + BOUNDARY_EPS
 }

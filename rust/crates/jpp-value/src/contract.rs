@@ -27,17 +27,25 @@ pub struct Rejected {
     pub message: String,
 }
 
-/// 未决清单的一项：`{element, exit, cause}`。
+/// 未决清单的一项（B81 (c)，步 25-0）：带 `exit` 的元素记录本身（缺 `cause` 时由出口补上）；
+/// 没有元素时是裸出口包成的 `{exit, cause}`。此前是 `{element, exit, cause}` 两层。
 pub fn pending_entry(element: Value, exit: &Value) -> Value {
     let cause = match exit {
         Value::Exit(e) | Value::Duty(e) => Value::text(&e.cause()),
         _ => Value::Unit,
     };
-    Value::record(vec![
-        ("element".into(), element),
-        ("exit".into(), exit.clone()),
-        ("cause".into(), cause),
-    ])
+    match element {
+        Value::Record(fs) if fs.iter().any(|(k, _)| k == "exit") => {
+            if fs.iter().any(|(k, _)| k == "cause") {
+                Value::Record(fs)
+            } else {
+                let mut v: Vec<(String, Value)> = fs.iter().cloned().collect();
+                v.push(("cause".into(), cause));
+                Value::record(v)
+            }
+        }
+        _ => Value::record(vec![("exit".into(), exit.clone()), ("cause".into(), cause)]),
+    }
 }
 
 /// 契约值的唯一构造：`{kind, value, pending, evidence, resume, spent, detail, purpose}`。

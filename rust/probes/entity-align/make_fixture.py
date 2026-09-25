@@ -1,17 +1,8 @@
 """Fixed-observation fixture for align.jpp (synthetic readings; construction check only)."""
 import json
-A = [
-    {"name": "Hazy Little Thing IPA", "brewery": "Sierra Nevada", "style": "New England IPA", "abv": 6.7},
-    {"name": "Guinness Draught", "brewery": "Guinness", "style": "Irish Dry Stout", "abv": 4.2},
-    {"name": "Two Hearted Ale", "brewery": "Bell's Brewery", "style": "American IPA", "abv": 7.0},
-    {"name": "Pliny the Elder", "brewery": "Russian River", "style": "Double IPA", "abv": 8.0},
-]
-B = [
-    {"name": "Sierra Nevada Hazy Little Thing", "brewery": "Sierra Nevada Brewing Co.", "style": "Hazy IPA", "abv": 6.7},
-    {"name": "Guinness Extra Stout", "brewery": "Guinness", "style": "Foreign Extra Stout", "abv": 5.6},
-    {"name": "Bell's Two Hearted IPA", "brewery": "Bell's", "style": "IPA", "abv": 7.0},
-    {"name": "Pliny the Younger", "brewery": "Russian River Brewing", "style": "Triple IPA", "abv": 10.25},
-]
+# the two catalogs come from the file `jpp run --input` gives the program (step 14b-0)
+M = json.load(open("baseline/materials.json", encoding="utf-8"))
+A, B = M["catalog_a"], M["catalog_b"]
 SCALE = ["它们描述的是两种不同的产品。",
          "它们描述的是密切相关、可能是也可能不是同一款的产品：变体、特别版，或名字两种理解都说得通。",
          "它们描述的是同一款产品。"]

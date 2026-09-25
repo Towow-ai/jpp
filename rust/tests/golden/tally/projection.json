@@ -53,97 +53,92 @@
       [
         {
           "cause": "band",
-          "element": {
-            "cause": "band",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(band)",
-              "id": 0,
-              "q": "78e15a646880a5dfabb72438"
-            },
-            "index": 0,
-            "item": "这款耳机售价三百九十九元。",
-            "source": "这款耳机售价三百九十九元。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
             "id": 0,
             "q": "78e15a646880a5dfabb72438"
-          }
+          },
+          "index": 0,
+          "item": "这款耳机售价三百九十九元。",
+          "key": "faf2654baf428ca9589cdbbb",
+          "pos": 0,
+          "q": {
+            "calib": "price",
+            "op": "noul",
+            "question": "78e15a646880a5dfabb72438",
+            "text": "这段话给出了具体价格或折扣吗？"
+          },
+          "qi": 0,
+          "trail": []
         },
         {
           "cause": "band",
-          "element": {
-            "cause": "band",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(band)",
-              "id": 4,
-              "q": "78e15a646880a5dfabb72438"
-            },
-            "index": 4,
-            "item": "价格还没公布，据说下个月发布。",
-            "source": "价格还没公布，据说下个月发布。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
             "id": 4,
             "q": "78e15a646880a5dfabb72438"
-          }
+          },
+          "index": 4,
+          "item": "价格还没公布，据说下个月发布。",
+          "key": "9f2117d3875cc5b971fc50e7",
+          "pos": 4,
+          "q": {
+            "calib": "price",
+            "op": "noul",
+            "question": "78e15a646880a5dfabb72438",
+            "text": "这段话给出了具体价格或折扣吗？"
+          },
+          "qi": 0,
+          "trail": []
         }
       ],
       [
         {
           "cause": "band",
-          "element": {
-            "cause": "band",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(band)",
-              "id": 0,
-              "q": "78e15a646880a5dfabb72438"
-            },
-            "index": 0,
-            "item": "这款耳机售价三百九十九元。",
-            "source": "这款耳机售价三百九十九元。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
             "id": 0,
             "q": "78e15a646880a5dfabb72438"
-          }
+          },
+          "index": 0,
+          "item": "这款耳机售价三百九十九元。",
+          "key": "faf2654baf428ca9589cdbbb",
+          "pos": 0,
+          "q": {
+            "calib": "price",
+            "op": "noul",
+            "question": "78e15a646880a5dfabb72438",
+            "text": "这段话给出了具体价格或折扣吗？"
+          },
+          "qi": 0,
+          "trail": []
         },
         {
           "cause": "band",
-          "element": {
-            "cause": "band",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(band)",
-              "id": 4,
-              "q": "78e15a646880a5dfabb72438"
-            },
-            "index": 4,
-            "item": "价格还没公布，据说下个月发布。",
-            "source": "价格还没公布，据说下个月发布。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
             "id": 4,
             "q": "78e15a646880a5dfabb72438"
-          }
+          },
+          "index": 4,
+          "item": "价格还没公布，据说下个月发布。",
+          "key": "9f2117d3875cc5b971fc50e7",
+          "pos": 4,
+          "q": {
+            "calib": "price",
+            "op": "noul",
+            "question": "78e15a646880a5dfabb72438",
+            "text": "这段话给出了具体价格或折扣吗？"
+          },
+          "qi": 0,
+          "trail": []
         },
         {
           "cause": "band",
-          "element": null,
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
@@ -155,51 +150,48 @@
       [
         {
           "cause": "band",
-          "element": {
-            "cause": "band",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(band)",
-              "id": 0,
-              "q": "78e15a646880a5dfabb72438"
-            },
-            "index": 0,
-            "item": "这款耳机售价三百九十九元。",
-            "source": "这款耳机售价三百九十九元。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
             "id": 0,
             "q": "78e15a646880a5dfabb72438"
-          }
+          },
+          "index": 0,
+          "item": "这款耳机售价三百九十九元。",
+          "key": "faf2654baf428ca9589cdbbb",
+          "pos": 0,
+          "q": {
+            "calib": "price",
+            "op": "noul",
+            "question": "78e15a646880a5dfabb72438",
+            "text": "这段话给出了具体价格或折扣吗？"
+          },
+          "qi": 0,
+          "trail": []
         },
         {
           "cause": "band",
-          "element": {
-            "cause": "band",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(band)",
-              "id": 4,
-              "q": "78e15a646880a5dfabb72438"
-            },
-            "index": 4,
-            "item": "价格还没公布，据说下个月发布。",
-            "source": "价格还没公布，据说下个月发布。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
             "id": 4,
             "q": "78e15a646880a5dfabb72438"
-          }
+          },
+          "index": 4,
+          "item": "价格还没公布，据说下个月发布。",
+          "key": "9f2117d3875cc5b971fc50e7",
+          "pos": 4,
+          "q": {
+            "calib": "price",
+            "op": "noul",
+            "question": "78e15a646880a5dfabb72438",
+            "text": "这段话给出了具体价格或折扣吗？"
+          },
+          "qi": 0,
+          "trail": []
         },
         {
           "cause": "band",
-          "element": null,
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",

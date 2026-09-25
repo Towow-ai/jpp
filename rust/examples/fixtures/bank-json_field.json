@@ -1,0 +1,9 @@
+{
+  "description": "步 27a 题库条目 json_field 的金样夹具。四条材料取自认证集（地基/评估/27a-准备/F1-JSON字段，材料 j00、j16、j32、j48），读数是该次真机账本的原读数；线不在这里，由条目目录的校准记录给出。",
+  "observations": [
+    {"on": ["{\"title\": \"办公椅\", \"zip_code\": \"310012\", \"status\": \"shipped\"}"], "op": "test", "text": "这个 JSON 是否有字段 order_no？（字段名必须完全一致）", "calib": "bank-l2-json-field", "answer": {"Noul": 0.02}},
+    {"on": ["{\"order_no\": \"A52858\", \"currency\": \"CNY\", \"ok\": true}"], "op": "test", "text": "这个 JSON 是否有字段 order_no？（字段名必须完全一致）", "calib": "bank-l2-json-field", "answer": {"Noul": 0.99}},
+    {"on": ["{\"email\": \"zhao@example.com\", \"ok\": false, \"user_id\": \"A97065\", \"phone\": \"13886530188\"}"], "op": "test", "text": "这个 JSON 是否有字段 order_no？（字段名必须完全一致）", "calib": "bank-l2-json-field", "answer": {"Noul": 0.01}},
+    {"on": ["{\"count\": 4, \"order_no\": \"C48989\", \"address\": \"武侯区人民南路 4 段\", \"title\": \"保温杯\"}"], "op": "test", "text": "这个 JSON 是否有字段 order_no？（字段名必须完全一致）", "calib": "bank-l2-json-field", "answer": {"Noul": 0.99}}
+  ]
+}

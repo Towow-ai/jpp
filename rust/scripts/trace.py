@@ -21,7 +21,7 @@ for f in rust_files():
         for m in id_pat.finditer(line):
             refs.setdefault(m.group(1), set()).add(f"{f.relative_to(ROOT)}:{i + 1}")
         code = line.split("//")[0]
-        # 运行期编号 E-rt-*（步 9a）不对应依据文本的条目，类型说明的唯一来源是 jpp-cli 的 RT_CODES 表，
+        # 运行期编号 E-rt-*（步 9a）不对应依据文本的条目，类型说明的唯一来源是 jpp 的 cli/diag_json.rs 中 RT_CODES 表，
         # 不要求逐站点写 `依据：`；只带 E-rt 编号的行不算检查点
         if check_pat.search(rt_pat.sub("", code)):
             window = lines[max(0, i - N): i + N + 1]

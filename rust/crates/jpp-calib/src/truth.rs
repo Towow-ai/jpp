@@ -20,11 +20,15 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value as Json;
 
 use crate::calib::{
-    CalibScope, CalibStore, CertGrade, LabelSource, LiteralMode, Refusal, Sample, Selection, SpotCheck,
-    TruthSummary,
+    CalibScope, CalibStore, CertGrade, LabelSource, LiteralMode, Refusal, Sample, Selection,
+    SpotCheck, TruthSummary,
 };
-use jpp_value::stat::binomial_upper;
 use jpp_value::value::{Form, Op};
+
+mod cost;
+mod review;
+use cost::代价前置;
+use review::{复核行回接, 序贯到达, 有效阿尔法};
 
 /// 标注文件里的一行（JSONL）。
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -38,7 +42,10 @@ pub struct LabelRow {
     /// 这一行对应哪条材料。**同一条材料的人工与模型标注靠它配对**（抽检一致率）
     pub item: String,
     /// 那次判断的读数（真值通道只收真值，读数来自一次实际运行）。
-    /// `select` / `measure` 行填胜出候选（档位）的概率 p_max（B63）
+    /// `select` / `measure` 行填胜出候选（档位）的概率 p_max（B63）。
+    /// 复核行（带 `spot_check`）**不得**带读数（B89：复核者不得见判断器的答案），由同一材料的标注行回接；
+    /// 缺省值是 NaN 哨兵，只在反序列化时出现
+    #[serde(default = "读数缺省")]
     pub p: f64,
     /// `test`：`true` / `false` / `"ambiguous"`；`select` / `measure`：真值的候选索引
     /// （按 `over` 顺序）或档位索引（按 `scale` 顺序），或 `"ambiguous"`
@@ -78,6 +85,39 @@ pub struct LabelRow {
     /// 的第二判据（分歧集中在同一填法档）不适用
     #[serde(default)]
     pub fill_tier: Option<String>,
+    /// 判断器的出口或读数（任何行都不该带；复核行带了即拒收 `E-review-leak`，B89）
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub exit: Option<Json>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reading: Option<Json>,
+    /// 这一行对应的题（题哈希，B107，步 20h-2）：多题 `sieve` 里同一材料有多道题，材料标识 `item` 不唯一，
+    /// 样本身份是 `(item, q)`。`--list-out` 的清单行带它；缺省为空（单题键照旧只凭 `item`）
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub q: Option<String>,
+    /// 这道题的填法（B107：来自运行报告的 `questions` 表，给标注者看题面；只作展示，不参与认证）
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fill: Option<Json>,
+    /// 这道题的题类（B120 (a)：运行时算出的精化类，来自报告的 `questions` 表或作者搬运）；同键矛盾报 `E-kind-conflict`
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kind: Option<jpp_value::value::QuestionKind>,
+    /// 或者给判断时 `on` 槽的形状（`one` / `pair`），与 `over_kind` 一起由 `question_kind` 算出题类（B120 (a)）
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub slot_shape: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub over_kind: Option<jpp_value::value::OverKind>,
+}
+
+/// 样本身份（B107，步 20h-2）：带 `q` 的行以 `item` + `q` 为身份，同一材料上的不同题是不同样本。
+/// 复核行按同一身份回接标注行，序贯的两端先标框也按同一身份（`calib-import` 用 [`样本身份`] 造框）。
+pub fn 样本身份(item: &str, q: Option<&str>) -> String {
+    match q {
+        Some(q) => format!("{item}\u{1f}{q}"),
+        None => item.to_string(),
+    }
+}
+
+fn 读数缺省() -> f64 {
+    f64::NAN
 }
 
 /// 题式的规格：与 `.jpp` 里 `form(op, 模板, {…})` 的参数一一对应，**哈希同算法**，
@@ -147,6 +187,44 @@ pub struct ImportOptions {
     /// B72：试用 α（命令行缺省 0.25）。正式 α 认证不过（认证不过或样本不足）时按它再认证一次，
     /// 证书记 `Trial`；`None` 或不大于 `alpha` 时不试。已有正式线的键不试（试用线不覆盖正式线）
     pub alpha_trial: Option<f64>,
+    /// 认证方式（B86、B85）：命令行缺省 `FixedSequence`；`Split` 为分层交替分半的拆分认证
+    pub certify: CertifyMethod,
+    /// 固定序的步长 s（`--step`）；`None` = 池的 5%（[`crate::calib::fixed_sequence_step`]）。证书写解析后的整数
+    pub step: Option<usize>,
+    /// 序贯导入的参数（`certify = Sequential` 时必须给）
+    pub sequential: Option<SeqImport>,
+}
+
+/// `calib-import --certify` 的取值（B86、B85；序贯 `sequential` 落步 20h，B87），与 `--cost` 给出的代价线（B129，步 20a-2a）。
+///
+/// 代价线与另三种并列而不是 `ImportOptions` 上的一个字段：它就是一种认证方式（线由代价矩阵在标注集上定，
+/// 证书只回答够不够 α），与固定序、拆分、序贯互斥，由类型给出。带 `f64`，所以不派生 `Eq`。
+#[derive(Clone, Copy, Debug, PartialEq, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum CertifyMethod {
+    /// 固定序检验、不拆分（B86，缺省）
+    FixedSequence,
+    /// 拆分认证，分层交替分半（B85，退路与离线对照臂）
+    Split,
+    /// 序贯 e 过程（B87）：参数在 [`ImportOptions::sequential`]
+    Sequential,
+    /// 代价线 `(fp, fn)`（B129）：`commission_costed_graded` 按 `fp·#误放行 + fn·#漏放行` 最小定线，证书按 α 判上岗、
+    /// 不按 δ 平移（`selection: None`）；只收 `test` 行；线下没有下侧证书（`lo = 0`）
+    Cost(f64, f64),
+}
+
+/// 序贯导入的参数（B87、B88）。缺省值由命令行给（`--batch 10`、`--mix-weights 0.8,0.1,0.05,0.05`），
+/// 不写在内核里。
+#[derive(Clone, Debug)]
+pub struct SeqImport {
+    pub batch: usize,
+    pub weights: [f64; 4],
+    /// 覆盖目标 τ；`None` = settled
+    pub coverage_target: Option<f64>,
+    /// `true` = 两端先标（B88 待标清单的顺序）；`false` = 随机
+    pub two_ends: bool,
+    /// 抽样框（B88，来自账本）：`(材料标识, 读数)`，账本里首次出现的顺序。两端先标时必须给
+    pub frame: Option<Vec<(String, f64)>>,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -178,6 +256,9 @@ pub struct CertReport {
     pub conf_delta: f64,
     pub upper: (usize, usize, f64),
     pub lower: Option<(usize, usize, f64)>,
+    /// 代价线的代价矩阵 `(fp, fn)`（B129，步 20a-2a）；不是代价线时为空、不序列化（旧报告逐字节不变）
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cost: Option<(f64, f64)>,
 }
 
 /// B36 5(c)：分歧够多且集中同向，或（有填法档时）集中在同一填法档 → 外延未定。
@@ -230,6 +311,107 @@ fn row_op(r: &LabelRow) -> Result<&'static str, String> {
     }
 }
 
+/// 一组标注行的共同基础题类（B76）：每行按 `question_kind(op, request, 未知槽形, 无声明)` 算，
+/// 全部相同时返回它；空或不一致时 `None`。标注行不带状态，所以只有基础类；题式的 `over_kind`
+/// 声明不在 `FormSpec` 里，按缺省（select → 归类）。
+fn 共同题类<'a>(
+    rows: impl Iterator<Item = &'a LabelRow>,
+) -> Option<jpp_value::value::QuestionKind> {
+    use jpp_value::value::{Request, SlotDecls, SlotShape, question_kind};
+    let mut out = None;
+    for r in rows {
+        let op = match row_op(r).ok()? {
+            "select" => Op::Select,
+            "measure" => Op::Measure,
+            _ => Op::Test,
+        };
+        let request = r
+            .form
+            .as_ref()
+            .and_then(|f| f.request.as_deref())
+            .and_then(Request::parse);
+        let (k, _) = question_kind(op, request, &SlotShape::UNKNOWN, &SlotDecls::default());
+        match out {
+            None => out = Some(k),
+            Some(prev) if prev != k => return None,
+            _ => {}
+        }
+    }
+    out
+}
+
+/// 记录的题类（B120 (a)，步 20h-2）：取序 行上 `kind`（或 `slot_shape` + `over_kind` 算出）> 基础类。
+/// 行上给出的题类同键不一致、或声明与槽形矛盾，报 `E-kind-conflict`（整批拒收）。
+fn 记录题类(
+    key: &str,
+    rows: &[&LabelRow],
+) -> Result<Option<jpp_value::value::QuestionKind>, String> {
+    use jpp_ir::question_kind::kind_conflict;
+    use jpp_value::value::{OnShape, OverShape, Request, SlotDecls, SlotShape, question_kind};
+    let mut 显式: Vec<jpp_value::value::QuestionKind> = vec![];
+    for r in rows {
+        let op = match row_op(r)? {
+            "select" => Op::Select,
+            "measure" => Op::Measure,
+            _ => Op::Test,
+        };
+        let k = match (&r.kind, &r.slot_shape) {
+            (Some(k), _) => Some(*k),
+            (None, Some(s)) => {
+                let on = match s.as_str() {
+                    "one" => OnShape::One,
+                    "pair" => OnShape::Pair,
+                    o => {
+                        // 依据：B120 (a)（槽形只收 one / pair）
+                        return Err(format!(
+                            "E-kind-conflict: 键 {key} 材料 {} 的 slot_shape 只能是 one / pair，收到 {o:?}",
+                            r.item
+                        ));
+                    }
+                };
+                let shape = SlotShape {
+                    on,
+                    over: OverShape::Unknown,
+                    question_material: false,
+                };
+                let decl = SlotDecls {
+                    over_kind: r.over_kind,
+                    accepts: None,
+                };
+                if let Some(c) = kind_conflict(op, &shape, &decl) {
+                    // 依据：B76、B120 (a)（声明与结构矛盾即拒）
+                    return Err(format!(
+                        "E-kind-conflict: 键 {key} 材料 {}：{}",
+                        r.item, c.reason
+                    ));
+                }
+                let request = r
+                    .form
+                    .as_ref()
+                    .and_then(|f| f.request.as_deref())
+                    .and_then(Request::parse);
+                Some(question_kind(op, request, &shape, &decl).0)
+            }
+            (None, None) => None,
+        };
+        if let Some(k) = k {
+            if 显式.first().is_some_and(|p| *p != k) {
+                // 依据：B120 (a)（同键各行的题类矛盾）
+                return Err(format!(
+                    "E-kind-conflict: 键 {key} 的标注行题类不一致（{} 与 {}）：同一条记录只能是一个题类",
+                    显式[0].label(),
+                    k.label()
+                ));
+            }
+            显式.push(k);
+        }
+    }
+    Ok(match 显式.first() {
+        Some(k) => Some(*k),
+        None => 共同题类(rows.iter().copied()),
+    })
+}
+
 /// 有确定真值的标签：test 的布尔，或 K 元划分的索引（「模棱两可」不算）。
 fn decided(l: &Json) -> bool {
     l.is_boolean() || l.as_u64().is_some()
@@ -266,6 +448,17 @@ pub fn import_labels(
     rows: &[LabelRow],
     opt: &ImportOptions,
 ) -> Result<Vec<KeyReport>, String> {
+    // B107（步 20h-2）：带 `q` 的行以 (item, q) 为样本身份；先改身份再回接复核行
+    let 身份化: Vec<LabelRow> = rows
+        .iter()
+        .map(|r| {
+            let mut r = r.clone();
+            r.item = 样本身份(&r.item, r.q.as_deref());
+            r
+        })
+        .collect();
+    let 回接 = 复核行回接(&身份化)?;
+    let rows: &[LabelRow] = &回接;
     // 1. 按键归组
     let mut by_key: BTreeMap<String, Vec<&LabelRow>> = BTreeMap::new();
     let mut key_ops: BTreeMap<String, &'static str> = BTreeMap::new();
@@ -284,10 +477,16 @@ pub fn import_labels(
                 let q = 来源身份(r)
                     .map_err(|e| format!("第 {} 行：{e}", i + 1))?
                     .ok_or_else(|| {
-                        format!("第 {} 行：类行（class）要给来源题的身份：form、question 或 key", i + 1)
+                        format!(
+                            "第 {} 行：类行（class）要给来源题的身份：form、question 或 key",
+                            i + 1
+                        )
                     })?;
                 let ck = CalibStore::class_key(label);
-                class_sources.entry(ck.clone()).or_default().insert(q.clone());
+                class_sources
+                    .entry(ck.clone())
+                    .or_default()
+                    .insert(q.clone());
                 row_source.insert(r as *const LabelRow as usize, q);
                 ck
             }
@@ -341,11 +540,16 @@ pub fn import_labels(
         }
         by_key.entry(key).or_default().push(r);
     }
+    // 代价线（B129，步 20a-2a）的两道前置，在写任何记录之前（`truth/cost.rs`）
+    if let CertifyMethod::Cost(..) = opt.certify {
+        代价前置(rows, by_key.keys(), store)?;
+    }
 
     let mut out = vec![];
     for (key, rs) in by_key {
         let op = key_ops[&key];
         let kary = op != "test";
+        let 题类 = 记录题类(&key, &rs)?;
         let mut warnings = vec![];
         // 2. 每条材料定一份真值：人工或构造的优先；没有就用模型的
         let mut per_item: BTreeMap<&str, Vec<&LabelRow>> = BTreeMap::new();
@@ -366,6 +570,8 @@ pub fn import_labels(
         // B36 5(c)：复核分歧（标注行说什么、复核行说什么、填法档）
         // 方向只对 test 有意义（K 元划分的分歧没有「是 / 否」两个方向），记 None
         let mut disagreements: Vec<(Option<bool>, Option<String>)> = vec![];
+        // B89：本批复核对（标注行读数，是否一致），a_lb(A) 只用读数落在已决区 A 的那些
+        let mut 复核对: Vec<(f64, bool)> = vec![];
         for (item, group) in &per_item {
             let boolean = |r: &&&LabelRow| decided(&r.label);
             // 标注行：不带批次号的模型行
@@ -397,6 +603,7 @@ pub fn import_labels(
             for h in &review {
                 if let Some(m) = annot.first() {
                     sc_n += 1;
+                    复核对.push((m.p, h.label == m.label));
                     if h.label == m.label {
                         sc_agree += 1;
                     } else {
@@ -497,11 +704,24 @@ pub fn import_labels(
                 "W-extent: 键 {key} {why}：先改题面（B13/B23），不追加复核"
             ));
         }
+        // B75：类记录每来源的进线条数（分层分半与每来源门槛用）
+        let 来源计数: BTreeMap<String, u64> = if class_sources.contains_key(&key) {
+            let mut m = BTreeMap::new();
+            for (r, _) in &chosen {
+                if let Some(src) = row_source.get(&(*r as *const LabelRow as usize)) {
+                    *m.entry(src.clone()).or_default() += 1;
+                }
+            }
+            m
+        } else {
+            BTreeMap::new()
+        };
         // 依据：B34（类键只命中在混合样本上认证过的类记录）、B75（混合 = 不同来源数 ≥ 导入参数；
-        // 来源 = 题式，填法不算不同来源）。只数这一批，不并旧记录（旧记录没有来源账，取拒绝侧）
+        // 来源 = 题式，填法不算不同来源）。只数这一批，不并旧记录（旧记录没有来源账，取拒绝侧）。
+        // 只数有确定真值进线的来源（PR #31 P2）：全是模棱两可的来源不进线，不能凑来源数
         let 类来源不足 = class_sources
-            .get(&key)
-            .map(|qs| qs.len())
+            .contains_key(&key)
+            .then_some(来源计数.len())
             .filter(|n| *n < opt.class_min_sources);
         let gate_block: Option<String> = if let Some(n) = 类来源不足 {
             Some(format!(
@@ -552,18 +772,8 @@ pub fn import_labels(
             .records
             .get(&key)
             .is_some_and(|r| r.certs.values().any(|c| c.grade.is_formal()));
-        // B75：类记录每来源的进线条数（分层分半与每来源门槛用）
-        let 来源计数: BTreeMap<String, u64> = if class_sources.contains_key(&key) {
-            let mut m = BTreeMap::new();
-            for (r, _) in &chosen {
-                if let Some(src) = row_source.get(&(*r as *const LabelRow as usize)) {
-                    *m.entry(src.clone()).or_default() += 1;
-                }
-            }
-            m
-        } else {
-            BTreeMap::new()
-        };
+        // B87：序贯要这次导入给出该键的全部标注（旧记录里另有带标注样本时，到达顺序无从定）
+        let 旧标注 = store.records.get(&key).map(|r| r.labeled()).unwrap_or(0);
         // 4. 折样本
         for (r, lab) in &chosen {
             store
@@ -587,6 +797,15 @@ pub fn import_labels(
                 )
                 .map_err(|e| format!("键 {key}：{e}"))?;
         }
+        // B68；PR #31 P1：带文本的进线行的材料指纹随样本进记录，认证范围由认证用的同一批样本算
+        if let Some(rec) = store.records.get_mut(&key) {
+            rec.material_fps.extend(
+                chosen
+                    .iter()
+                    .filter_map(|(r, _)| r.text.as_deref())
+                    .map(jpp_value::stat::material_fingerprint),
+            );
+        }
         let batch = opt.batch.clone();
         let _ = store.set_label_set_id(&key, &format!("truth:{batch}"));
         // 导入的真值覆盖了这批导入的全部读数：由导入者声明「全体」
@@ -594,32 +813,95 @@ pub fn import_labels(
         if let Some(rec) = store.records.get_mut(&key).filter(|_| !来源计数.is_empty()) {
             rec.sources = 来源计数.clone();
         }
-        // 一档认证：B75 每来源门槛（该档 n_needed）→ 拆分认证（B24/B63），证书写等级（B72）
-        let 认证于 = |store: &mut CalibStore, alpha: f64, grade: CertGrade| -> Result<(), Refusal> {
-            let need = jpp_value::stat::n_needed_zero_error(alpha, opt.conf_delta) as u64;
-            if let Some((src, n)) = 来源计数.iter().find(|(_, n)| **n < need) {
-                return Err(Refusal::跑不成(format!(
-                    "待核：类记录来源 {src} 不足 {need} 条（有 {n} 条）"
-                )));
+        // B76（步 20a-1）、B120 (a)（步 20h-2）：记录的题类 = 行上题类（报告搬运或作者给出）> 进线行基础类
+        if let Some(rec) = store.records.get_mut(&key) {
+            rec.kind = 题类;
+        }
+        // 步 15d-2：按 δ 平移的认证要记录带 δ。记录没有时取宿主装进来的画像的 δ 先验（CLI：`--profile`）；
+        // 画像也没有就报错，不回退到任何默认值（B73「数字只住画像」）。依据：21 步 15d-2
+        if store.records.get(&key).is_some_and(|r| r.delta.is_none()) {
+            let 题型 = crate::calib::反查题型_pub(op).unwrap_or(jpp_value::value::Op::Test);
+            match store.profile.delta_prior(题型) {
+                Some(d) => {
+                    let _ = store.set_delta(&key, d);
+                }
+                None => {
+                    return Err(format!(
+                        "键 {key}：认证要 δ，记录没有、画像也没有 δ 先验（delta.*）。修法：calib-import 带 --profile <画像>（δ 只从画像取，不兜底；步 15d-2）"
+                    ));
+                }
             }
-            if kary {
-                store.commission_upper_split_graded(&key, alpha, opt.conf_delta, opt.seed, grade)
-            } else {
-                store.commission_two_sided_split_graded(&key, alpha, opt.conf_delta, opt.seed, grade)
-            }
-            .map(|_| ())
-        };
+        }
+        // 一档认证：B75 每来源门槛（该档 n_needed）→ 按导入方式认证（B86 固定序缺省；B85 分层交替拆分），
+        // K 元单侧线同形（B63），证书写等级（B72）。已有记录不动：只有这次导入的认证走这里
+        let 序贯规格: Result<Option<crate::calib::SeqSpec>, String> =
+            match (opt.certify, &opt.sequential) {
+                (CertifyMethod::Sequential, None) => Err("认证不过：序贯导入缺序贯参数".into()),
+                (CertifyMethod::Sequential, Some(sq)) if 旧标注 > 0 => {
+                    let _ = sq;
+                    Err(format!(
+                        "待核：序贯导入要一次给出该键全部已标行（记录里已有 {旧标注} 条旧标注）"
+                    ))
+                }
+                (CertifyMethod::Sequential, Some(sq)) => {
+                    序贯到达(store, &key, &chosen, sq, opt).map(Some)
+                }
+                _ => Ok(None),
+            };
+        let 认证于 =
+            |store: &mut CalibStore, alpha: f64, grade: CertGrade| -> Result<String, Refusal> {
+                let need = jpp_value::stat::n_needed_zero_error(alpha, opt.conf_delta) as u64;
+                if let Some((src, n)) = 来源计数.iter().find(|(_, n)| **n < need) {
+                    return Err(Refusal::跑不成(format!(
+                        "待核：类记录来源 {src} 不足 {need} 条（有 {n} 条）"
+                    )));
+                }
+                let (c, s, seed) = (opt.conf_delta, opt.step, opt.seed);
+                match (opt.certify, kary) {
+                    // 依据：B129（代价线：代价定线、证书按 α 判上岗；等级按 B72 先正式后试用）。K 元行已在归组后拒收
+                    (CertifyMethod::Cost(fp, fn_), _) => {
+                        store.commission_costed_graded(&key, alpha, c, "条", (fp, fn_), grade)
+                    }
+                    (CertifyMethod::FixedSequence, true) => {
+                        store.commission_upper_fixed_sequence_graded(&key, alpha, c, s, grade)
+                    }
+                    (CertifyMethod::FixedSequence, false) => {
+                        store.commission_two_sided_fixed_sequence_graded(&key, alpha, c, s, grade)
+                    }
+                    (CertifyMethod::Split, true) => {
+                        store.commission_upper_split_stratified_graded(&key, alpha, c, seed, grade)
+                    }
+                    (CertifyMethod::Split, false) => store
+                        .commission_two_sided_split_stratified_graded(&key, alpha, c, seed, grade),
+                    (CertifyMethod::Sequential, _) => match &序贯规格 {
+                        Err(why) => Err(Refusal::跑不成(why.clone())),
+                        Ok(None) => Err(Refusal::跑不成("认证不过：序贯规格缺失".into())),
+                        Ok(Some(spec)) if kary => {
+                            store.commission_upper_sequential_graded(&key, alpha, c, s, grade, spec)
+                        }
+                        Ok(Some(spec)) => store
+                            .commission_two_sided_sequential_graded(&key, alpha, c, s, grade, spec),
+                    },
+                }
+                .map(|c| c.addr())
+            };
         let 原因 = |e: &Refusal| match e {
             Refusal::认证不过(c) => format!("认证不过：{c:?}"),
             Refusal::跑不成(w) if w.starts_with("待核") => w.clone(),
             Refusal::跑不成(w) => format!("认证不过：{w}"),
         };
         let mut trial: Option<String> = None;
+        let mut 认证了 = false;
+        let mut 新证书: Option<String> = None;
         let gate = match gate_block {
             Some(why) => why,
             None if chosen.is_empty() => "待核：没有带真值的条目（全部为模棱两可）".to_string(),
             None => match 认证于(store, opt.alpha, CertGrade::Formal) {
-                Ok(()) => provisional.clone().unwrap_or_else(|| 上岗名.clone()),
+                Ok(addr) => {
+                    认证了 = true;
+                    新证书 = Some(addr);
+                    provisional.clone().unwrap_or_else(|| 上岗名.clone())
+                }
                 Err(e) => {
                     let 正式原因 = 原因(&e);
                     // B72：只有「认证不过」或样本不足才试；停岗、参数错误不试
@@ -637,7 +919,9 @@ pub fn import_labels(
                             正式原因
                         }
                         Some(at) => match 认证于(store, at, CertGrade::Trial) {
-                            Ok(()) => {
+                            Ok(addr) => {
+                                认证了 = true;
+                                新证书 = Some(addr);
                                 let t = format!(
                                     "试用上岗（α={at}）：正式 α={} 未过：{正式原因}",
                                     opt.alpha
@@ -658,47 +942,113 @@ pub fn import_labels(
                 }
             },
         };
-        // 依据：B68（认证范围：进线材料全部带文本时写指纹；缺指纹按范围内处理，不报警）
-        let 带文本 = chosen.iter().filter(|(r, _)| r.text.is_some()).count();
-        let fingerprint = if 带文本 == chosen.len() && !chosen.is_empty() {
-            jpp_value::stat::ScopeRanges::from_texts(
-                chosen.iter().filter_map(|(r, _)| r.text.as_deref()),
-                opt.scope_quantiles,
-                Some(opt.scope_margins),
-            )
-        } else {
-            if 带文本 > 0 {
-                warnings.push(format!(
-                    "W-scope-partial: 键 {key} 的进线材料只有 {带文本}/{} 条带文本，不写认证范围指纹（B68）；补齐 text 字段再导入",
-                    chosen.len()
-                ));
+        // 依据：B89（有效 α：模型真值的记录按复核覆盖写 alpha_eff 与真值基准，超过 α 降为试用）
+        let gate = match 新证书.as_ref() {
+            Some(addr) => {
+                let 模型真值 = sources.keys().any(|k| k.starts_with("model:"));
+                match 有效阿尔法(
+                    store,
+                    &key,
+                    addr,
+                    &chosen,
+                    &复核对,
+                    spot.as_ref(),
+                    &reviewers,
+                    opt,
+                )
+                .filter(|_| 模型真值)
+                {
+                    Some((eff, 降级, 临时)) => {
+                        let r = store.records.get_mut(&key).expect("刚认证过");
+                        let a = r.certs.get(addr).map(|c| c.alpha).unwrap_or(opt.alpha);
+                        let ae = eff.alpha_eff;
+                        for c in r.certs.get_mut(addr).into_iter().chain(r.lower.as_mut()) {
+                            c.eff = Some(eff.clone());
+                            if 降级 {
+                                c.grade = CertGrade::Trial;
+                            }
+                        }
+                        if 降级 {
+                            format!("{gate}；alpha_eff={ae:.3} > α={a}，按 B89 降为试用")
+                        } else if 临时 {
+                            // B89 解读 (b)（步 20c）：超过试用 α 为临时上岗，证书等级不改（运行时由 alpha_eff 派生）
+                            let t = eff
+                                .trial_alpha
+                                .unwrap_or(jpp_value::stat::ALPHA_TRIAL_DEFAULT);
+                            format!(
+                                "{gate}；alpha_eff={ae:.3} > 试用 α={t}，按 B89 为临时上岗（Provisional）"
+                            )
+                        } else {
+                            gate
+                        }
+                    }
+                    None => gate,
+                }
             }
-            None
+            None => gate,
         };
-        // 依据：B68 修订（认证集自判范围外必须为 0；非 0 说明边距不足，报 W-scope-self）
-        let scope_self_outside = fingerprint.as_ref().map(|f| {
-            chosen
-                .iter()
-                .filter_map(|(r, _)| r.text.as_deref())
-                .filter(|t| f.outside(&jpp_value::stat::material_fingerprint(t)).is_some())
-                .count()
-        });
+        // 依据：B68（认证范围：认证集带文本时写指纹）；B104-2（缺指纹 = 范围未知，不放行）；PR #31 P1：
+        // 只有这次真正认证上岗才写范围（被拦或认证不过时旧线仍在岗，旧范围不动），指纹取记录里全部
+        // 带标注样本的材料指纹，即认证用的那一批；有样本没有文本（旧样本或本批部分行）时不写指纹
+        // B104-2（步 20h-1）：部分带文本时用带文本的子集写指纹并记 n_text；一条文本都没有 = 范围未知
+        let mut n_text: Option<usize> = None;
+        let (fingerprint, scope_self_outside, 认证集条数) = if 认证了 {
+            let rec = store.records.get(&key).expect("刚认证过");
+            let (fps, n) = (&rec.material_fps, rec.labeled());
+            if !fps.is_empty() && n > 0 {
+                if fps.len() < n {
+                    n_text = Some(fps.len());
+                    // 依据：B104-2（认证集部分带文本：子集指纹）
+                    warnings.push(format!(
+                        "W-scope-partial: 键 {key} 的认证范围只由 {}/{n} 条带文本样本给出（其余样本没有文本；B104）",
+                        fps.len()
+                    ));
+                }
+                let f = jpp_value::stat::ScopeRanges::from_fingerprints(
+                    fps,
+                    opt.scope_quantiles,
+                    Some(opt.scope_margins),
+                );
+                // 依据：B68 修订（认证集自判范围外必须为 0；非 0 说明边距不足，报 W-scope-self）
+                let out = f
+                    .as_ref()
+                    .map(|f| fps.iter().filter(|x| f.outside(x).is_some()).count());
+                (f, out, n)
+            } else {
+                (None, None, n)
+            }
+        } else {
+            (None, None, 0)
+        };
         if let Some(n) = scope_self_outside.filter(|n| *n > 0) {
             warnings.push(format!(
-                "W-scope-self: 键 {key} 的认证集自身有 {n}/{} 条落在认证范围外（B68 修订）；加大 --scope-margins 或检查认证集",
-                chosen.len()
+                "W-scope-self: 键 {key} 的认证集自身有 {n}/{认证集条数} 条落在认证范围外（B68 修订）；加大 --scope-margins 或检查认证集"
             ));
         }
-        let scope = CalibScope {
-            batches: vec![batch.clone()],
-            sources: sources.clone(),
-            note: if fingerprint.is_some() {
-                "认证集来源与材料指纹范围（B68）".into()
-            } else {
-                "认证集来源；材料风格指纹与范围外告警（B24 补充）未做".into()
-            },
-            fingerprint,
-        };
+        let scope = 认证了.then(|| {
+            let mut batches = store
+                .records
+                .get(&key)
+                .and_then(|r| r.scope.as_ref())
+                .map(|sc| sc.batches.clone())
+                .unwrap_or_default();
+            if !batches.contains(&batch) {
+                batches.push(batch.clone());
+            }
+            CalibScope {
+                batches,
+                sources: sources.clone(),
+                note: if fingerprint.is_some() {
+                    "认证集来源与材料指纹范围（B68）".into()
+                } else {
+                    "认证集来源；材料风格指纹与范围外告警（B24 补充）未做".into()
+                },
+                fingerprint,
+                n_text,
+                // B91：扩展验的是旧线对；重新认证换了线，旧扩展不再有凭据，清空（扩展要在新线上重做）
+                extensions: vec![],
+            }
+        });
         let summary = TruthSummary {
             sources,
             ambiguous,
@@ -710,15 +1060,22 @@ pub fn import_labels(
         };
         if let Some(rec) = store.records.get_mut(&key) {
             rec.truth = Some(summary.clone());
-            rec.scope = Some(scope);
+            if let Some(sc) = scope {
+                rec.scope = Some(sc);
+            }
         }
         let certification = store.records.get(&key).and_then(|r| {
             if r.status != "上岗" {
                 return None;
             }
-            let up = r
-                .选中的证书()
-                .filter(|c| c.selection.is_some())
+            // 代价线（B129，步 20a-2a）：报告这次导入认证的那张（代价证书没有 selection，按下面的回退会落到
+            // 按地址排第一的那张，同键再加一对代价时报错代价）；其余方式照旧
+            let 本次代价证书 = 新证书
+                .as_ref()
+                .filter(|_| matches!(opt.certify, CertifyMethod::Cost(..)))
+                .and_then(|a| r.certs.get(a));
+            let up = 本次代价证书
+                .or_else(|| r.选中的证书().filter(|c| c.selection.is_some()))
                 .or_else(|| r.certs.values().find(|c| c.selection.is_some()))
                 .or_else(|| r.certs.values().next())?;
             Some(CertReport {
@@ -728,6 +1085,7 @@ pub fn import_labels(
                 conf_delta: up.conf_delta,
                 upper: (up.n_accepted, up.n_errors, up.ucb),
                 lower: r.lower.as_ref().map(|c| (c.n_accepted, c.n_errors, c.ucb)),
+                cost: up.cost,
             })
         });
         let rec = store.get(&key);
@@ -750,10 +1108,7 @@ pub fn import_labels(
 /// 一致率的单侧置信下界（Clopper–Pearson）：`1 − 不一致率的上界`。
 /// 25/25、0.95 → 0.887（B19 修正引用的数）。
 pub fn agree_lower(agree: u64, n: u64, conf: f64) -> f64 {
-    if n == 0 {
-        return 0.0;
-    }
-    1.0 - binomial_upper((n - agree) as usize, n as usize, 1.0 - conf)
+    jpp_value::stat::agreement_lower(agree, n, conf)
 }
 
 /// 再追加多少条**全一致**的抽检，下界才到门槛；200 条内到不了返回 `None`。
@@ -764,6 +1119,14 @@ pub fn extra_needed(agree: u64, n: u64, min: f64, conf: f64) -> Option<u64> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// 步 15d-2：导入要 δ 先验（记录没有时取画像的）。测试取步 15d-2 前的代码兜底值，线与原来相同
+    fn 库() -> CalibStore {
+        let mut s = CalibStore::new();
+        s.profile.delta =
+            jpp_effects::Field::known((0.05, 0.15, 0.15), "测试：步 15d-2 前的代码兜底值");
+        s
+    }
 
     /// B19 修正：25/25 的单侧 95% 下界约 0.887（不过 0.9）；零分歧要 29 条（0.05^(1/29) ≈ 0.902），即再追加 4 条。
     #[test]
@@ -790,6 +1153,9 @@ mod tests {
             scope_margins: Default::default(),
             class_min_sources: 2,
             alpha_trial: None,
+            certify: CertifyMethod::Split,
+            step: None,
+            sequential: None,
         }
     }
 
@@ -802,7 +1168,7 @@ mod tests {
             let review = if i < dis { false } else { annot };
             let p = if annot { 0.9 } else { 0.1 };
             rows.push(serde_json::from_value(serde_json::json!({"key": "k", "item": item, "p": p, "label": annot, "source": "model:sonnet"})).unwrap());
-            rows.push(serde_json::from_value(serde_json::json!({"key": "k", "item": item, "p": p, "label": review, "source": "model:fable", "spot_check": "fable-r1"})).unwrap());
+            rows.push(serde_json::from_value(serde_json::json!({"key": "k", "item": item, "label": review, "source": "model:fable", "spot_check": "fable-r1"})).unwrap());
         }
         rows
     }
@@ -811,7 +1177,7 @@ mod tests {
     // 依据：B36 第 5(c) 条
     #[test]
     fn extent_undetermined_when_disagreements_share_a_direction() {
-        let mut store = CalibStore::new();
+        let mut store = 库();
         let rep = import_labels(&mut store, &批(4), &选项()).unwrap();
         assert_eq!(rep[0].truth.gate, "待核：分歧同向 4/4，题面外延未定");
         assert_ne!(rep[0].status, "上岗");
@@ -822,52 +1188,82 @@ mod tests {
     // 依据：B68 第 1 条
     #[test]
     fn scope_fingerprint_needs_text_on_every_row() {
-        let mut rows = 批(0);
+        let mut rows = 两极批("k", 240, 0); // 可认证：P1 起范围只在认证时写
         for r in rows.iter_mut() {
             r.text = Some(format!("材料{}：今天下午的会议推迟到三点。", r.item));
         }
-        let mut store = CalibStore::new();
+        let mut store = 库();
         import_labels(&mut store, &rows, &选项()).unwrap();
-        let fp = store.get("k").scope.and_then(|s| s.fingerprint).expect("全部带文本 → 写指纹");
+        let fp = store
+            .get("k")
+            .scope
+            .and_then(|s| s.fingerprint)
+            .expect("全部带文本 → 写指纹");
         assert_eq!(fp.ranges.len(), jpp_value::stat::FP_NAMES.len());
 
         rows[0].text = None;
         rows[1].text = None;
-        let mut store = CalibStore::new();
+        let mut store = 库();
         let rep = import_labels(&mut store, &rows, &选项()).unwrap();
-        assert!(store.get("k").scope.and_then(|s| s.fingerprint).is_none());
-        assert!(rep[0].warnings.iter().any(|w| w.starts_with("W-scope-partial")), "{:?}", rep[0].warnings);
+        // B104-2（步 20h-1）：部分带文本 → 用带文本的子集写指纹，记 n_text
+        let sc = store.get("k").scope.unwrap();
+        assert_eq!(sc.n_text, Some(238));
+        assert_eq!(sc.fingerprint.unwrap().n, 238);
+        assert!(
+            rep[0]
+                .warnings
+                .iter()
+                .any(|w| w.starts_with("W-scope-partial")),
+            "{:?}",
+            rep[0].warnings
+        );
     }
 
     /// B68 修订：缺省边距下认证集自判范围外为 0；去掉边距、收窄分位时自判非 0 → W-scope-self。
     // 依据：B68 修订（认证集自判范围外必须为 0）
     #[test]
     fn scope_self_check_reports_w_scope_self() {
-        let mut rows = 批(0);
+        let mut rows = 两极批("k", 240, 0); // 可认证：P1 起范围只在认证时写
         for (i, r) in rows.iter_mut().enumerate() {
-            r.text = Some(format!("材料{}：今天下午的会议推迟到三点{}。", r.item, "，大家准时到".repeat(i % 4)));
+            r.text = Some(format!(
+                "材料{}：今天下午的会议推迟到三点{}。",
+                r.item,
+                "，大家准时到".repeat(i % 4)
+            ));
         }
-        let mut store = CalibStore::new();
+        let mut store = 库();
         let rep = import_labels(&mut store, &rows, &选项()).unwrap();
         assert_eq!(rep[0].scope_self_outside, Some(0));
-        assert!(!rep[0].warnings.iter().any(|w| w.starts_with("W-scope-self")));
+        assert!(
+            !rep[0]
+                .warnings
+                .iter()
+                .any(|w| w.starts_with("W-scope-self"))
+        );
         let fp = store.get("k").scope.and_then(|s| s.fingerprint).unwrap();
         assert_eq!(fp.margins, Some(ScopeMargins { k: 2.0, m: 0.10 }));
 
         let mut opt = 选项();
         opt.scope_quantiles = (0.3, 0.7);
         opt.scope_margins = ScopeMargins { k: 1.0, m: 0.0 };
-        let mut store = CalibStore::new();
+        let mut store = 库();
         let rep = import_labels(&mut store, &rows, &opt).unwrap();
         assert!(rep[0].scope_self_outside.unwrap() > 0);
-        assert!(rep[0].warnings.iter().any(|w| w.starts_with("W-scope-self")), "{:?}", rep[0].warnings);
+        assert!(
+            rep[0]
+                .warnings
+                .iter()
+                .any(|w| w.starts_with("W-scope-self")),
+            "{:?}",
+            rep[0].warnings
+        );
     }
 
     /// B36 5(c) 不命中：分歧只有 2 条（少于 3），走原有的一致率门。
     // 依据：B36 第 5(c) 条
     #[test]
     fn extent_not_judged_below_the_disagreement_minimum() {
-        let mut store = CalibStore::new();
+        let mut store = 库();
         let rep = import_labels(&mut store, &批(2), &选项()).unwrap();
         assert!(!rep[0].truth.gate.contains("外延"), "{}", rep[0].truth.gate);
         assert!(!rep[0].warnings.iter().any(|w| w.starts_with("W-extent")));
@@ -892,21 +1288,27 @@ mod tests {
     #[test]
     fn class_record_needs_mixed_sources() {
         let ck = CalibStore::class_key("c");
-        let mut store = CalibStore::new();
+        let mut store = 库();
         let rep = import_labels(&mut store, &类批(1), &选项()).unwrap();
         assert_eq!(rep[0].key, ck);
-        assert_eq!(rep[0].truth.gate, "待核：类记录来源不足（1 个来源，需 ≥ 2）");
+        assert_eq!(
+            rep[0].truth.gate,
+            "待核：类记录来源不足（1 个来源，需 ≥ 2）"
+        );
         assert_ne!(store.get(&ck).status, "上岗");
         assert!(!store.records.contains_key("c"), "类行不写进作者键");
 
-        let mut store = CalibStore::new();
+        let mut store = 库();
         let rep = import_labels(&mut store, &类批(3), &选项()).unwrap();
         assert_eq!(store.get(&ck).status, "上岗", "{:?}", rep[0].truth.gate);
         // 记录写来源计数；分半按来源分层，证书方法记 split-strata
         let r = store.records.get(&ck).unwrap();
         assert_eq!(r.sources.len(), 3);
         assert_eq!(r.sources.values().sum::<u64>(), 240);
-        assert_eq!(r.选中的证书().unwrap().selection.as_ref().unwrap().method, "split-strata");
+        assert_eq!(
+            r.选中的证书().unwrap().selection.as_ref().unwrap().method,
+            "split-strata-stratified"
+        );
     }
 
     /// 题键行：`n` 条 `computed` 真值，读数两极、正负各半（零错）。
@@ -924,31 +1326,47 @@ mod tests {
     }
 
     fn 带试用() -> ImportOptions {
-        ImportOptions { alpha_trial: Some(0.25), ..选项() }
+        ImportOptions {
+            alpha_trial: Some(0.25),
+            ..选项()
+        }
     }
 
     /// B72：80 条正式 α 不够（每格要 22），试用 α 上岗；证书记 trial，门控写「试用上岗」，不以「临时上岗」开头。
     // 依据：B72（等级按 α 分档；先正式后试用）
     #[test]
     fn b72_trial_line_when_formal_falls_short() {
-        let mut store = CalibStore::new();
+        let mut store = 库();
         let rep = import_labels(&mut store, &两极批("k", 80, 0), &带试用()).unwrap();
         assert_eq!(store.get("k").status, "上岗", "{}", rep[0].truth.gate);
-        assert!(rep[0].truth.gate.starts_with("试用上岗（α=0.25）：正式 α=0.1 未过：待核"), "{}", rep[0].truth.gate);
+        assert!(
+            rep[0]
+                .truth
+                .gate
+                .starts_with("试用上岗（α=0.25）：正式 α=0.1 未过：待核"),
+            "{}",
+            rep[0].truth.gate
+        );
         assert!(rep[0].trial.as_deref().unwrap().starts_with("试用上岗"));
         let c = store.records["k"].选中的证书().unwrap();
         assert_eq!((c.grade, c.alpha), (CertGrade::Trial, 0.25));
-        assert_eq!(rep[0].certification.as_ref().unwrap().grade, CertGrade::Trial);
+        assert_eq!(
+            rep[0].certification.as_ref().unwrap().grade,
+            CertGrade::Trial
+        );
         // 记录全文带等级（进账本头 calib_used）
         let j = serde_json::to_value(&store.records["k"]).unwrap();
         assert!(j.to_string().contains("\"grade\":\"trial\""));
         // 不给试用 α（或不大于正式 α）则不试
-        let mut store = CalibStore::new();
+        let mut store = 库();
         let rep = import_labels(&mut store, &两极批("k", 80, 0), &选项()).unwrap();
         assert_ne!(store.get("k").status, "上岗");
         assert!(rep[0].trial.is_none());
-        let mut store = CalibStore::new();
-        let opt = ImportOptions { alpha_trial: Some(0.1), ..选项() };
+        let mut store = 库();
+        let opt = ImportOptions {
+            alpha_trial: Some(0.1),
+            ..选项()
+        };
         import_labels(&mut store, &两极批("k", 80, 0), &opt).unwrap();
         assert_ne!(store.get("k").status, "上岗");
     }
@@ -956,11 +1374,14 @@ mod tests {
     /// B72：正式 α 过了就不试；证书等级正式、不序列化 grade（旧记录逐字节不变的同一条）。
     #[test]
     fn b72_formal_first() {
-        let mut store = CalibStore::new();
+        let mut store = 库();
         let rep = import_labels(&mut store, &两极批("k", 240, 0), &带试用()).unwrap();
         assert_eq!(rep[0].truth.gate, "上岗");
         assert!(rep[0].trial.is_none());
-        assert_eq!(store.records["k"].选中的证书().unwrap().grade, CertGrade::Formal);
+        assert_eq!(
+            store.records["k"].选中的证书().unwrap().grade,
+            CertGrade::Formal
+        );
         let j = serde_json::to_value(&store.records["k"]).unwrap();
         assert!(!j.to_string().contains("\"grade\""));
     }
@@ -968,7 +1389,7 @@ mod tests {
     /// B72：已有正式线的键，新一批正式不过时不试，线与证书原样（试用线不覆盖正式线）。
     #[test]
     fn b72_trial_never_overwrites_a_formal_line() {
-        let mut store = CalibStore::new();
+        let mut store = 库();
         import_labels(&mut store, &两极批("k", 240, 0), &带试用()).unwrap();
         let before = store.records["k"].clone();
         // 新一批：高读数却判「否」的错例，使合并后的正式认证不过
@@ -977,18 +1398,36 @@ mod tests {
             r.label = serde_json::json!(r.p < 0.5);
         }
         let rep = import_labels(&mut store, &bad, &带试用()).unwrap();
-        assert!(rep[0].truth.gate.starts_with("认证不过") || rep[0].truth.gate.starts_with("待核"), "{}", rep[0].truth.gate);
-        assert!(rep[0].trial.as_deref().unwrap().starts_with("未试：已有正式线"), "{:?}", rep[0].trial);
+        assert!(
+            rep[0].truth.gate.starts_with("认证不过") || rep[0].truth.gate.starts_with("待核"),
+            "{}",
+            rep[0].truth.gate
+        );
+        assert!(
+            rep[0]
+                .trial
+                .as_deref()
+                .unwrap()
+                .starts_with("未试：已有正式线"),
+            "{:?}",
+            rep[0].trial
+        );
         let after = &store.records["k"];
-        assert_eq!((after.hi, after.lo, &after.status), (before.hi, before.lo, &before.status));
-        assert!(after.certs.values().all(|c| c.grade == CertGrade::Formal), "不许出现试用证书");
+        assert_eq!(
+            (after.hi, after.lo, &after.status),
+            (before.hi, before.lo, &before.status)
+        );
+        assert!(
+            after.certs.values().all(|c| c.grade == CertGrade::Formal),
+            "不许出现试用证书"
+        );
     }
 
     /// B72：停岗候选（B25）上的正式线也不被试用线覆盖：新一批正式不过时不试，证书里不出现试用证书。
     // 依据：B72（试用线不得覆盖已存在的正式线）
     #[test]
     fn b72_trial_never_overwrites_a_suspend_candidate_formal_line() {
-        let mut store = CalibStore::new();
+        let mut store = 库();
         import_labels(&mut store, &两极批("k", 240, 0), &带试用()).unwrap();
         store.records.get_mut("k").unwrap().status = "停岗候选".into();
         let before = store.records["k"].clone();
@@ -997,9 +1436,20 @@ mod tests {
             r.label = serde_json::json!(r.p < 0.5);
         }
         let rep = import_labels(&mut store, &bad, &带试用()).unwrap();
-        assert!(rep[0].trial.as_deref().unwrap().starts_with("未试：已有正式线"), "{:?}", rep[0].trial);
+        assert!(
+            rep[0]
+                .trial
+                .as_deref()
+                .unwrap()
+                .starts_with("未试：已有正式线"),
+            "{:?}",
+            rep[0].trial
+        );
         let after = &store.records["k"];
-        assert_eq!((after.hi, after.lo, &after.status), (before.hi, before.lo, &before.status));
+        assert_eq!(
+            (after.hi, after.lo, &after.status),
+            (before.hi, before.lo, &before.status)
+        );
         assert!(after.certs.values().all(|c| c.grade == CertGrade::Formal));
     }
 
@@ -1014,20 +1464,25 @@ mod tests {
                 .unwrap()
             })
             .collect();
-        let mut store = CalibStore::new();
+        let mut store = 库();
         let rep = import_labels(&mut store, &rows, &带试用()).unwrap();
         assert_eq!(store.get("s").status, "上岗", "{}", rep[0].truth.gate);
-        assert_eq!(store.records["s"].选中的证书().unwrap().grade, CertGrade::Trial);
+        assert_eq!(
+            store.records["s"].选中的证书().unwrap().grade,
+            CertGrade::Trial
+        );
     }
 
     /// 类行没有任何来源题身份（无 question、key、form）时拒收整批。
     #[test]
     fn class_row_without_source_question_is_rejected() {
-        let rows: Vec<LabelRow> = vec![serde_json::from_value(serde_json::json!({
-            "class": "c", "item": "m0", "p": 0.9, "label": true, "source": "computed"
-        }))
-        .unwrap()];
-        let e = import_labels(&mut CalibStore::new(), &rows, &选项()).unwrap_err();
+        let rows: Vec<LabelRow> = vec![
+            serde_json::from_value(serde_json::json!({
+                "class": "c", "item": "m0", "p": 0.9, "label": true, "source": "computed"
+            }))
+            .unwrap(),
+        ];
+        let e = import_labels(&mut 库(), &rows, &选项()).unwrap_err();
         assert!(e.contains("来源题"), "{e}");
     }
 }

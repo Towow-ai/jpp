@@ -101,6 +101,11 @@ def load_profile(name: str = "jev-1.13.0") -> dict:
         return json.load(fh)
 
 
+# 已决区边界的往返容差（与 Rust `jpp_value::stat::BOUNDARY_EPS` 同值同理由，步 15d-2）：线存 hi = h − δ，
+# 判区算 hi + δ，浮点下可能比 h 大 1ulp；1e-12 只收回这个往返误差。依据：主会话 2026-09-25（15d-2）。
+BOUNDARY_EPS = 1e-12
+
+
 class Runtime:
     def __init__(self, client, *, profile: dict | str | None = "jev-1.13.0", root: str | None = None,
                  passes: dict | None = None, max_workers: int | None = None,
@@ -1161,9 +1166,9 @@ class Runtime:
         kw = dict(kw, provisional=provisional)
         p = float(ans["p"])
         if q.op == "test":
-            if p >= hi + delta:
+            if p >= hi + delta - BOUNDARY_EPS:
                 return Act(p=p, **kw)
-            if p <= lo - delta:
+            if p <= lo - delta + BOUNDARY_EPS:
                 return Ignore(p=p, **kw)
             return Unsure("band", p=p, **kw)
         if q.op == "select":
@@ -1179,15 +1184,15 @@ class Runtime:
                     probs = {i: ans["probs"].get(i, 0.0) for i in elig}
                     top = max(probs, key=probs.get)
                     return Pick(top, p=probs[top], detail={"prior": "tie-by-reading"}, **kw) \
-                        if probs[top] >= hi + delta else Unsure("band", p=probs[top], **kw)
+                        if probs[top] >= hi + delta - BOUNDARY_EPS else Unsure("band", p=probs[top], **kw)
             if ans.get("mode_share", 1.0) < 1.0:
                 return Unsure("tie", p=p, detail={"mode_share": ans["mode_share"]}, **kw)
             if ans.get("knoul") and (p - ans.get("second", 0.0)) <= delta:
                 return Unsure("tie", p=p, detail={"second": ans.get("second")}, **kw)
-            if p >= hi + delta:
+            if p >= hi + delta - BOUNDARY_EPS:
                 return Pick(int(ans["value"]), p=p, **kw)
             return Unsure("band", p=p, **kw)
-        if p >= hi + delta:
+        if p >= hi + delta - BOUNDARY_EPS:
             return At(int(ans["value"]), p=p, **kw)
         return Unsure("band", p=p, detail={"nearest_level": int(ans["value"]) if ans.get("value") is not None else None}, **kw)
 

@@ -1,0 +1,6 @@
+// 题库条目 which_named（首批 F3，归类 · K 候选为程序写定的标签 · 真值可算）。
+// 条目说明：bank/entries/e49770913911a79525896988/条目.md。
+// 线在两序（正序、逆序）读数上认证，所以题式带 permute: true（B64）。去掉它不改 form_hash，
+// 但单序读数与认证时的测量不同，真机出口会是 unsure(untested:permutation)。
+// 用法：judge(state(材料, {over: 候选标签}), fill(which_named, {kind: "城市"}))。
+let which_named = form("select", "这段话里直接写出了下列哪一个{kind}的名字？", {calib: "cls-which-mentioned", over_kind: "labels", permute: true});

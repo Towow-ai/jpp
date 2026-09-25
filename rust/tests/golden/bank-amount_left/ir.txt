@@ -1,0 +1,128 @@
+ir v1
+budget calls=3 cost=0.01 depth=16 escalate=- unsure=- latency_p95=- absent=-
+block 430..1135
+  let amount_left : -
+    #0 construct form @0 1351..1498
+      #1 text "measure"
+      #2 text "这段话里说的{thing}还剩多少？"
+      #3 record 1411..1497
+        calib:
+          #4 text "deg-amount-left"
+        scale:
+          #5 list 1445..1496
+            #6 text "已经没有了"
+            #7 text "只剩一点"
+            #8 text "还有很多"
+  let levels : -
+    #9 list 486..537
+      #10 text "已经没有了"
+      #11 text "只剩一点"
+      #12 text "还有很多"
+  let texts : -
+    #13 list 551..734
+      #14 text "电池全部断货了，胶带倒是够用好几个月。"
+      #15 text "胶带所剩无几，不过纸杯多得是。"
+      #16 text "盘点结果：大米堆满了半个仓库；胶带早就用光了。"
+  fn-stmt one
+    #17 fn (t:-) -> - effects=[judge]
+      block 756..963
+        result
+          #18 handle @1 762..961
+            exit:
+              #19 cut @2 769..832
+                reading:
+                  #20 effect judge @3 773..831
+                    state:
+                      #21 state @4 779..792
+                        on:
+                          #22 call 785..791
+                            callee:
+                              #23 name mat
+                            #24 name t
+                    questions:
+                      #25 construct fill @5 794..830
+                        #26 name amount_left
+                        #27 record 812..829
+                          thing:
+                            #28 text "胶带"
+            arms:
+              #29 record 834..960
+                at:
+                  #31 fn (k:-) -> - effects=-
+                    block 854..894
+                      result
+                        #32 record 856..892
+                          text:
+                            #33 name t
+                          left:
+                            #34 index
+                              #35 name levels
+                              #36 name k
+                          open:
+                            #37 list 889..891
+                unsure:
+                  #39 fn (u:-) -> - effects=-
+                    block 918..954
+                      result
+                        #40 record 920..952
+                          text:
+                            #41 name t
+                          left:
+                            #42 unit
+                          open:
+                            #43 list 948..951
+                              #44 name u
+  let rows : -
+    #45 call @6 976..1013
+      callee:
+        #46 name map
+      #47 name texts
+      #49 fn (t:-) -> - effects=[judge]
+        block 1002..1012
+          result
+            #50 call 1004..1010
+              callee:
+                #51 name one
+              #52 name t
+  result
+    #53 record 1016..1135
+      left:
+        #54 call @7 1023..1072
+          callee:
+            #55 name map
+          #56 name rows
+          #58 fn (r:-) -> - effects=-
+            block 1039..1071
+              result
+                #59 record 1041..1069
+                  text:
+                    #60 field .text
+                      #61 name r
+                  left:
+                    #62 field .left
+                      #63 name r
+      pending:
+        #64 call @8 1084..1134
+          callee:
+            #65 name fold
+          #66 name rows
+          #67 list 1095..1097
+          #69 fn (acc:-, r:-) -> - effects=-
+            block 1110..1133
+              result
+                #70 call 1112..1131
+                  callee:
+                    #71 name concat
+                  #72 name acc
+                  #73 field .open
+                    #74 name r
+sites 9
+  @0 #0 construct:form 1351..1498 fn=- in=-
+  @1 #18 handle 762..961 fn=#17 in=-
+  @2 #19 cut 769..832 fn=#17 in=-
+  @3 #20 effect:judge 773..831 fn=#17 in=-
+  @4 #21 state 779..792 fn=#17 in=-
+  @5 #25 construct:fill 794..830 fn=#17 in=-
+  @6 #45 hof:map 976..1013 fn=- in=-
+  @7 #54 hof:map 1023..1072 fn=- in=-
+  @8 #64 hof:fold 1084..1134 fn=- in=-

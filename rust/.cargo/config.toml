@@ -1,0 +1,8 @@
+# 本机多轨并行时限制编译与测试并发，防止整机卡死（2026-09-25 一次强制重启后加）。
+# CI 或单轨需要更快时，用环境变量 CARGO_BUILD_JOBS / RUST_TEST_THREADS 覆盖。
+# Limit build/test parallelism when several tracks build at once on this machine.
+[build]
+jobs = 2
+
+[env]
+RUST_TEST_THREADS = "2"

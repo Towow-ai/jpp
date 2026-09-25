@@ -7,89 +7,141 @@
     "tokens": 0,
     "usd": 0.0
   },
+  "entry": [],
   "exits": [
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 0,
+      "item": "525396dc2479",
       "key": "c-tech",
+      "pos": 0,
       "releases": false,
       "site": 1186
     },
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 1,
+      "item": "e990372fd451",
       "key": "c-tech",
+      "pos": 1,
       "releases": false,
       "site": 1186
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 2,
+      "item": "6751d9ac13ae",
       "key": "c-tech",
+      "pos": 2,
       "releases": false,
       "site": 1186
     },
     {
       "exit": "unsure(band)",
       "grade": "Fixture",
+      "index": 3,
+      "item": "f0a727377c2b",
       "key": "c-tech",
+      "pos": 3,
       "releases": false,
       "site": 1186
     },
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 0,
+      "item": "5fc81b291401",
       "key": "c-fit",
+      "pos": 0,
       "releases": false,
       "site": 1434
     },
     {
       "exit": "unsure(band)",
       "grade": "Fixture",
+      "index": 1,
+      "item": "6b0bc02e7f1c",
       "key": "c-fit",
+      "pos": 1,
       "releases": false,
       "site": 1434
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 2,
+      "item": "c8dc09b08f21",
       "key": "c-fit",
+      "pos": 2,
       "releases": false,
       "site": 1434
     },
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 3,
+      "item": "3d1afcf96244",
       "key": "c-fit",
+      "pos": 3,
       "releases": false,
       "site": 1434
     },
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 0,
+      "item": "5ddbc9a975cc",
       "key": "c-grow",
+      "pos": 0,
       "releases": false,
-      "site": 2097
+      "site": 2056
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 1,
+      "item": "0dd9f5ba8fd3",
       "key": "c-grow",
+      "pos": 1,
       "releases": false,
-      "site": 2097
+      "site": 2056
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 0,
+      "item": "6b0bc02e7f1c",
       "key": "c-fit",
+      "pos": 0,
       "releases": false,
-      "site": 1795
+      "site": 1780
     }
   ],
   "fixture_description": "Synthetic fixed observations for contract.jpp (construction check only; not model evaluation). Calibration records are hand-written to exercise routing, not calibration. 钱设计 × tech and 后台 × 李工 × fits are set to 0.5 on purpose to show unsure items travelling in the contract.",
   "local_checks": [],
   "mode": "fixed observations; no model API requests",
   "pending": [],
+  "questions": [
+    {
+      "kind": "attr",
+      "q": "03d341e836e350eac190d030"
+    },
+    {
+      "kind": "attr",
+      "q": "615a0f8ed47fa7d6f0e1784d"
+    },
+    {
+      "kind": "attr",
+      "q": "b985e8d6a1156f2c119b2b34"
+    },
+    {
+      "kind": "attr",
+      "q": "0f1fa3bf33a4be22419c3a87"
+    }
+  ],
   "replay": false,
   "resumed": false,
   "returned_unsure": [
@@ -189,44 +241,48 @@
       },
       {
         "cost": 0.0,
-        "key": "707b5081c74c62474b96c431",
+        "key": "7febf7f229e58b63656bc1cd",
         "kind": "judge",
         "note": "「已有组合 a（需求 a.a 与承接成员 a.b）加入新成员 b 后，这个组合整体能更好地完成该需求吗？」",
         "replayed": false,
         "site": {
-          "end": 2169,
-          "start": 2097
+          "end": 2128,
+          "start": 2056
         }
       },
       {
         "cost": 0.0,
-        "key": "d6fe2a97c911bcf696563427",
+        "key": "6af848ca59ae88ad01942cdf",
         "kind": "judge",
         "note": "「已有组合 a（需求 a.a 与承接成员 a.b）加入新成员 b 后，这个组合整体能更好地完成该需求吗？」",
         "replayed": false,
         "site": {
-          "end": 2169,
-          "start": 2097
+          "end": 2128,
+          "start": 2056
         }
       },
       {
         "cost": 0.0,
-        "key": "d82c5344c23d156263a89a27",
+        "key": "5f58332c9c4936b84a9f3fee",
         "kind": "judge",
         "note": "「只看成员 b 列出的技能，他能独立完成需求 a 的主要工作吗？」",
         "replayed": false,
         "site": {
-          "end": 1870,
-          "start": 1795
+          "end": 1829,
+          "start": 1780
         }
       }
     ],
     "warnings": [
+      "W-window-untested: @1186 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
       "W-fixture-line: @1186 键 c-tech 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
       "W-fixture-line: @1186 键 c-tech 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-window-untested: @1434 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
       "W-fixture-line: @1434 键 c-fit 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
       "W-fixture-line: @1434 键 c-fit 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
-      "W-fixture-line: @2097 键 c-grow 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-window-untested: @2056 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
+      "W-fixture-line: @2056 键 c-grow 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-window-untested: @1780 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
       "returned_unsure: unsure(band), unsure(band)"
     ]
   },
@@ -248,109 +304,91 @@
     "pending": [
       [
         {
+          "at": [
+            0,
+            1
+          ],
           "cause": "band",
-          "element": {
-            "cause": "band",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(band)",
-              "id": 5,
-              "q": "615a0f8ed47fa7d6f0e1784d"
-            },
-            "index": 1,
-            "item": {
-              "a": "做一个带登录的网页后台",
-              "b": {
-                "name": "李工",
-                "skills": [
-                  "数据库",
-                  "后端"
-                ]
-              }
-            },
-            "source": {
-              "at": [
-                0,
-                1
-              ],
-              "item": {
-                "a": "做一个带登录的网页后台",
-                "b": {
-                  "name": "李工",
-                  "skills": [
-                    "数据库",
-                    "后端"
-                  ]
-                }
-              },
-              "left": "做一个带登录的网页后台",
-              "right": {
-                "cause": null,
-                "exit": {
-                  "consumed": true,
-                  "exit": "act",
-                  "id": 1,
-                  "q": "03d341e836e350eac190d030"
-                },
-                "index": 1,
-                "item": {
-                  "name": "李工",
-                  "skills": [
-                    "数据库",
-                    "后端"
-                  ]
-                },
-                "source": {
-                  "name": "李工",
-                  "skills": [
-                    "数据库",
-                    "后端"
-                  ]
-                },
-                "trail": []
-              },
-              "trail": []
-            },
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
             "id": 5,
             "q": "615a0f8ed47fa7d6f0e1784d"
-          }
+          },
+          "item": {
+            "a": "做一个带登录的网页后台",
+            "b": {
+              "name": "李工",
+              "skills": [
+                "数据库",
+                "后端"
+              ]
+            }
+          },
+          "key": "d7181e1ae3081ea55b77cbfb",
+          "left": "做一个带登录的网页后台",
+          "pos": 1,
+          "q": {
+            "calib": "c-fit",
+            "op": "noul",
+            "question": "615a0f8ed47fa7d6f0e1784d",
+            "text": "成员 b 的技能能完成需求 a 吗？"
+          },
+          "qi": 0,
+          "right": {
+            "cause": null,
+            "exit": {
+              "consumed": true,
+              "exit": "act",
+              "id": 1,
+              "q": "03d341e836e350eac190d030"
+            },
+            "index": 1,
+            "item": {
+              "name": "李工",
+              "skills": [
+                "数据库",
+                "后端"
+              ]
+            },
+            "key": "98b9803aa5f2140340d5e018",
+            "pos": 1,
+            "q": {
+              "calib": "c-tech",
+              "op": "noul",
+              "question": "03d341e836e350eac190d030",
+              "text": "这个人的技能里有软件开发方面的技能吗？"
+            },
+            "qi": 0,
+            "trail": []
+          },
+          "trail": []
         },
         {
           "cause": "band",
-          "element": {
-            "cause": "band",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(band)",
-              "id": 3,
-              "q": "03d341e836e350eac190d030"
-            },
-            "index": 3,
-            "item": {
-              "name": "钱设计",
-              "skills": [
-                "UI 设计"
-              ]
-            },
-            "source": {
-              "name": "钱设计",
-              "skills": [
-                "UI 设计"
-              ]
-            },
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
             "id": 3,
             "q": "03d341e836e350eac190d030"
-          }
+          },
+          "index": 3,
+          "item": {
+            "name": "钱设计",
+            "skills": [
+              "UI 设计"
+            ]
+          },
+          "key": "eaa55a81e3e0349b8d3faeb3",
+          "pos": 3,
+          "q": {
+            "calib": "c-tech",
+            "op": "noul",
+            "question": "03d341e836e350eac190d030",
+            "text": "这个人的技能里有软件开发方面的技能吗？"
+          },
+          "qi": 0,
+          "trail": []
         }
       ],
       []
@@ -430,7 +468,7 @@
         "pending": 2
       },
       {
-        "calls": 0,
+        "calls": 8,
         "evidence": 8,
         "fields": [
           "kind",

@@ -7,10 +7,12 @@
     "tokens": 0,
     "usd": 0.0
   },
+  "entry": [],
   "exits": [
     {
       "exit": "act",
       "grade": "Fixture",
+      "item": "70802fe4916f",
       "key": "form-mention",
       "releases": false,
       "site": 1010
@@ -18,6 +20,7 @@
     {
       "exit": "act",
       "grade": "Fixture",
+      "item": "70802fe4916f",
       "key": "form-mention",
       "releases": false,
       "site": 1010
@@ -27,6 +30,16 @@
   "local_checks": [],
   "mode": "fixed observations; no model API requests",
   "pending": [],
+  "questions": [
+    {
+      "kind": "attr",
+      "q": "d67d3d2065de7ab9274f08d4"
+    },
+    {
+      "kind": "attr",
+      "q": "aba7388ab6667a4708ba4755"
+    }
+  ],
   "replay": false,
   "resumed": false,
   "returned_unsure": [],
@@ -35,9 +48,9 @@
     "events": [
       {
         "cost": 0.0,
-        "key": "3760f5ca457b2ec3ed68e49b",
+        "key": "a384e3a3c82161f7149d2a85",
         "kind": "judge",
-        "note": "「这段话是否提到了南宁？只算明确写出这个城市名的情况。」",
+        "note": "「这段话是否提到了南京？只算明确写出这个城市名的情况。」",
         "replayed": false,
         "site": {
           "end": 1032,
@@ -46,9 +59,9 @@
       },
       {
         "cost": 0.0,
-        "key": "a384e3a3c82161f7149d2a85",
+        "key": "3760f5ca457b2ec3ed68e49b",
         "kind": "judge",
-        "note": "「这段话是否提到了南京？只算明确写出这个城市名的情况。」",
+        "note": "「这段话是否提到了南宁？只算明确写出这个城市名的情况。」",
         "replayed": false,
         "site": {
           "end": 1032,
@@ -68,6 +81,7 @@
       }
     ],
     "warnings": [
+      "W-window-untested: @1014 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
       "W-fixture-line: @1010 键 form-mention 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
       "W-fixture-line: @1010 键 form-mention 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线"
     ]

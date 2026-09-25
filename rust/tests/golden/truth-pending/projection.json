@@ -17,47 +17,51 @@
     "pending": [
       {
         "cause": "cold",
-        "element": {
-          "cause": "cold",
-          "exit": {
-            "consumed": true,
-            "exit": "unsure(cold|untested:calib_line)",
-            "id": 0,
-            "q": "c3ba62228369b670cc9b0c55"
-          },
-          "index": 0,
-          "item": "那台立式乐器占了客厅一角，搬家时最费劲。",
-          "source": "那台立式乐器占了客厅一角，搬家时最费劲。",
-          "trail": []
-        },
         "exit": {
           "consumed": true,
           "exit": "unsure(cold|untested:calib_line)",
           "id": 0,
           "q": "c3ba62228369b670cc9b0c55"
-        }
+        },
+        "fill": {
+          "concept": "钢琴"
+        },
+        "index": 0,
+        "item": "那台立式乐器占了客厅一角，搬家时最费劲。",
+        "key": "f742504ac754174a740c0b83",
+        "pos": 0,
+        "q": {
+          "calib": "form-concept",
+          "op": "noul",
+          "question": "c3ba62228369b670cc9b0c55",
+          "text": "这段话是否提到了钢琴？"
+        },
+        "qi": 0,
+        "trail": []
       },
       {
         "cause": "cold",
-        "element": {
-          "cause": "cold",
-          "exit": {
-            "consumed": true,
-            "exit": "unsure(cold|untested:calib_line)",
-            "id": 1,
-            "q": "c3ba62228369b670cc9b0c55"
-          },
-          "index": 1,
-          "item": "他背起吉他，坐在公园长椅上弹唱了一下午。",
-          "source": "他背起吉他，坐在公园长椅上弹唱了一下午。",
-          "trail": []
-        },
         "exit": {
           "consumed": true,
           "exit": "unsure(cold|untested:calib_line)",
           "id": 1,
           "q": "c3ba62228369b670cc9b0c55"
-        }
+        },
+        "fill": {
+          "concept": "钢琴"
+        },
+        "index": 1,
+        "item": "他背起吉他，坐在公园长椅上弹唱了一下午。",
+        "key": "c6382fb2e46f34173a3be548",
+        "pos": 1,
+        "q": {
+          "calib": "form-concept",
+          "op": "noul",
+          "question": "c3ba62228369b670cc9b0c55",
+          "text": "这段话是否提到了钢琴？"
+        },
+        "qi": 0,
+        "trail": []
       }
     ],
     "unsure": [

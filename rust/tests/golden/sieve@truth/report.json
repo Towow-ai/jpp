@@ -7,215 +7,336 @@
     "tokens": 0,
     "usd": 0.0
   },
+  "entry": [],
   "exits": [
     {
       "exit": "act",
       "grade": "Form",
+      "index": 0,
+      "item": "bc57fcc1b279",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 0,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Form",
+      "index": 1,
+      "item": "f24b09a37905",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 1,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Form",
+      "index": 2,
+      "item": "27797d537af7",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 2,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "act",
       "grade": "Form",
+      "index": 3,
+      "item": "8cbee367f561",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 3,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Form",
+      "index": 4,
+      "item": "f69e588a5f5c",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 4,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Form",
+      "index": 5,
+      "item": "0709db4927c6",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 5,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Form",
+      "index": 6,
+      "item": "868e02657e69",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 6,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Form",
+      "index": 7,
+      "item": "5671a0b0776f",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 7,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "act",
       "grade": "Form",
+      "index": 8,
+      "item": "312540cfc316",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 8,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "act",
       "grade": "Form",
+      "index": 9,
+      "item": "bc57fcc1b279",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 9,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Form",
+      "index": 0,
+      "item": "bc57fcc1b279",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 0,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "act",
       "grade": "Form",
+      "index": 1,
+      "item": "f24b09a37905",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 1,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "unsure(band)",
       "grade": "Form",
+      "index": 2,
+      "item": "27797d537af7",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 2,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "act",
       "grade": "Form",
+      "index": 3,
+      "item": "8cbee367f561",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 3,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Form",
+      "index": 4,
+      "item": "f69e588a5f5c",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 4,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Form",
+      "index": 5,
+      "item": "0709db4927c6",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 5,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "act",
       "grade": "Form",
+      "index": 6,
+      "item": "868e02657e69",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 6,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Form",
+      "index": 7,
+      "item": "5671a0b0776f",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 7,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Form",
+      "index": 8,
+      "item": "312540cfc316",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 8,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Form",
+      "index": 9,
+      "item": "bc57fcc1b279",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 9,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Form",
+      "index": 0,
+      "item": "bc57fcc1b279",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 0,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Form",
+      "index": 1,
+      "item": "f24b09a37905",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 1,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "act",
       "grade": "Form",
+      "index": 2,
+      "item": "27797d537af7",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 2,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Form",
+      "index": 3,
+      "item": "8cbee367f561",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 3,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Form",
+      "index": 4,
+      "item": "f69e588a5f5c",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 4,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Form",
+      "index": 5,
+      "item": "0709db4927c6",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 5,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "act",
       "grade": "Form",
+      "index": 6,
+      "item": "868e02657e69",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 6,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Form",
+      "index": 7,
+      "item": "5671a0b0776f",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 7,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "act",
       "grade": "Form",
+      "index": 8,
+      "item": "312540cfc316",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 8,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     },
     {
       "exit": "ignore",
       "grade": "Form",
+      "index": 9,
+      "item": "bc57fcc1b279",
       "key": "\u001fform\u001f38e0207a4cbe0a56b8b472b7",
-      "releases": true,
+      "pos": 9,
+      "releases": false,
+      "scope_unknown": true,
       "site": 968
     }
   ],
@@ -223,6 +344,35 @@
   "local_checks": [],
   "mode": "fixed observations; no model API requests",
   "pending": [],
+  "questions": [
+    {
+      "fill": {
+        "city": "成都"
+      },
+      "form_hash": "38e0207a4cbe0a56b8b472b7",
+      "kind": "attr",
+      "q": "fe110bdf799f05a9c379af93",
+      "template": "这段话是否提到了{city}？"
+    },
+    {
+      "fill": {
+        "city": "北京"
+      },
+      "form_hash": "38e0207a4cbe0a56b8b472b7",
+      "kind": "attr",
+      "q": "e85bdf01f404ebd6f33037a3",
+      "template": "这段话是否提到了{city}？"
+    },
+    {
+      "fill": {
+        "city": "杭州"
+      },
+      "form_hash": "38e0207a4cbe0a56b8b472b7",
+      "kind": "attr",
+      "q": "c50b398094fecd0e5a1a57aa",
+      "template": "这段话是否提到了{city}？"
+    }
+  ],
   "replay": false,
   "resumed": false,
   "returned_unsure": [
@@ -530,7 +680,9 @@
       }
     ],
     "warnings": [
+      "W-window-untested: @968 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
       "W-form-line: @968 题级校准键 form-mention 无上岗记录，用题式级线 form:38e0207a4cbe0a56b8b472b7（n=569）；出口带 line_source=题式级",
+      "W-scope-unknown: @968 键 \u001fform\u001f38e0207a4cbe0a56b8b472b7 的记录没有认证范围指纹（认证集没有材料文本），出口照常路由，不作放行不可逆 do 的可信合取项（B104）。修法【宿主】：带 text 重新导入，或经 B91 扩展并入范围",
       "W-form-line: @968 题级校准键 form-mention 无上岗记录，用题式级线 form:38e0207a4cbe0a56b8b472b7（n=569）；出口带 line_source=题式级",
       "W-form-line: @968 题级校准键 form-mention 无上岗记录，用题式级线 form:38e0207a4cbe0a56b8b472b7（n=569）；出口带 line_source=题式级",
       "W-form-line: @968 题级校准键 form-mention 无上岗记录，用题式级线 form:38e0207a4cbe0a56b8b472b7（n=569）；出口带 line_source=题式级",
@@ -569,25 +721,27 @@
       [
         {
           "cause": "band",
-          "element": {
-            "cause": "band",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(band)",
-              "id": 12,
-              "q": "e85bdf01f404ebd6f33037a3"
-            },
-            "index": 2,
-            "item": "这家公司的总部设在杭州。",
-            "source": "这家公司的总部设在杭州。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
             "id": 12,
             "q": "e85bdf01f404ebd6f33037a3"
-          }
+          },
+          "fill": {
+            "city": "北京"
+          },
+          "index": 2,
+          "item": "这家公司的总部设在杭州。",
+          "key": "ebb1e668fc0a382910faa8e2",
+          "pos": 2,
+          "q": {
+            "calib": "form-mention",
+            "op": "noul",
+            "question": "e85bdf01f404ebd6f33037a3",
+            "text": "这段话是否提到了北京？"
+          },
+          "qi": 1,
+          "trail": []
         }
       ],
       []

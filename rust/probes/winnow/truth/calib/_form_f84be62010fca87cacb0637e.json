@@ -1,90 +1,63 @@
 {
   "key": "\u001fform\u001ff84be62010fca87cacb0637e",
-  "hi": 0.62,
-  "lo": 0.54,
-  "n": 388,
+  "hi": 0.94,
+  "lo": 0.060000000000000005,
+  "n": 80,
   "status": "上岗",
   "delta": null,
-  "unsure_rate": 0.0052,
+  "unsure_rate": 0.0,
+  "unsure_rate_delta": 0.05,
   "set_id": "",
-  "label_set_id": "truth:语义R-模型标注加抽检.jsonl",
+  "label_set_id": "truth:labels.jsonl",
   "label_locator": "",
   "label_fp": "",
   "label_source": "全体",
   "certs": {
-    "α=0.1\u001fδ=0.1\u001ff42eafe635fbcc2c\u001f02b7b3636e946b2d\u001ffp=a0e4fd0350eb1a55\u001fsel(split,20260923,181,207)": {
+    "α=0.1\u001fδ=0.1\u001ff42eafe635fbcc2c\u001f02b7b3636e946b2d\u001ffp=d6759cd2f764e4bf\u001fsel(fixed-sequence,0,0,80)\u001frule(d6265c9dc4458b9e,step=Some(4),δ=Some(0.05))": {
       "alpha": 0.1,
       "conf_delta": 0.1,
-      "hi": 0.62,
-      "n_accepted": 112,
-      "n_errors": 3,
-      "ucb": 0.05867498546545537,
+      "hi": 0.94,
+      "n_accepted": 46,
+      "n_errors": 0,
+      "ucb": 0.04882403087812941,
       "cluster_unit": "条",
       "resample": [
         0,
-        "两侧联合选线（拆分样本）：选线半上取两区上界各 ≤ α 且已决最多的一对，认证半上对该对各检验一次"
+        "固定序认证（B86）：候选由读数按计数生成，从严到宽逐个检验上界 ≤ α，第一次不过即停；两侧通过前缀里取已决最多的合法线对"
       ],
       "cost": null,
       "bounded_side": "上侧：界定 p ≥ hi + δ 一侧的假放行",
       "label_source": "全体",
-      "label_fp": "a0e4fd0350eb1a55",
+      "label_fp": "d6759cd2f764e4bf",
       "selection": {
-        "method": "split",
-        "seed": 20260923,
-        "n_select": 181,
-        "n_certify": 207,
-        "candidates": 1682
+        "method": "fixed-sequence",
+        "seed": 0,
+        "n_select": 0,
+        "n_certify": 80,
+        "candidates": 3,
+        "rule": "fixed-sequence/v1",
+        "step": 4,
+        "delta": 0.05,
+        "generated": [
+          2,
+          2
+        ],
+        "stop_index": [
+          2,
+          2
+        ]
+      },
+      "eff": {
+        "alpha_eff": 0.1,
+        "conf": 0.9,
+        "truth_baseline": "model:fable-5.1",
+        "basis": "full-review"
       }
     }
   },
   "samples": [
     {
-      "p": 0.16,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
       "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.17,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.84,
       "label": 1,
       "perms": 0,
       "mode_share": null,
@@ -95,69 +68,6 @@
     {
       "p": 0.01,
       "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.04,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.09,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
       "perms": 0,
       "mode_share": null,
       "mode": "Unspecified",
@@ -201,411 +111,6 @@
       "cluster": null
     },
     {
-      "p": 0.37,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.22,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.03,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.22,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.01,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.01,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.97,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.03,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.05,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.69,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.04,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.97,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.07,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.03,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.28,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.07,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.94,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.01,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.88,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.03,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.03,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.06,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
       "p": 0.01,
       "label": 0,
       "perms": 0,
@@ -633,961 +138,7 @@
       "cluster": null
     },
     {
-      "p": 0.04,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.1,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.03,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.86,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.18,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.45,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
       "p": 0.01,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.86,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.15,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.03,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.01,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.01,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.01,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.01,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.48,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.97,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.22,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.01,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.97,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.01,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.03,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.41,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.59,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.06,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.73,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.06,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.94,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.18,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.15,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.14,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.01,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.03,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.05,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.01,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.92,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.96,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.07,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.04,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.03,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.79,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.03,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.01,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.94,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.22,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.97,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.01,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.97,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.04,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.03,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.03,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.88,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.97,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.01,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.96,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.96,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.03,
       "label": 0,
       "perms": 0,
       "mode_share": null,
@@ -1668,501 +219,6 @@
       "cluster": null
     },
     {
-      "p": 0.04,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.44,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.01,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.88,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.01,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.04,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.06,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.94,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.09,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.03,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.05,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.03,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.96,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.05,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.17,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.04,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.03,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.13,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.01,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.01,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.15,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.05,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
       "p": 0.99,
       "label": 1,
       "perms": 0,
@@ -2190,520 +246,7 @@
       "cluster": null
     },
     {
-      "p": 0.93,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.23,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.97,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
       "p": 0.01,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.97,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.04,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.05,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.89,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.52,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.19,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.96,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.03,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.97,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.05,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.12,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.05,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.09,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.73,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.04,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.13,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.91,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.03,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.95,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.12,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.06,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.92,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.4,
       "label": 0,
       "perms": 0,
       "mode_share": null,
@@ -2721,26 +264,8 @@
       "cluster": null
     },
     {
-      "p": 0.02,
+      "p": 0.01,
       "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.06,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
       "perms": 0,
       "mode_share": null,
       "mode": "Unspecified",
@@ -2757,70 +282,7 @@
       "cluster": null
     },
     {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.9,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.16,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.15,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.82,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.07,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.04,
+      "p": 0.01,
       "label": 0,
       "perms": 0,
       "mode_share": null,
@@ -2865,160 +327,7 @@
       "cluster": null
     },
     {
-      "p": 0.1,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.95,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.93,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.94,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
       "p": 0.01,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.03,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.95,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.03,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.94,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.15,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.84,
       "label": 0,
       "perms": 0,
       "mode_share": null,
@@ -3045,15 +354,6 @@
       "cluster": null
     },
     {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
       "p": 0.99,
       "label": 1,
       "perms": 0,
@@ -3063,124 +363,7 @@
       "cluster": null
     },
     {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.67,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.94,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.96,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.49,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
+      "p": 0.01,
       "label": 0,
       "perms": 0,
       "mode_share": null,
@@ -3198,7 +381,7 @@
       "cluster": null
     },
     {
-      "p": 0.11,
+      "p": 0.01,
       "label": 0,
       "perms": 0,
       "mode_share": null,
@@ -3207,7 +390,52 @@
       "cluster": null
     },
     {
-      "p": 0.03,
+      "p": 0.01,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.01,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.01,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.01,
       "label": 0,
       "perms": 0,
       "mode_share": null,
@@ -3226,15 +454,6 @@
     },
     {
       "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
       "label": 1,
       "perms": 0,
       "mode_share": null,
@@ -3261,61 +480,7 @@
       "cluster": null
     },
     {
-      "p": 0.96,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.99,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.78,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.96,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
+      "p": 0.01,
       "label": 0,
       "perms": 0,
       "mode_share": null,
@@ -3333,8 +498,8 @@
       "cluster": null
     },
     {
-      "p": 0.08,
-      "label": 0,
+      "p": 0.99,
+      "label": 1,
       "perms": 0,
       "mode_share": null,
       "mode": "Unspecified",
@@ -3342,7 +507,61 @@
       "cluster": null
     },
     {
-      "p": 0.95,
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
       "label": 1,
       "perms": 0,
       "mode_share": null,
@@ -3360,88 +579,7 @@
       "cluster": null
     },
     {
-      "p": 0.97,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.32,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.77,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.98,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.04,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.11,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.89,
-      "label": 1,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.02,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.39,
+      "p": 0.01,
       "label": 0,
       "perms": 0,
       "mode_share": null,
@@ -3459,7 +597,97 @@
       "cluster": null
     },
     {
-      "p": 0.02,
+      "p": 0.01,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.01,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.01,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.01,
       "label": 0,
       "perms": 0,
       "mode_share": null,
@@ -3477,7 +705,7 @@
       "cluster": null
     },
     {
-      "p": 0.02,
+      "p": 0.01,
       "label": 0,
       "perms": 0,
       "mode_share": null,
@@ -3486,16 +714,7 @@
       "cluster": null
     },
     {
-      "p": 0.03,
-      "label": 0,
-      "perms": 0,
-      "mode_share": null,
-      "mode": "Unspecified",
-      "phys": "noul",
-      "cluster": null
-    },
-    {
-      "p": 0.95,
+      "p": 0.99,
       "label": 1,
       "perms": 0,
       "mode_share": null,
@@ -3504,7 +723,7 @@
       "cluster": null
     },
     {
-      "p": 0.96,
+      "p": 0.99,
       "label": 1,
       "perms": 0,
       "mode_share": null,
@@ -3513,7 +732,25 @@
       "cluster": null
     },
     {
-      "p": 0.07,
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.01,
       "label": 0,
       "perms": 0,
       "mode_share": null,
@@ -3522,7 +759,16 @@
       "cluster": null
     },
     {
-      "p": 0.02,
+      "p": 0.01,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.01,
       "label": 0,
       "perms": 0,
       "mode_share": null,
@@ -3533,45 +779,845 @@
   ],
   "truth": {
     "sources": {
-      "human": 25,
-      "model:claude-sonnet-5": 363
+      "model:fable-5.1": 80
     },
-    "ambiguous": 22,
-    "abstain_rate": 0.05057471264367816,
+    "ambiguous": 0,
+    "abstain_rate": 0.0,
     "spot_check": {
       "batches": [
-        "nature-r4-R"
+        "fable-s4r-b89"
       ],
-      "n": 25,
-      "agree": 25,
-      "rate": 1.0
+      "n": 80,
+      "agree": 80,
+      "rate": 1.0,
+      "lower": 0.9632458022200177,
+      "conf": 0.95,
+      "model_reviewers": [
+        "model:fable-5.1"
+      ]
     },
     "spot_check_min": 0.9,
-    "gate": "上岗",
-    "batch": "语义R-模型标注加抽检.jsonl"
+    "gate": "上岗（复核者 model:fable-5.1）",
+    "batch": "labels.jsonl"
   },
   "lower": {
     "alpha": 0.1,
     "conf_delta": 0.1,
-    "hi": 0.54,
-    "n_accepted": 93,
+    "hi": 0.060000000000000005,
+    "n_accepted": 34,
     "n_errors": 0,
-    "ucb": 0.02445498995312572,
+    "ucb": 0.06548078543946281,
     "cluster_unit": "条",
     "resample": [
       0,
-      "两侧联合选线（拆分样本）：选线半上取两区上界各 ≤ α 且已决最多的一对，认证半上对该对各检验一次"
+      "固定序认证（B86）：候选由读数按计数生成，从严到宽逐个检验上界 ≤ α，第一次不过即停；两侧通过前缀里取已决最多的合法线对"
     ],
     "cost": null,
     "bounded_side": "下侧：界定 p ≤ lo − δ 一侧的漏放行；hi 字段此处存的是 lo",
     "label_source": "全体",
-    "label_fp": "a0e4fd0350eb1a55",
+    "label_fp": "d6759cd2f764e4bf",
     "selection": {
-      "method": "split",
-      "seed": 20260923,
-      "n_select": 181,
-      "n_certify": 207,
-      "candidates": 1682
+      "method": "fixed-sequence",
+      "seed": 0,
+      "n_select": 0,
+      "n_certify": 80,
+      "candidates": 3,
+      "rule": "fixed-sequence/v1",
+      "step": 4,
+      "delta": 0.05,
+      "generated": [
+        2,
+        2
+      ],
+      "stop_index": [
+        2,
+        2
+      ]
+    },
+    "eff": {
+      "alpha_eff": 0.1,
+      "conf": 0.9,
+      "truth_baseline": "model:fable-5.1",
+      "basis": "full-review"
     }
-  }
+  },
+  "scope": {
+    "batches": [
+      "labels.jsonl"
+    ],
+    "sources": {
+      "model:fable-5.1": 80
+    },
+    "note": "认证集来源与材料指纹范围（B68）",
+    "fingerprint": {
+      "quantiles": [
+        0.01,
+        0.99
+      ],
+      "n": 80,
+      "ranges": [
+        [
+          "字符数",
+          15.0,
+          78.0
+        ],
+        [
+          "中文比例",
+          0.7709677419354839,
+          1.0
+        ],
+        [
+          "拉丁字母比例",
+          0.0,
+          0.1
+        ],
+        [
+          "数字比例",
+          0.0,
+          0.1
+        ],
+        [
+          "标点空白比例",
+          0.0,
+          0.22903225806451613
+        ],
+        [
+          "行数",
+          0.5,
+          2.0
+        ],
+        [
+          "平均行长",
+          15.0,
+          78.0
+        ]
+      ],
+      "margins": {
+        "k": 2.0,
+        "m": 0.1
+      }
+    }
+  },
+  "material_fps": [
+    [
+      36.0,
+      0.8888888888888888,
+      0.0,
+      0.0,
+      0.1111111111111111,
+      1.0,
+      36.0
+    ],
+    [
+      33.0,
+      0.9090909090909091,
+      0.0,
+      0.0,
+      0.09090909090909091,
+      1.0,
+      33.0
+    ],
+    [
+      31.0,
+      0.9354838709677419,
+      0.0,
+      0.0,
+      0.06451612903225806,
+      1.0,
+      31.0
+    ],
+    [
+      30.0,
+      0.9,
+      0.0,
+      0.0,
+      0.1,
+      1.0,
+      30.0
+    ],
+    [
+      32.0,
+      0.875,
+      0.0,
+      0.0,
+      0.125,
+      1.0,
+      32.0
+    ],
+    [
+      31.0,
+      0.9354838709677419,
+      0.0,
+      0.0,
+      0.06451612903225806,
+      1.0,
+      31.0
+    ],
+    [
+      31.0,
+      0.9354838709677419,
+      0.0,
+      0.0,
+      0.06451612903225806,
+      1.0,
+      31.0
+    ],
+    [
+      33.0,
+      0.9090909090909091,
+      0.0,
+      0.0,
+      0.09090909090909091,
+      1.0,
+      33.0
+    ],
+    [
+      30.0,
+      0.9333333333333333,
+      0.0,
+      0.0,
+      0.06666666666666667,
+      1.0,
+      30.0
+    ],
+    [
+      31.0,
+      0.9032258064516129,
+      0.0,
+      0.0,
+      0.0967741935483871,
+      1.0,
+      31.0
+    ],
+    [
+      33.0,
+      0.9090909090909091,
+      0.0,
+      0.0,
+      0.09090909090909091,
+      1.0,
+      33.0
+    ],
+    [
+      37.0,
+      0.918918918918919,
+      0.0,
+      0.0,
+      0.08108108108108109,
+      1.0,
+      37.0
+    ],
+    [
+      32.0,
+      0.90625,
+      0.0,
+      0.0,
+      0.09375,
+      1.0,
+      32.0
+    ],
+    [
+      30.0,
+      0.8666666666666667,
+      0.0,
+      0.0,
+      0.13333333333333333,
+      1.0,
+      30.0
+    ],
+    [
+      30.0,
+      0.9333333333333333,
+      0.0,
+      0.0,
+      0.06666666666666667,
+      1.0,
+      30.0
+    ],
+    [
+      30.0,
+      0.9333333333333333,
+      0.0,
+      0.0,
+      0.06666666666666667,
+      1.0,
+      30.0
+    ],
+    [
+      33.0,
+      0.9090909090909091,
+      0.0,
+      0.0,
+      0.09090909090909091,
+      1.0,
+      33.0
+    ],
+    [
+      32.0,
+      0.9375,
+      0.0,
+      0.0,
+      0.0625,
+      1.0,
+      32.0
+    ],
+    [
+      30.0,
+      0.9333333333333333,
+      0.0,
+      0.0,
+      0.06666666666666667,
+      1.0,
+      30.0
+    ],
+    [
+      30.0,
+      0.9,
+      0.0,
+      0.0,
+      0.1,
+      1.0,
+      30.0
+    ],
+    [
+      35.0,
+      0.9428571428571428,
+      0.0,
+      0.0,
+      0.05714285714285714,
+      1.0,
+      35.0
+    ],
+    [
+      34.0,
+      0.8823529411764706,
+      0.0,
+      0.0,
+      0.11764705882352941,
+      1.0,
+      34.0
+    ],
+    [
+      30.0,
+      0.9,
+      0.0,
+      0.0,
+      0.1,
+      1.0,
+      30.0
+    ],
+    [
+      32.0,
+      0.90625,
+      0.0,
+      0.0,
+      0.09375,
+      1.0,
+      32.0
+    ],
+    [
+      33.0,
+      0.9090909090909091,
+      0.0,
+      0.0,
+      0.09090909090909091,
+      1.0,
+      33.0
+    ],
+    [
+      30.0,
+      0.9333333333333333,
+      0.0,
+      0.0,
+      0.06666666666666667,
+      1.0,
+      30.0
+    ],
+    [
+      31.0,
+      0.9032258064516129,
+      0.0,
+      0.0,
+      0.0967741935483871,
+      1.0,
+      31.0
+    ],
+    [
+      39.0,
+      0.8974358974358975,
+      0.0,
+      0.0,
+      0.10256410256410256,
+      1.0,
+      39.0
+    ],
+    [
+      32.0,
+      0.875,
+      0.0,
+      0.0,
+      0.125,
+      1.0,
+      32.0
+    ],
+    [
+      31.0,
+      0.9032258064516129,
+      0.0,
+      0.0,
+      0.0967741935483871,
+      1.0,
+      31.0
+    ],
+    [
+      31.0,
+      0.9032258064516129,
+      0.0,
+      0.0,
+      0.0967741935483871,
+      1.0,
+      31.0
+    ],
+    [
+      36.0,
+      0.9166666666666666,
+      0.0,
+      0.0,
+      0.08333333333333333,
+      1.0,
+      36.0
+    ],
+    [
+      36.0,
+      0.9166666666666666,
+      0.0,
+      0.0,
+      0.08333333333333333,
+      1.0,
+      36.0
+    ],
+    [
+      30.0,
+      0.9,
+      0.0,
+      0.0,
+      0.1,
+      1.0,
+      30.0
+    ],
+    [
+      32.0,
+      0.90625,
+      0.0,
+      0.0,
+      0.09375,
+      1.0,
+      32.0
+    ],
+    [
+      41.0,
+      0.8780487804878049,
+      0.0,
+      0.0,
+      0.12195121951219512,
+      1.0,
+      41.0
+    ],
+    [
+      30.0,
+      0.9,
+      0.0,
+      0.0,
+      0.1,
+      1.0,
+      30.0
+    ],
+    [
+      30.0,
+      0.9,
+      0.0,
+      0.0,
+      0.1,
+      1.0,
+      30.0
+    ],
+    [
+      31.0,
+      0.9032258064516129,
+      0.0,
+      0.0,
+      0.0967741935483871,
+      1.0,
+      31.0
+    ],
+    [
+      32.0,
+      0.90625,
+      0.0,
+      0.0,
+      0.09375,
+      1.0,
+      32.0
+    ],
+    [
+      30.0,
+      0.9333333333333333,
+      0.0,
+      0.0,
+      0.06666666666666667,
+      1.0,
+      30.0
+    ],
+    [
+      32.0,
+      0.90625,
+      0.0,
+      0.0,
+      0.09375,
+      1.0,
+      32.0
+    ],
+    [
+      32.0,
+      0.90625,
+      0.0,
+      0.0,
+      0.09375,
+      1.0,
+      32.0
+    ],
+    [
+      30.0,
+      0.9333333333333333,
+      0.0,
+      0.0,
+      0.06666666666666667,
+      1.0,
+      30.0
+    ],
+    [
+      30.0,
+      0.9,
+      0.0,
+      0.0,
+      0.1,
+      1.0,
+      30.0
+    ],
+    [
+      31.0,
+      0.9354838709677419,
+      0.0,
+      0.0,
+      0.06451612903225806,
+      1.0,
+      31.0
+    ],
+    [
+      31.0,
+      0.9354838709677419,
+      0.0,
+      0.0,
+      0.06451612903225806,
+      1.0,
+      31.0
+    ],
+    [
+      31.0,
+      0.9032258064516129,
+      0.0,
+      0.0,
+      0.0967741935483871,
+      1.0,
+      31.0
+    ],
+    [
+      35.0,
+      0.8857142857142857,
+      0.0,
+      0.0,
+      0.11428571428571428,
+      1.0,
+      35.0
+    ],
+    [
+      30.0,
+      0.9333333333333333,
+      0.0,
+      0.0,
+      0.06666666666666667,
+      1.0,
+      30.0
+    ],
+    [
+      31.0,
+      0.9032258064516129,
+      0.0,
+      0.0,
+      0.0967741935483871,
+      1.0,
+      31.0
+    ],
+    [
+      33.0,
+      0.9090909090909091,
+      0.0,
+      0.0,
+      0.09090909090909091,
+      1.0,
+      33.0
+    ],
+    [
+      35.0,
+      0.9142857142857143,
+      0.0,
+      0.0,
+      0.08571428571428572,
+      1.0,
+      35.0
+    ],
+    [
+      31.0,
+      0.9032258064516129,
+      0.0,
+      0.0,
+      0.0967741935483871,
+      1.0,
+      31.0
+    ],
+    [
+      31.0,
+      0.9032258064516129,
+      0.0,
+      0.0,
+      0.0967741935483871,
+      1.0,
+      31.0
+    ],
+    [
+      30.0,
+      0.9,
+      0.0,
+      0.0,
+      0.1,
+      1.0,
+      30.0
+    ],
+    [
+      30.0,
+      0.9,
+      0.0,
+      0.0,
+      0.1,
+      1.0,
+      30.0
+    ],
+    [
+      30.0,
+      0.9333333333333333,
+      0.0,
+      0.0,
+      0.06666666666666667,
+      1.0,
+      30.0
+    ],
+    [
+      30.0,
+      0.9,
+      0.0,
+      0.0,
+      0.1,
+      1.0,
+      30.0
+    ],
+    [
+      31.0,
+      0.8709677419354839,
+      0.0,
+      0.0,
+      0.12903225806451613,
+      1.0,
+      31.0
+    ],
+    [
+      32.0,
+      0.90625,
+      0.0,
+      0.0,
+      0.09375,
+      1.0,
+      32.0
+    ],
+    [
+      31.0,
+      0.9032258064516129,
+      0.0,
+      0.0,
+      0.0967741935483871,
+      1.0,
+      31.0
+    ],
+    [
+      34.0,
+      0.9117647058823529,
+      0.0,
+      0.0,
+      0.08823529411764706,
+      1.0,
+      34.0
+    ],
+    [
+      33.0,
+      0.9393939393939394,
+      0.0,
+      0.0,
+      0.06060606060606061,
+      1.0,
+      33.0
+    ],
+    [
+      34.0,
+      0.9117647058823529,
+      0.0,
+      0.0,
+      0.08823529411764706,
+      1.0,
+      34.0
+    ],
+    [
+      33.0,
+      0.8787878787878788,
+      0.0,
+      0.0,
+      0.12121212121212122,
+      1.0,
+      33.0
+    ],
+    [
+      34.0,
+      0.8823529411764706,
+      0.0,
+      0.0,
+      0.11764705882352941,
+      1.0,
+      34.0
+    ],
+    [
+      30.0,
+      0.9,
+      0.0,
+      0.0,
+      0.1,
+      1.0,
+      30.0
+    ],
+    [
+      31.0,
+      0.9354838709677419,
+      0.0,
+      0.0,
+      0.06451612903225806,
+      1.0,
+      31.0
+    ],
+    [
+      33.0,
+      0.9393939393939394,
+      0.0,
+      0.0,
+      0.06060606060606061,
+      1.0,
+      33.0
+    ],
+    [
+      32.0,
+      0.90625,
+      0.0,
+      0.0,
+      0.09375,
+      1.0,
+      32.0
+    ],
+    [
+      31.0,
+      0.9032258064516129,
+      0.0,
+      0.0,
+      0.0967741935483871,
+      1.0,
+      31.0
+    ],
+    [
+      30.0,
+      0.9,
+      0.0,
+      0.0,
+      0.1,
+      1.0,
+      30.0
+    ],
+    [
+      31.0,
+      0.9354838709677419,
+      0.0,
+      0.0,
+      0.06451612903225806,
+      1.0,
+      31.0
+    ],
+    [
+      32.0,
+      0.90625,
+      0.0,
+      0.0,
+      0.09375,
+      1.0,
+      32.0
+    ],
+    [
+      30.0,
+      0.9333333333333333,
+      0.0,
+      0.0,
+      0.06666666666666667,
+      1.0,
+      30.0
+    ],
+    [
+      32.0,
+      0.90625,
+      0.0,
+      0.0,
+      0.09375,
+      1.0,
+      32.0
+    ],
+    [
+      30.0,
+      0.9,
+      0.0,
+      0.0,
+      0.1,
+      1.0,
+      30.0
+    ],
+    [
+      30.0,
+      0.9333333333333333,
+      0.0,
+      0.0,
+      0.06666666666666667,
+      1.0,
+      30.0
+    ],
+    [
+      32.0,
+      0.875,
+      0.0,
+      0.0,
+      0.125,
+      1.0,
+      32.0
+    ]
+  ]
 }

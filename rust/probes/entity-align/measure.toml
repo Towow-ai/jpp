@@ -21,8 +21,9 @@ projection = "entity-align"   # probes/_baseline/accept.py 里的投影函数
 run_dir = "."
 source = "align.jpp"
 fixture = "fixture.json"
-data = "7-18,32"               # 数据行：字面材料、候选列表、标签集、只做装载的行
-coordination = "5,37,48"      # 协调行：budget、未决去向、pending 转交等服务于八条缝的行
+input = "baseline/materials.json"          # 材料经 jpp run --input 交给程序（步 14b-0）
+data = "20"               # 数据行只剩标签集 outcome_of（程序自己的动作名，不是材料）
+coordination = "5,25,36"      # 协调行：budget、未决去向、pending 转交等服务于八条缝的行
 minutes = "无数"
 minutes_note = "探针首轮未计时"
 
@@ -30,7 +31,7 @@ minutes_note = "探针首轮未计时"
 what = "夹具脚本"
 shared = true
 file = "make_fixture.py"
-data = "3-17,23-25"          # 两份目录与档位文字副本、合成读数
+data = "4-8,14-16"          # 读 materials.json 的两份目录（步 14b-0）与档位文字副本、合成读数
 
 [[jpp.glue]]                       # 口径二计入：生产运行必需的胶水（CLI 或 Session 调用、动作登记、calib-import）
 what = "CLI 调用（jpp run … --fixtures …）"
@@ -59,7 +60,7 @@ minutes = 0.77
 passed = "2026-09-24 --check entity-align：通过（代理墙钟 20:05:36→20:06:22）"
 
 [[baseline.impl]]                  # T1 基线（步 31-1，Sonnet 代理，只见任务书 T0+T1 节、t1/materials.json、labels.jsonl 与判断接口）
-tier = "t1"
+tier = "t1-strict"                # 步 31-1b（B96）：旧 (d) 逐位口径，只报不判；验收用冻结的 t1/labels-strict.jsonl
 file = "t1/entity_align_t1_a.py"
 author = "Sonnet 5 子代理（未参与 J++ 设计；2026-09-24 步 31-1 派发）"
 data = "278-279"
@@ -69,6 +70,26 @@ minutes = 4.53
 
 # —— T1（完整职责任务书，B79；步 31-1）——
 passed = "2026-09-24 --check entity-align --tier t1：一次全过（20:09:04→20:13:36）"
+
+[[baseline.impl]]                  # T1 基线（步 31-1b，B96 性质口径：(d) 只写性质、考官留出集验收）
+tier = "t1"
+file = "t1/entity_align_t1_b.py"
+author = "Sonnet 5 子代理（未参与 J++ 设计；2026-09-24 步 31-1b 派发，只见 T0+T1 任务书、t1/materials.json、labels.jsonl 与判断接口）"
+data = ""
+runtime = ""
+coordination = ""
+minutes = 5.88
+passed = "2026-09-25 --check entity-align --tier t1：一次全过（重派 00:40:30→00:46:23；首派 23:11 停住未落盘）；(d) 全集最大覆盖 CP。作者自报误看了 expected-t1.json 前 300 字节（(d) 已写完之后）"
+
+[[baseline.impl]]                  # T1 基线（步 31-1b，B96 性质口径：(d) 只写性质、考官留出集验收）
+tier = "t1"
+file = "t1/entity_align_t1_c.py"
+author = "Sonnet 5 子代理（未参与 J++ 设计；2026-09-24 步 31-1b 派发，只见 T0+T1 任务书、t1/materials.json、labels.jsonl 与判断接口）"
+data = ""
+runtime = ""
+coordination = ""
+minutes = 10.6
+passed = "2026-09-25 --check entity-align --tier t1：一次全过（01:20:38→01:31:14）；(d) 按同 p 分组的最大前缀 CP"
 
 [t1]
 fixture = "fixture-t1.json"        # 与 T0 夹具同一份读数，去掉校准记录字面量；线只从 baseline/t1/labels.jsonl 经 calib-import 来
@@ -85,8 +106,9 @@ source = "t1/align_t1.jpp"
 run_dir = "t1"
 projection = "entity-align"
 author = "设计者版 T0 + 施工代理按 T1 任务书改写"
-data = "7-18,32"
-coordination = "5,37,48,49,50,60,61"
+input = "baseline/t1/materials.json"          # 材料经 jpp run --input 交给程序（步 14b-0）
+data = "20"
+coordination = "5,25,36,37,38,48,49"
 
 [[jpp.impl]]                       # J++ 非设计者 T0 版（步 31-1，Sonnet 代理，只见任务书、GUIDE.md 与 lib/outcome.jpp）
 tier = "t0"

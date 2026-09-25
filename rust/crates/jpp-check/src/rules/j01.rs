@@ -23,8 +23,22 @@ fn builtin_call(cx: &Cx, name: &str, args: &[&Expr]) -> Vec<Diagnostic> {
     let names = cx.names.expect("名字趟的钩子点给出名字视图");
     let inside = |e: &Expr| names.is_reading(e);
     let mut out = vec![];
+    // 记账变换（`EffectSpec.in_effect_row` 为假：宿主纯函数作用在材料上，`12` §2.8）的实参都是材料槽；
+    // 按注册表字段认它，不写效应名（步 15a，`20` A2）
+    let host_transform = jpp_effects::by_name(name).is_some_and(|s| !s.in_effect_row);
     match name {
-        "state" | "mat" | "transform" => {
+        _ if host_transform => {
+            for a in args {
+                if inside(a) {
+                    reading_err(
+                        &mut out,
+                        a.span,
+                        format!("读数不能放进 {name} 的槽：读数不是材料"),
+                    );
+                }
+            }
+        }
+        "state" | "mat" => {
             for a in args {
                 if inside(a) {
                     reading_err(
@@ -72,7 +86,7 @@ fn reading_err_h5(cx: &Cx, span: Span, msg: &str, 归h5管: bool) -> Vec<Diagnos
     }
     // H5 的档案字段（`12` §1.2）读 `check` 的输入（B71）。**`None` = 本次没有加载档案**，与
     // `Some(Tri::未测)`（有档案、这项没测）**不是一回事**。
-    match cx.profile.map(|p| p.arithmetic_capable) {
+    match cx.profile.map(|p| p.arithmetic_capable()) {
         // 档案明说模型会算术 → H5 不成立 → 降 warn，**并说出是哪个字段让它降的**
         Some(jpp_effects::Tri::真) => {
             out.push(Diagnostic::warning(

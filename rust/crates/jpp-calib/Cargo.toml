@@ -10,4 +10,6 @@ jpp-ir = { path = "../jpp-ir" }
 jpp-value = { path = "../jpp-value" }
 jpp-effects = { path = "../jpp-effects" }
 serde = { version = "1", features = ["derive", "rc"] }
-serde_json = "1"
+# float_roundtrip（步 20c）：浮点解析正确舍入，写出再读回逐位相同。缺省解析可差一个 ULP：
+# 装载时重跑写回的证书进账本头再读回会对不上哈希，存盘再装载的读数会改变候选生成。特性经 cargo 统一，全工作区生效。
+serde_json = { version = "1", features = ["float_roundtrip"] }

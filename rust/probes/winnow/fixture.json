@@ -6,21 +6,21 @@
    "hi": 0.75,
    "lo": 0.25,
    "n": 1,
-   "status": "上岗"
+   "status": "上岗", "delta": 0.05
   },
   {
    "key": "form-topic",
    "hi": 0.62,
    "lo": 0.54,
    "n": 1,
-   "status": "上岗"
+   "status": "上岗", "delta": 0.05
   },
   {
    "key": "winnow-block",
    "hi": 0.62,
    "lo": 0.54,
    "n": 1,
-   "status": "上岗"
+   "status": "上岗", "delta": 0.05
   }
  ],
  "observations": [

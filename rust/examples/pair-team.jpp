@@ -14,7 +14,7 @@ let fits = test("成员 b 的技能能完成需求 a 吗？", "fit-pair");
 let relations = pair(needs, people);
 let first = sieve(relations, fits);
 let summary = tally(first);
-fn show(e) { {need: e.source.left, person: e.source.right.name} }
+fn show(e) { {need: e.left, person: e.right.name} }
 
 // 第二轮：取第一个被接受的关系，把这个组合当作新材料，与另外两位成员再配对
 let combo = accepted(first)[0];
@@ -25,13 +25,13 @@ let summary2 = tally(second);
 
 {round1: {pairs: len(relations.value),
           act: map(accepted(first), show),
-          unsure: map(undecided(first), fn(p) { {pair: show(p.element), cause: p.cause} }),
+          unsure: map(undecided(first), fn(p) { {pair: show(p), cause: p.cause} }),
           count: summary.value.count, exists: summary.value.exists, all: summary.value.all},
  round2: {checked: "第二轮问的是「已成组合 + 新成员」作为一个整体能否完成需求；没有从两两关系推定整体成立",
           combo: show(combo),
-          act: map(accepted(second), fn(e) { e.source.right.name }),
-          ignore: map(ignored(second), fn(e) { e.source.right.name }),
+          act: map(accepted(second), fn(e) { e.right.name }),
+          ignore: map(ignored(second), fn(e) { e.right.name }),
           count: summary2.value.count, exists: summary2.value.exists, all: summary2.value.all,
-          combo_round1_exit: map(accepted(second), fn(e) { exit_kind(e.source.left.exit) })},
+          combo_round1_exit: map(accepted(second), fn(e) { exit_kind(e.left.exit) })},
  // 未决原样交给调用者（J-05：责任随返回值转交）。summary 已并入 first 的未决；second 的在 summary2 里
  pending: [summary.pending, summary2.pending]}

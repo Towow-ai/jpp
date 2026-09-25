@@ -1,0 +1,3 @@
+// 题库条目 amount_left（首批 F5，程度 · 单对象 · 真值可算）。
+// 条目说明：bank/entries/e4d4be39383a1eb88f75af2c/条目.md。档位顺序即 at 出口的下标顺序。
+let amount_left = form("measure", "这段话里说的{thing}还剩多少？", {calib: "deg-amount-left", scale: ["已经没有了", "只剩一点", "还有很多"]});

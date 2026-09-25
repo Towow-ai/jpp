@@ -233,12 +233,47 @@ impl EffectKey {
 }
 
 /// 一条判断记录对应的校准引用：题声明的校准键。实际命中的记录（题键、题式键、模式键）
-/// 与其全文记在账本头行的 `calib_used`，只凭账本重放时据此补回线（出口 = f(读数, 线)）。
-/// 结构化的 `CalibKey`（元组）在步 20a。
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+/// 与其全文记在账本的 `CalibUsed` 条目（账本 v3，步 18a；此前在头行 `calib_used`），
+/// 只凭账本重放时据此补回线（出口 = f(读数, 线)）。结构化的 `CalibKey`（元组）在步 20a-2。
+///
+/// 留位（账本 v3，步 18a；为空不序列化，18a 不填，填值的步不再改账本格式，ET1）：
+/// - `key`、`kind`、`fill`（B124，20a-2 填）：B30 元组序列化的校准主键（B116）；精化题类（B120 (a)，取值为
+///   `jpp_ir::question_kind::QuestionKind` 的小写英文名：attr、rel、cmp、class、mention、degree、decide、
+///   subset、enough）；填法记录（B107）。
+/// - `line`、`hi`、`lo`、`site`（B128、B137，20j-1 填）：线的来源（现只有 `"declared"`：作者在 `cut` 上声明的线）、
+///   声明的数、`cut` 站点。与 `kind` 分开记，声明线条目也保留题类（B137 订正 B128 的字面 `kind: "declared"`）。
+///   注意：已有字段 `declared` 是题声明的校准键，与 `line = "declared"` 名字相近、含义不同。
+///
+/// 依据：B124（地基/附注/2026-09-25-待补批量裁定-2.md §四）、B128（地基/附注/2026-09-25-作者主权与策略表达裁定.md）、
+/// B137（地基/附注/2026-09-25-库层出口合成与待补批3裁定.md §四）
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct CalibRef {
     pub declared: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub key: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kind: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fill: Option<Vec<(String, String)>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub line: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hi: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub lo: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub site: Option<u64>,
+}
+
+impl CalibRef {
+    /// 只有声明键的引用（18a 起的写法；留位字段由 20a-2 填）。
+    pub fn declared(k: &str) -> CalibRef {
+        CalibRef {
+            declared: k.to_string(),
+            ..CalibRef::default()
+        }
+    }
 }
 
 // ── 效应 id 与效应实例（步 9） ──
@@ -276,3 +311,88 @@ pub struct NodeId(pub u32);
 /// 站点 id：效应节点、语言形式、内核构造、高阶宿主调用、`if` 各占一个（推测与向量化的触发点）。
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct SiteId(pub u32);
+
+// 步 14a 自 `jpp-calib::calib::record` 原样搬来（运行时写样本要用，运行时不依赖 `jpp-calib`）。
+/// 字面模式（`12`:136 的 `calib_key` 第五维）：`literal_mode ∈ {判执行输出, 判代码字面,
+/// 判文档段落, …}`。
+///
+/// **它是校准键的一维，不是标签。** 同一道题问「这段代码字面上写了什么」和
+/// 「这份文档这一段说了什么」，模型的可靠性完全不同——线自然也不同。
+/// 缺这一维的后果与 `judge_key` 缺 `site` **同族**：不同模式下的值合进同一格、
+/// 第二个覆盖第一个，**而它长得像一次观察**。
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum LiteralMode {
+    /// 未分档：老接口写进来的就是这一档，键就是裸键名（老账本读得回来）
+    #[default]
+    Unspecified,
+    /// 判执行输出
+    ExecOutput,
+    /// 判代码字面
+    CodeLiteral,
+    /// 判文档段落
+    DocSection,
+}
+
+impl LiteralMode {
+    /// 键里的后缀。默认档**不加后缀**——这是老账本还读得回来的原因。
+    pub fn suffix(&self) -> &'static str {
+        match self {
+            LiteralMode::Unspecified => "",
+            LiteralMode::ExecOutput => "\u{1f}exec",
+            LiteralMode::CodeLiteral => "\u{1f}code",
+            LiteralMode::DocSection => "\u{1f}doc",
+        }
+    }
+}
+
+// ── 线等级（步 20a-1） ──
+
+/// **线的认证等级**（`20` v2 §3.4 等级表；`附注/2026-09-24-评估①裁定.md` §五 B75 一致表、§十第 12(a) 条）。
+///
+/// 等级只回答「线是怎么认证的」。「这次使用有没有失去保证」由出口上的正交位回答：
+/// `scope_out`（B68）、`suspend_candidate`（B25）、`delta_unknown` / `scope_unknown`（B104）、
+/// `untested`（J-15）。正交位可与任何等级叠加；写成等级就丢了「它本来怎么认证的」（补遗 12(a)）。
+///
+/// 取代 `Exit` 上原来的三个等级位：`fixture_line`（B29）、`class_line`（B75）、`trial_line`（B72）。
+/// `Provisional`（B19 修订的临时上岗）在步 20a-1 之前的运行时会放行，与等级表不符（步 20f 登记），
+/// 从本步起按等级表不放行。
+///
+/// 多个条件同时成立时取靠前者：`Cold` > `Fixture` > `Class` > `Trial` > `Provisional` > `Form` >
+/// `Certified`。这个优先序步 20f 起已在报告 `exits` 表里用，本步不改。
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum LineGrade {
+    /// 没用上线（冷、停岗、缺席、失败、证据不足）
+    Cold,
+    /// 夹具线：宿主 `put` 写入，或没有认证证书（B29）
+    Fixture,
+    /// 类键借来的线（B34、B75）；`class_release` 升格本版未实现
+    Class,
+    /// 试用 α 认证，或有效 α 超过证书 α（B72、B89）
+    Trial,
+    /// 临时上岗（B19 修订）
+    Provisional,
+    /// 题式键，正式 α（B30 主键）
+    Form,
+    /// 题键，正式 α（B24）
+    Certified,
+}
+
+impl LineGrade {
+    /// 变体名：报告 `exits` 表的 `grade` 字段，与步 20f 起的字符串逐字相同。
+    pub fn name(self) -> &'static str {
+        match self {
+            LineGrade::Cold => "Cold",
+            LineGrade::Fixture => "Fixture",
+            LineGrade::Class => "Class",
+            LineGrade::Trial => "Trial",
+            LineGrade::Provisional => "Provisional",
+            LineGrade::Form => "Form",
+            LineGrade::Certified => "Certified",
+        }
+    }
+    /// 等级这一项放不放行不可逆 `do`：只有主键记录（题键、题式键）经正式 α 认证才放行（B75 放行原则）。
+    /// 完整判定还要看正交位，只在 `jpp_value::value::Exit::releases` 一处合成。
+    pub fn releases(self) -> bool {
+        matches!(self, LineGrade::Certified | LineGrade::Form)
+    }
+}

@@ -73,8 +73,19 @@ pub(crate) fn op_of(op: &str) -> Op {
 }
 
 /// 诊断的上下文。本批规则只读题面，还不需要上下文；步 26 需判断器的规则经它拿端口。
+///
+/// 步 24g 加三个字段，供 `shape_check`（B51-R2 静态消费者）用：判断站点的状态材料能静态确定来自
+/// 哪个声明过 `mat_shape` 的动作时才给 `mat_shape`（判不出来源、或来源动作没声明，一律 `None`，
+/// 按可判放过）；`one_hop`/`arithmetic_capable` 是画像 H4/H5 两个字段，未加载档案时按 `Tri::未测`
+/// （与既有 H 字段访问器 `unwrap_or_default()` 同一口径）。
 #[derive(Clone, Debug, Default)]
-pub struct DiagCx {}
+pub struct DiagCx {
+    pub mat_shape: Option<jpp_effects::MatShape>,
+    /// `mat_shape` 来自哪个动作（报文点名用；`mat_shape` 为 `None` 时本字段无意义）
+    pub shape_action: Option<String>,
+    pub one_hop: jpp_effects::Tri,
+    pub arithmetic_capable: jpp_effects::Tri,
+}
 
 /// 对一道题（或一个题式模板）的题面跑全部静态规则。
 pub fn diagnose_question(q: &QuestionLit, _cx: &DiagCx) -> Vec<Diagnostic> {
@@ -153,6 +164,68 @@ pub fn diagnose_fill(
         }
     }
     out
+}
+
+/// B51-R2 静态消费者（步 24g）：判断站点问的材料若能静态确定来自声明过 `mat_shape` 的动作
+/// （`cx.mat_shape`），题类要求的确定性运算不在动作声明的 `settled` 清单里、且对应的画像 H4/H5
+/// 字段不利（按 B39 方向，见下）时，报「静态判不了材料是否够回答」（B13「问的东西在面前材料里
+/// 吗」的形状面）。
+///
+/// **题类 → 要求的运算、`settled` 名 → H 字段两张映射都是本条的提案，不是依据文本**——`附注/
+/// 2026-09-24-评估①裁定.md` §六的 B76 映射表只给 `op × request × 槽形 → 九题类`，不含「题类要求
+/// 哪种运算」；`12` §2.2 B51-R2 原文也没有给。范围刻意收窄到能从原文字面对应出的两类：`Enough`
+/// （充分性，「材料由 `Question` 值渲染」＝ B51-R2「问的东西在面前材料里吗」的字面对应，要求
+/// `count`）、`Subset`（子集，`all` 向量化，逐元素判断前先数/去重，要求 `count`/`dedup` 任一）；
+/// 其余七类判不出运算需求，一律放过。见 `过程记录/工程-步24g.md` §二·2、§二·3。
+///
+/// H 字段方向：`12` B51-R2 原文字面「H4/H5 为假或未测」与 B39 的逐行方向矛盾（`one_hop: false`
+/// 是 B39 定的放宽方向，不该触发警告）；本函数按 B39 方向实现——H4 类运算（`order`/`boundary`/
+/// `dedup`）只在 `one_hop == 假` 时抑制；H5 类运算（`count`/`arithmetic`）只在
+/// `arithmetic_capable == 真` 时抑制；未测或不利一律照常报。
+pub fn shape_check(kind: QuestionKind, span: Span, cx: &DiagCx) -> Option<Diagnostic> {
+    let shape = cx.mat_shape.as_ref()?;
+    let required: &[&str] = match kind {
+        QuestionKind::Enough => &["count"],
+        QuestionKind::Subset => &["count", "dedup"],
+        _ => return None,
+    };
+    if required
+        .iter()
+        .any(|op| shape.settled.iter().any(|s| s == op))
+    {
+        return None; // 已定案清单覆盖，不报
+    }
+    let h4_relevant = required
+        .iter()
+        .any(|op| matches!(*op, "order" | "boundary" | "dedup"));
+    let h5_relevant = required
+        .iter()
+        .any(|op| matches!(*op, "count" | "arithmetic"));
+    let h4_suppressed = !h4_relevant || cx.one_hop == jpp_effects::Tri::假;
+    let h5_suppressed = !h5_relevant || cx.arithmetic_capable == jpp_effects::Tri::真;
+    if h4_suppressed && h5_suppressed {
+        return None;
+    }
+    let 运算 = required.join("/");
+    let 已定案 = if shape.settled.is_empty() {
+        "（空）".to_string()
+    } else {
+        shape.settled.join("、")
+    };
+    let h字段 = match (h4_relevant, h5_relevant) {
+        (true, true) => "one_hop（H4）与 arithmetic_capable（H5）",
+        (true, false) => "one_hop（H4）",
+        _ => "arithmetic_capable（H5）",
+    };
+    let 动作 = cx.shape_action.as_deref().unwrap_or("（未知）");
+    // 依据：12 §2.2 B51-R2（诊断层消费者三处之一）；B39（H4/H5 逐行方向）；步 24g
+    Some(Diagnostic::warning(
+        "W-diag-shape",
+        format!(
+            "这道题要求的运算（{运算}）不在动作 {动作} 声明的已定案清单里（{已定案}）：画像 {h字段} 未测或不利，静态判不了材料是否够回答（B51-R2 形状面）。修法：给动作补 `mat_shape.settled` 声明，或提供更完整的画像"
+        ),
+        span,
+    ))
 }
 
 // ---------------------------------------------------------------- 规则

@@ -6,9 +6,21 @@
 
 mod access;
 mod commission;
+mod extend;
+mod fixed_sequence;
 mod record;
+mod rerun;
+mod sequential;
 mod store;
 
+pub use extend::{ExtendOptions, ExtendRow};
+pub use fixed_sequence::{FIXED_SEQUENCE_RULE, fixed_sequence_candidates, fixed_sequence_step};
 pub use record::*;
 use record::{单侧声明, 反查题型, 标注集指纹, 经验unsure率};
+pub use rerun::RerunOutcome;
+/// `phys` 反查题型（给 `lib.rs` 的有效 α 补算用）
+pub(crate) fn 反查题型_pub(phys: &str) -> Option<jpp_value::value::Op> {
+    反查题型(phys)
+}
+pub use sequential::{SEQUENTIAL_RULE, SeqSpec, random_arrival, seq_first, two_ends_order};
 pub use store::*;

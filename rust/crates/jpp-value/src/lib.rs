@@ -6,6 +6,7 @@
 
 pub mod bridge;
 pub mod contract;
+pub mod guard_ev;
 pub mod prov;
 pub mod raw;
 pub mod stat;

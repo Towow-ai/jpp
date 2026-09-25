@@ -1,18 +1,20 @@
 //! 诊断层（B13）：只读题面字面量的题式诊断。全部是告警（`W-diag-*`），不阻止运行。
 //!
 //! 分工：`b13.rs` 是规则本体 [`diagnose_question`]，输入一道题的字面信息，不依赖运行时；
-//! 本文件把程序里的题字面量收集出来喂给它（`Checker::diagnose`）。需要判断器的两条
-//! （前提在材料里被做出了吗、问的东西在面前材料里吗）不在这里，留到 `21` 步 26。
+//! 本文件把程序里的题字面量收集出来喂给它（`Checker::diagnose`）。需要判断器的「前提在材料里
+//! 被做出了吗」留到 `21` 步 26；「问的东西在面前材料里吗」的**形状面**（B51-R2 静态消费者，
+//! `shape_check`）步 24g 已接入 `kind.rs::scan` 的判断站点遍历，不需要判断器。
 //!
 //! `kind.rs` 是题类推断的检查器一侧（B76，步 12e-1）：题字面量的基础类、判断站点上的精化类、
-//! `E-kind-conflict`；题字面量的基础类也写进 [`QuestionLit::kind`]，B13 的提及类规则读它。
+//! `E-kind-conflict`；题字面量的基础类也写进 [`QuestionLit::kind`]，B13 的提及类规则读它；
+//! 步 24g 起同一趟遍历还调 `shape_check` 产出 `W-diag-shape`。
 //!
-//! 依据：`12` §3 J-17 后「诊断层规则集第一批（B13）」；B 栏 B13 及其两次补充；B76。
+//! 依据：`12` §3 J-17 后「诊断层规则集第一批（B13）」；B 栏 B13 及其两次补充；B76；B51-R2。
 
 pub mod b13;
 pub mod kind;
 
-pub use b13::{DiagCx, QuestionLit, diagnose_fill, diagnose_question};
+pub use b13::{DiagCx, QuestionLit, diagnose_fill, diagnose_question, shape_check};
 pub use kind::{KindSite, question_kinds};
 
 use crate::*;

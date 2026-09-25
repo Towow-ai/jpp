@@ -15,25 +15,27 @@
       [
         {
           "cause": "band",
-          "element": {
-            "cause": "band",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(band)",
-              "id": 12,
-              "q": "e85bdf01f404ebd6f33037a3"
-            },
-            "index": 2,
-            "item": "这家公司的总部设在杭州。",
-            "source": "这家公司的总部设在杭州。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
             "id": 12,
             "q": "e85bdf01f404ebd6f33037a3"
-          }
+          },
+          "fill": {
+            "city": "北京"
+          },
+          "index": 2,
+          "item": "这家公司的总部设在杭州。",
+          "key": "ebb1e668fc0a382910faa8e2",
+          "pos": 2,
+          "q": {
+            "calib": "form-mention",
+            "op": "noul",
+            "question": "e85bdf01f404ebd6f33037a3",
+            "text": "这段话是否提到了北京？"
+          },
+          "qi": 1,
+          "trail": []
         }
       ],
       []

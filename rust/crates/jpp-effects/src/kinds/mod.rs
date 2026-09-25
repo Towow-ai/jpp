@@ -20,9 +20,21 @@ pub const ALL: [EffectId; 5] = [
     EffectId::Transform,
 ];
 
-/// 旧 `Client` trait 服务的效应（`judge`/`generate`/`ask` 三个方法）。`do` 走动作登记处，
-/// `transform` 是宿主函数，都不经客户端。步 15b 起按实例注册端口，这张表随 `Client` 删除。
-pub const CLIENT_SERVED: [EffectId; 3] = [EffectId::Judge, EffectId::Gen, EffectId::Ask];
+/// 经端口的效应（步 15c 由 `CLIENT_SERVED` 改名）：宿主为它们注册端口。`do` 走动作登记处，
+/// `transform` 是宿主函数，都不经端口。
+pub const PORTED: [EffectId; 3] = [EffectId::Judge, EffectId::Gen, EffectId::Ask];
+
+/// 按源码名查效应（步 15a）：名字表、检查器、规划与运行时的内置分派都经它取 `EffectSpec`，再按字段
+/// 分派，不按效应名分支（`20` A2）。不是效应名时为 `None`。
+pub fn by_name(name: &str) -> Option<&'static EffectSpec> {
+    ALL.into_iter().map(spec).find(|s| s.name == name)
+}
+
+/// 第一个满足字段条件的效应（步 15b）：注册表外的代码按字段找效应，例如后端取「产出读数的效应」，
+/// 不写效应变体名（`20` A2）。
+pub fn find(pred: impl Fn(&EffectSpec) -> bool) -> Option<EffectId> {
+    ALL.into_iter().find(|id| pred(spec(*id)))
+}
 
 /// 唯一注册表。
 pub fn spec(id: EffectId) -> &'static EffectSpec {

@@ -1,5 +1,5 @@
 {
   "description": "Resume the recorded program with a human-response fixture; no fresh generation or judgment records are needed.",
-  "calibrations": [{"key":"fixture","hi":0.8,"lo":0.2,"n":100,"status":"上岗"}],
+  "calibrations": [{"key":"fixture","hi":0.8,"lo":0.2,"n":100,"status":"上岗", "delta": 0.05}],
   "responses": [{"on":[{"name":"shared plan","cost":2}],"op":"test","text":"Publish this plan?","calib":"human","answer":{"Noul":1.0}}]
 }

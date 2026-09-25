@@ -7,39 +7,55 @@
     "tokens": 0,
     "usd": 0.0
   },
+  "entry": [],
   "exits": [
     {
       "exit": "unsure(band)",
       "grade": "Fixture",
+      "index": 0,
+      "item": "3f9bd461a390",
       "key": "price",
+      "pos": 0,
       "releases": false,
       "site": 532
     },
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 1,
+      "item": "7f85e41f77a6",
       "key": "price",
+      "pos": 1,
       "releases": false,
       "site": 532
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 2,
+      "item": "47bff5b64617",
       "key": "price",
+      "pos": 2,
       "releases": false,
       "site": 532
     },
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 3,
+      "item": "c0039f16dde4",
       "key": "price",
+      "pos": 3,
       "releases": false,
       "site": 532
     },
     {
       "exit": "unsure(band)",
       "grade": "Fixture",
+      "index": 4,
+      "item": "2dc9837cedaf",
       "key": "price",
+      "pos": 4,
       "releases": false,
       "site": 532
     }
@@ -48,6 +64,12 @@
   "local_checks": [],
   "mode": "replay; no model API requests",
   "pending": [],
+  "questions": [
+    {
+      "kind": "attr",
+      "q": "78e15a646880a5dfabb72438"
+    }
+  ],
   "replay": true,
   "resumed": false,
   "returned_unsure": [
@@ -116,6 +138,7 @@
       }
     ],
     "warnings": [
+      "W-window-untested: @532 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
       "W-fixture-line: @532 键 price 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
       "W-fixture-line: @532 键 price 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
       "returned_unsure: unsure(band), unsure(band), unsure(band), unsure(band)"
@@ -162,97 +185,92 @@
       [
         {
           "cause": "band",
-          "element": {
-            "cause": "band",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(band)",
-              "id": 0,
-              "q": "78e15a646880a5dfabb72438"
-            },
-            "index": 0,
-            "item": "这款耳机售价三百九十九元。",
-            "source": "这款耳机售价三百九十九元。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
             "id": 0,
             "q": "78e15a646880a5dfabb72438"
-          }
+          },
+          "index": 0,
+          "item": "这款耳机售价三百九十九元。",
+          "key": "faf2654baf428ca9589cdbbb",
+          "pos": 0,
+          "q": {
+            "calib": "price",
+            "op": "noul",
+            "question": "78e15a646880a5dfabb72438",
+            "text": "这段话给出了具体价格或折扣吗？"
+          },
+          "qi": 0,
+          "trail": []
         },
         {
           "cause": "band",
-          "element": {
-            "cause": "band",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(band)",
-              "id": 4,
-              "q": "78e15a646880a5dfabb72438"
-            },
-            "index": 4,
-            "item": "价格还没公布，据说下个月发布。",
-            "source": "价格还没公布，据说下个月发布。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
             "id": 4,
             "q": "78e15a646880a5dfabb72438"
-          }
+          },
+          "index": 4,
+          "item": "价格还没公布，据说下个月发布。",
+          "key": "9f2117d3875cc5b971fc50e7",
+          "pos": 4,
+          "q": {
+            "calib": "price",
+            "op": "noul",
+            "question": "78e15a646880a5dfabb72438",
+            "text": "这段话给出了具体价格或折扣吗？"
+          },
+          "qi": 0,
+          "trail": []
         }
       ],
       [
         {
           "cause": "band",
-          "element": {
-            "cause": "band",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(band)",
-              "id": 0,
-              "q": "78e15a646880a5dfabb72438"
-            },
-            "index": 0,
-            "item": "这款耳机售价三百九十九元。",
-            "source": "这款耳机售价三百九十九元。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
             "id": 0,
             "q": "78e15a646880a5dfabb72438"
-          }
+          },
+          "index": 0,
+          "item": "这款耳机售价三百九十九元。",
+          "key": "faf2654baf428ca9589cdbbb",
+          "pos": 0,
+          "q": {
+            "calib": "price",
+            "op": "noul",
+            "question": "78e15a646880a5dfabb72438",
+            "text": "这段话给出了具体价格或折扣吗？"
+          },
+          "qi": 0,
+          "trail": []
         },
         {
           "cause": "band",
-          "element": {
-            "cause": "band",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(band)",
-              "id": 4,
-              "q": "78e15a646880a5dfabb72438"
-            },
-            "index": 4,
-            "item": "价格还没公布，据说下个月发布。",
-            "source": "价格还没公布，据说下个月发布。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
             "id": 4,
             "q": "78e15a646880a5dfabb72438"
-          }
+          },
+          "index": 4,
+          "item": "价格还没公布，据说下个月发布。",
+          "key": "9f2117d3875cc5b971fc50e7",
+          "pos": 4,
+          "q": {
+            "calib": "price",
+            "op": "noul",
+            "question": "78e15a646880a5dfabb72438",
+            "text": "这段话给出了具体价格或折扣吗？"
+          },
+          "qi": 0,
+          "trail": []
         },
         {
           "cause": "band",
-          "element": null,
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
@@ -264,51 +282,48 @@
       [
         {
           "cause": "band",
-          "element": {
-            "cause": "band",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(band)",
-              "id": 0,
-              "q": "78e15a646880a5dfabb72438"
-            },
-            "index": 0,
-            "item": "这款耳机售价三百九十九元。",
-            "source": "这款耳机售价三百九十九元。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
             "id": 0,
             "q": "78e15a646880a5dfabb72438"
-          }
+          },
+          "index": 0,
+          "item": "这款耳机售价三百九十九元。",
+          "key": "faf2654baf428ca9589cdbbb",
+          "pos": 0,
+          "q": {
+            "calib": "price",
+            "op": "noul",
+            "question": "78e15a646880a5dfabb72438",
+            "text": "这段话给出了具体价格或折扣吗？"
+          },
+          "qi": 0,
+          "trail": []
         },
         {
           "cause": "band",
-          "element": {
-            "cause": "band",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(band)",
-              "id": 4,
-              "q": "78e15a646880a5dfabb72438"
-            },
-            "index": 4,
-            "item": "价格还没公布，据说下个月发布。",
-            "source": "价格还没公布，据说下个月发布。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
             "id": 4,
             "q": "78e15a646880a5dfabb72438"
-          }
+          },
+          "index": 4,
+          "item": "价格还没公布，据说下个月发布。",
+          "key": "9f2117d3875cc5b971fc50e7",
+          "pos": 4,
+          "q": {
+            "calib": "price",
+            "op": "noul",
+            "question": "78e15a646880a5dfabb72438",
+            "text": "这段话给出了具体价格或折扣吗？"
+          },
+          "qi": 0,
+          "trail": []
         },
         {
           "cause": "band",
-          "element": null,
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",

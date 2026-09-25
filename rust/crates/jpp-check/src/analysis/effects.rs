@@ -516,7 +516,7 @@ impl Checker<'_> {
                     }
                 };
                 // 落在已知高阶位上的方法会被调用
-                let positions: &[usize] = callee.map(method_positions).unwrap_or(&[]);
+                let positions: Vec<usize> = callee.map(method_positions).unwrap_or_default();
                 for (k, a) in arguments.iter().enumerate() {
                     if positions.contains(&k) {
                         row.absorb(&self.invoked(a, owner, known));

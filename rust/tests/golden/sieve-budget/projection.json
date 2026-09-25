@@ -29,359 +29,391 @@
       [
         {
           "cause": "budget",
-          "element": {
-            "cause": "budget",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(budget)",
-              "id": 4,
-              "q": "fe110bdf799f05a9c379af93"
-            },
-            "index": 4,
-            "item": "他在西安读的大学。",
-            "source": "他在西安读的大学。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(budget)",
             "id": 4,
             "q": "fe110bdf799f05a9c379af93"
-          }
+          },
+          "fill": {
+            "city": "成都"
+          },
+          "index": 4,
+          "item": "他在西安读的大学。",
+          "key": "5fada72f2d81a7e0e0f4020a",
+          "pos": 4,
+          "q": {
+            "calib": "form-mention",
+            "op": "noul",
+            "question": "fe110bdf799f05a9c379af93",
+            "text": "这段话是否提到了成都？"
+          },
+          "qi": 0,
+          "trail": []
         },
         {
           "cause": "budget",
-          "element": {
-            "cause": "budget",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(budget)",
-              "id": 5,
-              "q": "fe110bdf799f05a9c379af93"
-            },
-            "index": 5,
-            "item": "周末在家看书，哪儿也没去。",
-            "source": "周末在家看书，哪儿也没去。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(budget)",
             "id": 5,
             "q": "fe110bdf799f05a9c379af93"
-          }
+          },
+          "fill": {
+            "city": "成都"
+          },
+          "index": 5,
+          "item": "周末在家看书，哪儿也没去。",
+          "key": "ab0973a4ff857801e686b9dd",
+          "pos": 5,
+          "q": {
+            "calib": "form-mention",
+            "op": "noul",
+            "question": "fe110bdf799f05a9c379af93",
+            "text": "这段话是否提到了成都？"
+          },
+          "qi": 0,
+          "trail": []
         },
         {
           "cause": "budget",
-          "element": {
-            "cause": "budget",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(budget)",
-              "id": 6,
-              "q": "fe110bdf799f05a9c379af93"
-            },
-            "index": 6,
-            "item": "杭州的西湖很美，北京的秋天也不错。",
-            "source": "杭州的西湖很美，北京的秋天也不错。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(budget)",
             "id": 6,
             "q": "fe110bdf799f05a9c379af93"
-          }
+          },
+          "fill": {
+            "city": "成都"
+          },
+          "index": 6,
+          "item": "杭州的西湖很美，北京的秋天也不错。",
+          "key": "e3e16d0d603403bc395cb02f",
+          "pos": 6,
+          "q": {
+            "calib": "form-mention",
+            "op": "noul",
+            "question": "fe110bdf799f05a9c379af93",
+            "text": "这段话是否提到了成都？"
+          },
+          "qi": 0,
+          "trail": []
         },
         {
           "cause": "budget",
-          "element": {
-            "cause": "budget",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(budget)",
-              "id": 7,
-              "q": "fe110bdf799f05a9c379af93"
-            },
-            "index": 7,
-            "item": "这份报告需要周五之前提交。",
-            "source": "这份报告需要周五之前提交。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(budget)",
             "id": 7,
             "q": "fe110bdf799f05a9c379af93"
-          }
+          },
+          "fill": {
+            "city": "成都"
+          },
+          "index": 7,
+          "item": "这份报告需要周五之前提交。",
+          "key": "53518a9e7b74648cc55d7112",
+          "pos": 7,
+          "q": {
+            "calib": "form-mention",
+            "op": "noul",
+            "question": "fe110bdf799f05a9c379af93",
+            "text": "这段话是否提到了成都？"
+          },
+          "qi": 0,
+          "trail": []
         },
         {
           "cause": "budget",
-          "element": {
-            "cause": "budget",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(budget)",
-              "id": 8,
-              "q": "fe110bdf799f05a9c379af93"
-            },
-            "index": 8,
-            "item": "他从成都调到了杭州分公司。",
-            "source": "他从成都调到了杭州分公司。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(budget)",
             "id": 8,
             "q": "fe110bdf799f05a9c379af93"
-          }
+          },
+          "fill": {
+            "city": "成都"
+          },
+          "index": 8,
+          "item": "他从成都调到了杭州分公司。",
+          "key": "59289b99886c53e4728cfb1e",
+          "pos": 8,
+          "q": {
+            "calib": "form-mention",
+            "op": "noul",
+            "question": "fe110bdf799f05a9c379af93",
+            "text": "这段话是否提到了成都？"
+          },
+          "qi": 0,
+          "trail": []
         }
       ],
       [
         {
           "cause": "band",
-          "element": {
-            "cause": "band",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(band)",
-              "id": 12,
-              "q": "e85bdf01f404ebd6f33037a3"
-            },
-            "index": 2,
-            "item": "这家公司的总部设在杭州。",
-            "source": "这家公司的总部设在杭州。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(band)",
             "id": 12,
             "q": "e85bdf01f404ebd6f33037a3"
-          }
+          },
+          "fill": {
+            "city": "北京"
+          },
+          "index": 2,
+          "item": "这家公司的总部设在杭州。",
+          "key": "acd16fa3ac30c9da56256aa6",
+          "pos": 2,
+          "q": {
+            "calib": "form-mention",
+            "op": "noul",
+            "question": "e85bdf01f404ebd6f33037a3",
+            "text": "这段话是否提到了北京？"
+          },
+          "qi": 1,
+          "trail": []
         },
         {
           "cause": "budget",
-          "element": {
-            "cause": "budget",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(budget)",
-              "id": 14,
-              "q": "e85bdf01f404ebd6f33037a3"
-            },
-            "index": 4,
-            "item": "他在西安读的大学。",
-            "source": "他在西安读的大学。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(budget)",
             "id": 14,
             "q": "e85bdf01f404ebd6f33037a3"
-          }
+          },
+          "fill": {
+            "city": "北京"
+          },
+          "index": 4,
+          "item": "他在西安读的大学。",
+          "key": "08ee80db7be215d7248e91b1",
+          "pos": 4,
+          "q": {
+            "calib": "form-mention",
+            "op": "noul",
+            "question": "e85bdf01f404ebd6f33037a3",
+            "text": "这段话是否提到了北京？"
+          },
+          "qi": 1,
+          "trail": []
         },
         {
           "cause": "budget",
-          "element": {
-            "cause": "budget",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(budget)",
-              "id": 15,
-              "q": "e85bdf01f404ebd6f33037a3"
-            },
-            "index": 5,
-            "item": "周末在家看书，哪儿也没去。",
-            "source": "周末在家看书，哪儿也没去。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(budget)",
             "id": 15,
             "q": "e85bdf01f404ebd6f33037a3"
-          }
+          },
+          "fill": {
+            "city": "北京"
+          },
+          "index": 5,
+          "item": "周末在家看书，哪儿也没去。",
+          "key": "d188572f873309a7c8e5300b",
+          "pos": 5,
+          "q": {
+            "calib": "form-mention",
+            "op": "noul",
+            "question": "e85bdf01f404ebd6f33037a3",
+            "text": "这段话是否提到了北京？"
+          },
+          "qi": 1,
+          "trail": []
         },
         {
           "cause": "budget",
-          "element": {
-            "cause": "budget",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(budget)",
-              "id": 16,
-              "q": "e85bdf01f404ebd6f33037a3"
-            },
-            "index": 6,
-            "item": "杭州的西湖很美，北京的秋天也不错。",
-            "source": "杭州的西湖很美，北京的秋天也不错。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(budget)",
             "id": 16,
             "q": "e85bdf01f404ebd6f33037a3"
-          }
+          },
+          "fill": {
+            "city": "北京"
+          },
+          "index": 6,
+          "item": "杭州的西湖很美，北京的秋天也不错。",
+          "key": "fd3186fc7f8fadfe949f7bdf",
+          "pos": 6,
+          "q": {
+            "calib": "form-mention",
+            "op": "noul",
+            "question": "e85bdf01f404ebd6f33037a3",
+            "text": "这段话是否提到了北京？"
+          },
+          "qi": 1,
+          "trail": []
         },
         {
           "cause": "budget",
-          "element": {
-            "cause": "budget",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(budget)",
-              "id": 17,
-              "q": "e85bdf01f404ebd6f33037a3"
-            },
-            "index": 7,
-            "item": "这份报告需要周五之前提交。",
-            "source": "这份报告需要周五之前提交。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(budget)",
             "id": 17,
             "q": "e85bdf01f404ebd6f33037a3"
-          }
+          },
+          "fill": {
+            "city": "北京"
+          },
+          "index": 7,
+          "item": "这份报告需要周五之前提交。",
+          "key": "f7555c534f73a38a9e318628",
+          "pos": 7,
+          "q": {
+            "calib": "form-mention",
+            "op": "noul",
+            "question": "e85bdf01f404ebd6f33037a3",
+            "text": "这段话是否提到了北京？"
+          },
+          "qi": 1,
+          "trail": []
         },
         {
           "cause": "budget",
-          "element": {
-            "cause": "budget",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(budget)",
-              "id": 18,
-              "q": "e85bdf01f404ebd6f33037a3"
-            },
-            "index": 8,
-            "item": "他从成都调到了杭州分公司。",
-            "source": "他从成都调到了杭州分公司。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(budget)",
             "id": 18,
             "q": "e85bdf01f404ebd6f33037a3"
-          }
+          },
+          "fill": {
+            "city": "北京"
+          },
+          "index": 8,
+          "item": "他从成都调到了杭州分公司。",
+          "key": "1647f555c50a9957ce9137ed",
+          "pos": 8,
+          "q": {
+            "calib": "form-mention",
+            "op": "noul",
+            "question": "e85bdf01f404ebd6f33037a3",
+            "text": "这段话是否提到了北京？"
+          },
+          "qi": 1,
+          "trail": []
         }
       ],
       [
         {
           "cause": "budget",
-          "element": {
-            "cause": "budget",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(budget)",
-              "id": 24,
-              "q": "c50b398094fecd0e5a1a57aa"
-            },
-            "index": 4,
-            "item": "他在西安读的大学。",
-            "source": "他在西安读的大学。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(budget)",
             "id": 24,
             "q": "c50b398094fecd0e5a1a57aa"
-          }
+          },
+          "fill": {
+            "city": "杭州"
+          },
+          "index": 4,
+          "item": "他在西安读的大学。",
+          "key": "064387f0c2b8ce84cb7a8297",
+          "pos": 4,
+          "q": {
+            "calib": "form-mention",
+            "op": "noul",
+            "question": "c50b398094fecd0e5a1a57aa",
+            "text": "这段话是否提到了杭州？"
+          },
+          "qi": 2,
+          "trail": []
         },
         {
           "cause": "budget",
-          "element": {
-            "cause": "budget",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(budget)",
-              "id": 25,
-              "q": "c50b398094fecd0e5a1a57aa"
-            },
-            "index": 5,
-            "item": "周末在家看书，哪儿也没去。",
-            "source": "周末在家看书，哪儿也没去。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(budget)",
             "id": 25,
             "q": "c50b398094fecd0e5a1a57aa"
-          }
+          },
+          "fill": {
+            "city": "杭州"
+          },
+          "index": 5,
+          "item": "周末在家看书，哪儿也没去。",
+          "key": "893adce752e5f5e0b0dfabc8",
+          "pos": 5,
+          "q": {
+            "calib": "form-mention",
+            "op": "noul",
+            "question": "c50b398094fecd0e5a1a57aa",
+            "text": "这段话是否提到了杭州？"
+          },
+          "qi": 2,
+          "trail": []
         },
         {
           "cause": "budget",
-          "element": {
-            "cause": "budget",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(budget)",
-              "id": 26,
-              "q": "c50b398094fecd0e5a1a57aa"
-            },
-            "index": 6,
-            "item": "杭州的西湖很美，北京的秋天也不错。",
-            "source": "杭州的西湖很美，北京的秋天也不错。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(budget)",
             "id": 26,
             "q": "c50b398094fecd0e5a1a57aa"
-          }
+          },
+          "fill": {
+            "city": "杭州"
+          },
+          "index": 6,
+          "item": "杭州的西湖很美，北京的秋天也不错。",
+          "key": "227934e9842c47aa48df5976",
+          "pos": 6,
+          "q": {
+            "calib": "form-mention",
+            "op": "noul",
+            "question": "c50b398094fecd0e5a1a57aa",
+            "text": "这段话是否提到了杭州？"
+          },
+          "qi": 2,
+          "trail": []
         },
         {
           "cause": "budget",
-          "element": {
-            "cause": "budget",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(budget)",
-              "id": 27,
-              "q": "c50b398094fecd0e5a1a57aa"
-            },
-            "index": 7,
-            "item": "这份报告需要周五之前提交。",
-            "source": "这份报告需要周五之前提交。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(budget)",
             "id": 27,
             "q": "c50b398094fecd0e5a1a57aa"
-          }
+          },
+          "fill": {
+            "city": "杭州"
+          },
+          "index": 7,
+          "item": "这份报告需要周五之前提交。",
+          "key": "58193d89ae1f1e9aa8789105",
+          "pos": 7,
+          "q": {
+            "calib": "form-mention",
+            "op": "noul",
+            "question": "c50b398094fecd0e5a1a57aa",
+            "text": "这段话是否提到了杭州？"
+          },
+          "qi": 2,
+          "trail": []
         },
         {
           "cause": "budget",
-          "element": {
-            "cause": "budget",
-            "exit": {
-              "consumed": true,
-              "exit": "unsure(budget)",
-              "id": 28,
-              "q": "c50b398094fecd0e5a1a57aa"
-            },
-            "index": 8,
-            "item": "他从成都调到了杭州分公司。",
-            "source": "他从成都调到了杭州分公司。",
-            "trail": []
-          },
           "exit": {
             "consumed": true,
             "exit": "unsure(budget)",
             "id": 28,
             "q": "c50b398094fecd0e5a1a57aa"
-          }
+          },
+          "fill": {
+            "city": "杭州"
+          },
+          "index": 8,
+          "item": "他从成都调到了杭州分公司。",
+          "key": "cda6ca88ed5a346977933d67",
+          "pos": 8,
+          "q": {
+            "calib": "form-mention",
+            "op": "noul",
+            "question": "c50b398094fecd0e5a1a57aa",
+            "text": "这段话是否提到了杭州？"
+          },
+          "qi": 2,
+          "trail": []
         }
       ]
     ],

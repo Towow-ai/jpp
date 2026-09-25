@@ -1,5 +1,5 @@
 ir v1
-budget calls=2 cost=0 depth=256 escalate=1 unsure=- latency_p95=- absent=-
+budget calls=4 cost=0 depth=256 escalate=1 unsure=- latency_p95=- absent=-
 block 63..798
   fn-stmt compose_methods
     #0 fn (first:-, second:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}

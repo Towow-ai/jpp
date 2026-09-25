@@ -1,0 +1,27 @@
+{
+  "asks": 0,
+  "calls": 3,
+  "effects": [],
+  "judge_registrations": 5,
+  "pending": [],
+  "returned_unsure": [],
+  "status": "returned",
+  "usd": 0.0,
+  "value": {
+    "named": [
+      {
+        "named": "法国",
+        "text": "他在挪威工作过一年，后来被派去了法国。"
+      },
+      {
+        "named": "法国",
+        "text": "他在法国读了两年研究生。"
+      },
+      {
+        "named": "日本",
+        "text": "新闻说日本今年的出口增长很快。"
+      }
+    ],
+    "pending": []
+  }
+}

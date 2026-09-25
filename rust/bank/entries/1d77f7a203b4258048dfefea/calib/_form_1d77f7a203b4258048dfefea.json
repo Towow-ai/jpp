@@ -1,0 +1,1624 @@
+{
+  "key": "\u001fform\u001f1d77f7a203b4258048dfefea",
+  "hi": 0.5599999999999999,
+  "lo": 0.36,
+  "n": 80,
+  "status": "上岗",
+  "delta": null,
+  "unsure_rate": 0.0125,
+  "unsure_rate_delta": 0.04,
+  "set_id": "",
+  "label_set_id": "truth:labels.jsonl",
+  "label_locator": "",
+  "label_fp": "",
+  "label_source": "全体",
+  "certs": {
+    "α=0.1\u001fδ=0.1\u001ff42eafe635fbcc2c\u001f02b7b3636e946b2d\u001ffp=c3c07b6da2501a12\u001fsel(fixed-sequence,0,0,80)\u001frule(d6265c9dc4458b9e,step=Some(4),δ=Some(0.04))": {
+      "alpha": 0.1,
+      "conf_delta": 0.1,
+      "hi": 0.5599999999999999,
+      "n_accepted": 40,
+      "n_errors": 1,
+      "ucb": 0.09379710299528377,
+      "cluster_unit": "条",
+      "resample": [
+        0,
+        "固定序认证（B86）：候选由读数按计数生成，从严到宽逐个检验上界 ≤ α，第一次不过即停；两侧通过前缀里取已决最多的合法线对"
+      ],
+      "cost": null,
+      "bounded_side": "上侧：界定 p ≥ hi + δ 一侧的假放行",
+      "label_source": "全体",
+      "label_fp": "c3c07b6da2501a12",
+      "selection": {
+        "method": "fixed-sequence",
+        "seed": 0,
+        "n_select": 0,
+        "n_certify": 80,
+        "candidates": 60,
+        "rule": "fixed-sequence/v1",
+        "step": 4,
+        "delta": 0.04,
+        "generated": [
+          16,
+          13
+        ],
+        "stop_index": [
+          6,
+          10
+        ]
+      },
+      "eff": {
+        "alpha_eff": 0.1,
+        "conf": 0.9,
+        "truth_baseline": "model:fable-5.1",
+        "basis": "full-review"
+      }
+    }
+  },
+  "samples": [
+    {
+      "p": 0.06,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.98,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.05,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.14,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.98,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.03,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.95,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.07,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.98,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.03,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.97,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.98,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.97,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.98,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.17,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.98,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.05,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.05,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.04,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.16,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.97,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.08,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.04,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.11,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.03,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.15,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.98,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.97,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.05,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.97,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.04,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.98,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.77,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.05,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.98,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.97,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.05,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.32,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.98,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.08,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.26,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.97,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.96,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.03,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.98,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.03,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.98,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.91,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.97,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.6,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.96,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.97,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.97,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.2,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.05,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.54,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.05,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.97,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.97,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.9,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.96,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.06,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.97,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.98,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.97,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.97,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.97,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.03,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.09,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.03,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.21,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.03,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.98,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.06,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.98,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    }
+  ],
+  "truth": {
+    "sources": {
+      "model:fable-5.1": 80
+    },
+    "ambiguous": 0,
+    "abstain_rate": 0.0,
+    "spot_check": {
+      "batches": [
+        "fable-27a-f2"
+      ],
+      "n": 80,
+      "agree": 80,
+      "rate": 1.0,
+      "lower": 0.9632458022200177,
+      "conf": 0.95,
+      "model_reviewers": [
+        "model:fable-5.1"
+      ]
+    },
+    "spot_check_min": 0.9,
+    "gate": "上岗（复核者 model:fable-5.1）",
+    "batch": "labels.jsonl"
+  },
+  "lower": {
+    "alpha": 0.1,
+    "conf_delta": 0.1,
+    "hi": 0.36,
+    "n_accepted": 39,
+    "n_errors": 0,
+    "ucb": 0.05733154488211478,
+    "cluster_unit": "条",
+    "resample": [
+      0,
+      "固定序认证（B86）：候选由读数按计数生成，从严到宽逐个检验上界 ≤ α，第一次不过即停；两侧通过前缀里取已决最多的合法线对"
+    ],
+    "cost": null,
+    "bounded_side": "下侧：界定 p ≤ lo − δ 一侧的漏放行；hi 字段此处存的是 lo",
+    "label_source": "全体",
+    "label_fp": "c3c07b6da2501a12",
+    "selection": {
+      "method": "fixed-sequence",
+      "seed": 0,
+      "n_select": 0,
+      "n_certify": 80,
+      "candidates": 60,
+      "rule": "fixed-sequence/v1",
+      "step": 4,
+      "delta": 0.04,
+      "generated": [
+        16,
+        13
+      ],
+      "stop_index": [
+        6,
+        10
+      ]
+    },
+    "eff": {
+      "alpha_eff": 0.1,
+      "conf": 0.9,
+      "truth_baseline": "model:fable-5.1",
+      "basis": "full-review"
+    }
+  },
+  "scope": {
+    "batches": [
+      "labels.jsonl"
+    ],
+    "sources": {
+      "model:fable-5.1": 80
+    },
+    "note": "认证集来源与材料指纹范围（B68）",
+    "fingerprint": {
+      "quantiles": [
+        0.01,
+        0.99
+      ],
+      "n": 80,
+      "ranges": [
+        [
+          "字符数",
+          16.5,
+          104.0
+        ],
+        [
+          "中文比例",
+          0.26538461538461533,
+          0.7538461538461538
+        ],
+        [
+          "拉丁字母比例",
+          0.0,
+          0.36923076923076925
+        ],
+        [
+          "数字比例",
+          0.0,
+          0.2
+        ],
+        [
+          "标点空白比例",
+          0.2076923076923077,
+          0.575
+        ],
+        [
+          "行数",
+          0.5,
+          2.0
+        ],
+        [
+          "平均行长",
+          16.5,
+          104.0
+        ]
+      ],
+      "margins": {
+        "k": 2.0,
+        "m": 0.1
+      }
+    }
+  },
+  "material_fps": [
+    [
+      36.0,
+      0.5277777777777778,
+      0.05555555555555555,
+      0.0,
+      0.4166666666666667,
+      1.0,
+      36.0
+    ],
+    [
+      40.0,
+      0.55,
+      0.05,
+      0.0,
+      0.4,
+      1.0,
+      40.0
+    ],
+    [
+      33.0,
+      0.48484848484848486,
+      0.06060606060606061,
+      0.0,
+      0.45454545454545453,
+      1.0,
+      33.0
+    ],
+    [
+      35.0,
+      0.5142857142857142,
+      0.05714285714285714,
+      0.0,
+      0.42857142857142855,
+      1.0,
+      35.0
+    ],
+    [
+      52.0,
+      0.36538461538461536,
+      0.2692307692307692,
+      0.0,
+      0.36538461538461536,
+      1.0,
+      52.0
+    ],
+    [
+      42.0,
+      0.47619047619047616,
+      0.11904761904761904,
+      0.0,
+      0.40476190476190477,
+      1.0,
+      42.0
+    ],
+    [
+      39.0,
+      0.46153846153846156,
+      0.05128205128205128,
+      0.05128205128205128,
+      0.4358974358974359,
+      1.0,
+      39.0
+    ],
+    [
+      37.0,
+      0.5405405405405406,
+      0.05405405405405406,
+      0.0,
+      0.40540540540540543,
+      1.0,
+      37.0
+    ],
+    [
+      41.0,
+      0.5853658536585366,
+      0.04878048780487805,
+      0.0,
+      0.36585365853658536,
+      1.0,
+      41.0
+    ],
+    [
+      45.0,
+      0.4888888888888889,
+      0.044444444444444446,
+      0.06666666666666667,
+      0.4,
+      1.0,
+      45.0
+    ],
+    [
+      37.0,
+      0.5405405405405406,
+      0.05405405405405406,
+      0.0,
+      0.40540540540540543,
+      1.0,
+      37.0
+    ],
+    [
+      41.0,
+      0.5121951219512195,
+      0.07317073170731707,
+      0.0,
+      0.4146341463414634,
+      1.0,
+      41.0
+    ],
+    [
+      41.0,
+      0.5609756097560976,
+      0.04878048780487805,
+      0.0,
+      0.3902439024390244,
+      1.0,
+      41.0
+    ],
+    [
+      41.0,
+      0.4878048780487805,
+      0.04878048780487805,
+      0.04878048780487805,
+      0.4146341463414634,
+      1.0,
+      41.0
+    ],
+    [
+      40.0,
+      0.525,
+      0.05,
+      0.0,
+      0.425,
+      1.0,
+      40.0
+    ],
+    [
+      42.0,
+      0.5952380952380952,
+      0.047619047619047616,
+      0.0,
+      0.35714285714285715,
+      1.0,
+      42.0
+    ],
+    [
+      35.0,
+      0.5142857142857142,
+      0.05714285714285714,
+      0.0,
+      0.42857142857142855,
+      1.0,
+      35.0
+    ],
+    [
+      38.0,
+      0.5526315789473685,
+      0.05263157894736842,
+      0.0,
+      0.39473684210526316,
+      1.0,
+      38.0
+    ],
+    [
+      37.0,
+      0.5405405405405406,
+      0.05405405405405406,
+      0.0,
+      0.40540540540540543,
+      1.0,
+      37.0
+    ],
+    [
+      43.0,
+      0.46511627906976744,
+      0.09302325581395349,
+      0.0,
+      0.4418604651162791,
+      1.0,
+      43.0
+    ],
+    [
+      42.0,
+      0.5714285714285714,
+      0.047619047619047616,
+      0.0,
+      0.38095238095238093,
+      1.0,
+      42.0
+    ],
+    [
+      48.0,
+      0.625,
+      0.041666666666666664,
+      0.0,
+      0.3333333333333333,
+      1.0,
+      48.0
+    ],
+    [
+      41.0,
+      0.5853658536585366,
+      0.04878048780487805,
+      0.0,
+      0.36585365853658536,
+      1.0,
+      41.0
+    ],
+    [
+      35.0,
+      0.5142857142857142,
+      0.05714285714285714,
+      0.0,
+      0.42857142857142855,
+      1.0,
+      35.0
+    ],
+    [
+      40.0,
+      0.575,
+      0.05,
+      0.0,
+      0.375,
+      1.0,
+      40.0
+    ],
+    [
+      43.0,
+      0.6046511627906976,
+      0.046511627906976744,
+      0.0,
+      0.3488372093023256,
+      1.0,
+      43.0
+    ],
+    [
+      36.0,
+      0.5277777777777778,
+      0.05555555555555555,
+      0.0,
+      0.4166666666666667,
+      1.0,
+      36.0
+    ],
+    [
+      40.0,
+      0.575,
+      0.05,
+      0.0,
+      0.375,
+      1.0,
+      40.0
+    ],
+    [
+      37.0,
+      0.5135135135135135,
+      0.05405405405405406,
+      0.0,
+      0.43243243243243246,
+      1.0,
+      37.0
+    ],
+    [
+      39.0,
+      0.5384615384615384,
+      0.05128205128205128,
+      0.0,
+      0.41025641025641024,
+      1.0,
+      39.0
+    ],
+    [
+      50.0,
+      0.64,
+      0.04,
+      0.0,
+      0.32,
+      1.0,
+      50.0
+    ],
+    [
+      41.0,
+      0.5609756097560976,
+      0.04878048780487805,
+      0.0,
+      0.3902439024390244,
+      1.0,
+      41.0
+    ],
+    [
+      33.0,
+      0.48484848484848486,
+      0.06060606060606061,
+      0.0,
+      0.45454545454545453,
+      1.0,
+      33.0
+    ],
+    [
+      33.0,
+      0.48484848484848486,
+      0.06060606060606061,
+      0.0,
+      0.45454545454545453,
+      1.0,
+      33.0
+    ],
+    [
+      37.0,
+      0.5135135135135135,
+      0.05405405405405406,
+      0.0,
+      0.43243243243243246,
+      1.0,
+      37.0
+    ],
+    [
+      38.0,
+      0.5526315789473685,
+      0.05263157894736842,
+      0.0,
+      0.39473684210526316,
+      1.0,
+      38.0
+    ],
+    [
+      54.0,
+      0.3888888888888889,
+      0.07407407407407407,
+      0.1111111111111111,
+      0.42592592592592593,
+      1.0,
+      54.0
+    ],
+    [
+      36.0,
+      0.5277777777777778,
+      0.05555555555555555,
+      0.0,
+      0.4166666666666667,
+      1.0,
+      36.0
+    ],
+    [
+      44.0,
+      0.5227272727272727,
+      0.045454545454545456,
+      0.045454545454545456,
+      0.38636363636363635,
+      1.0,
+      44.0
+    ],
+    [
+      52.0,
+      0.6538461538461539,
+      0.038461538461538464,
+      0.0,
+      0.3076923076923077,
+      1.0,
+      52.0
+    ],
+    [
+      41.0,
+      0.5609756097560976,
+      0.04878048780487805,
+      0.0,
+      0.3902439024390244,
+      1.0,
+      41.0
+    ],
+    [
+      38.0,
+      0.5526315789473685,
+      0.05263157894736842,
+      0.0,
+      0.39473684210526316,
+      1.0,
+      38.0
+    ],
+    [
+      39.0,
+      0.5384615384615384,
+      0.05128205128205128,
+      0.0,
+      0.41025641025641024,
+      1.0,
+      39.0
+    ],
+    [
+      31.0,
+      0.45161290322580644,
+      0.06451612903225806,
+      0.0,
+      0.4838709677419355,
+      1.0,
+      31.0
+    ],
+    [
+      34.0,
+      0.5,
+      0.058823529411764705,
+      0.0,
+      0.4411764705882353,
+      1.0,
+      34.0
+    ],
+    [
+      35.0,
+      0.4,
+      0.05714285714285714,
+      0.08571428571428572,
+      0.45714285714285713,
+      1.0,
+      35.0
+    ],
+    [
+      39.0,
+      0.5641025641025641,
+      0.05128205128205128,
+      0.0,
+      0.38461538461538464,
+      1.0,
+      39.0
+    ],
+    [
+      40.0,
+      0.575,
+      0.05,
+      0.0,
+      0.375,
+      1.0,
+      40.0
+    ],
+    [
+      42.0,
+      0.5714285714285714,
+      0.047619047619047616,
+      0.0,
+      0.38095238095238093,
+      1.0,
+      42.0
+    ],
+    [
+      37.0,
+      0.5405405405405406,
+      0.05405405405405406,
+      0.0,
+      0.40540540540540543,
+      1.0,
+      37.0
+    ],
+    [
+      40.0,
+      0.375,
+      0.05,
+      0.1,
+      0.475,
+      1.0,
+      40.0
+    ],
+    [
+      37.0,
+      0.5405405405405406,
+      0.05405405405405406,
+      0.0,
+      0.40540540540540543,
+      1.0,
+      37.0
+    ],
+    [
+      47.0,
+      0.5531914893617021,
+      0.0425531914893617,
+      0.0425531914893617,
+      0.3617021276595745,
+      1.0,
+      47.0
+    ],
+    [
+      41.0,
+      0.5853658536585366,
+      0.04878048780487805,
+      0.0,
+      0.36585365853658536,
+      1.0,
+      41.0
+    ],
+    [
+      48.0,
+      0.625,
+      0.041666666666666664,
+      0.0,
+      0.3333333333333333,
+      1.0,
+      48.0
+    ],
+    [
+      44.0,
+      0.5909090909090909,
+      0.045454545454545456,
+      0.0,
+      0.36363636363636365,
+      1.0,
+      44.0
+    ],
+    [
+      37.0,
+      0.5405405405405406,
+      0.05405405405405406,
+      0.0,
+      0.40540540540540543,
+      1.0,
+      37.0
+    ],
+    [
+      52.0,
+      0.2692307692307692,
+      0.3269230769230769,
+      0.0,
+      0.40384615384615385,
+      1.0,
+      52.0
+    ],
+    [
+      33.0,
+      0.48484848484848486,
+      0.06060606060606061,
+      0.0,
+      0.45454545454545453,
+      1.0,
+      33.0
+    ],
+    [
+      37.0,
+      0.5405405405405406,
+      0.05405405405405406,
+      0.0,
+      0.40540540540540543,
+      1.0,
+      37.0
+    ],
+    [
+      43.0,
+      0.6046511627906976,
+      0.046511627906976744,
+      0.0,
+      0.3488372093023256,
+      1.0,
+      43.0
+    ],
+    [
+      37.0,
+      0.5405405405405406,
+      0.05405405405405406,
+      0.0,
+      0.40540540540540543,
+      1.0,
+      37.0
+    ],
+    [
+      41.0,
+      0.5609756097560976,
+      0.04878048780487805,
+      0.0,
+      0.3902439024390244,
+      1.0,
+      41.0
+    ],
+    [
+      39.0,
+      0.5641025641025641,
+      0.05128205128205128,
+      0.0,
+      0.38461538461538464,
+      1.0,
+      39.0
+    ],
+    [
+      41.0,
+      0.5853658536585366,
+      0.04878048780487805,
+      0.0,
+      0.36585365853658536,
+      1.0,
+      41.0
+    ],
+    [
+      48.0,
+      0.5416666666666666,
+      0.041666666666666664,
+      0.041666666666666664,
+      0.375,
+      1.0,
+      48.0
+    ],
+    [
+      50.0,
+      0.66,
+      0.04,
+      0.0,
+      0.3,
+      1.0,
+      50.0
+    ],
+    [
+      42.0,
+      0.5714285714285714,
+      0.047619047619047616,
+      0.0,
+      0.38095238095238093,
+      1.0,
+      42.0
+    ],
+    [
+      39.0,
+      0.5384615384615384,
+      0.05128205128205128,
+      0.0,
+      0.41025641025641024,
+      1.0,
+      39.0
+    ],
+    [
+      38.0,
+      0.5526315789473685,
+      0.05263157894736842,
+      0.0,
+      0.39473684210526316,
+      1.0,
+      38.0
+    ],
+    [
+      52.0,
+      0.5384615384615384,
+      0.038461538461538464,
+      0.057692307692307696,
+      0.36538461538461536,
+      1.0,
+      52.0
+    ],
+    [
+      42.0,
+      0.5714285714285714,
+      0.047619047619047616,
+      0.0,
+      0.38095238095238093,
+      1.0,
+      42.0
+    ],
+    [
+      42.0,
+      0.5714285714285714,
+      0.047619047619047616,
+      0.0,
+      0.38095238095238093,
+      1.0,
+      42.0
+    ],
+    [
+      38.0,
+      0.5526315789473685,
+      0.05263157894736842,
+      0.0,
+      0.39473684210526316,
+      1.0,
+      38.0
+    ],
+    [
+      42.0,
+      0.5952380952380952,
+      0.047619047619047616,
+      0.0,
+      0.35714285714285715,
+      1.0,
+      42.0
+    ],
+    [
+      46.0,
+      0.6304347826086957,
+      0.043478260869565216,
+      0.0,
+      0.32608695652173914,
+      1.0,
+      46.0
+    ],
+    [
+      41.0,
+      0.4878048780487805,
+      0.07317073170731707,
+      0.024390243902439025,
+      0.4146341463414634,
+      1.0,
+      41.0
+    ],
+    [
+      39.0,
+      0.41025641025641024,
+      0.15384615384615385,
+      0.0,
+      0.4358974358974359,
+      1.0,
+      39.0
+    ],
+    [
+      33.0,
+      0.48484848484848486,
+      0.06060606060606061,
+      0.0,
+      0.45454545454545453,
+      1.0,
+      33.0
+    ],
+    [
+      43.0,
+      0.6046511627906976,
+      0.046511627906976744,
+      0.0,
+      0.3488372093023256,
+      1.0,
+      43.0
+    ]
+  ],
+  "kind": "attr"
+}

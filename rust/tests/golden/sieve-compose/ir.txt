@@ -14,173 +14,318 @@ block 156..1222
           #4 field .ignore
             #5 field .detail
               #6 name o
+  fn-stmt unobserved_cause
+    #7 fn (c:-) -> - effects=-
+      block 2035..2087
+        result
+          #8 binary ||
+            #9 binary ||
+              #10 binary ==
+                #11 name c
+                #12 text "budget"
+              #13 binary ==
+                #14 name c
+                #15 text "absent"
+            #16 binary ==
+              #17 name c
+              #18 text "latency"
   fn-stmt undecided
-    #7 fn (o:-) -> - effects=-
-      block 1796..1848
+    #19 fn (o:-) -> - effects=-
+      block 2156..2215
         result
-          #8 call @0 1798..1846
+          #20 call @0 2158..2213
             callee:
-              #9 name filter
-            #10 field .pending
-              #11 name o
-            #13 fn (p:-) -> - effects=-
-              block 1822..1845
+              #21 name filter
+            #22 field .pending
+              #23 name o
+            #25 fn (p:-) -> - effects=-
+              block 2182..2212
                 result
-                  #14 binary !=
-                    #15 field .cause
-                      #16 name p
-                    #17 text "budget"
+                  #26 unary !
+                    #27 call 2185..2210
+                      callee:
+                        #28 name unobserved_cause
+                      #29 field .cause
+                        #30 name p
   fn-stmt unobserved
-    #18 fn (o:-) -> - effects=-
-      block 1941..1993
+    #31 fn (o:-) -> - effects=-
+      block 2309..2367
         result
-          #19 call @1 1943..1991
+          #32 call @1 2311..2365
             callee:
-              #20 name filter
-            #21 field .pending
-              #22 name o
-            #24 fn (p:-) -> - effects=-
-              block 1967..1990
+              #33 name filter
+            #34 field .pending
+              #35 name o
+            #37 fn (p:-) -> - effects=-
+              block 2335..2364
                 result
-                  #25 binary ==
-                    #26 field .cause
-                      #27 name p
-                    #28 text "budget"
+                  #38 call 2337..2362
+                    callee:
+                      #39 name unobserved_cause
+                    #40 field .cause
+                      #41 name p
   fn-stmt stopped
-    #29 fn (o:-) -> - effects=-
-      block 2056..2120
+    #42 fn (o:-) -> - effects=-
+      block 2430..2494
         result
-          #30 if @2 2058..2118
+          #43 if @2 2432..2492
             cond:
-              #31 call 2061..2084
+              #44 call 2435..2458
                 callee:
-                  #32 name has
-                #33 field .resume
-                  #34 name o
-                #35 text "detail"
-            block 2085..2104
+                  #45 name has
+                #46 field .resume
+                  #47 name o
+                #48 text "detail"
+            block 2459..2478
               result
-                #36 field .detail
-                  #37 field .resume
-                    #38 name o
-            block 2110..2118
+                #49 field .detail
+                  #50 field .resume
+                    #51 name o
+            block 2484..2492
               result
-                #39 unit
-  let mention : -
-    #40 construct form @3 215..289
-      #41 text "test"
-      #42 text "这段话是否提到了{city}？"
-      #43 record 265..288
-        calib:
-          #44 text "form-mention"
-  let trip : -
-    #45 construct test @4 302..354
-      #46 text "这段话说的是工作出行吗？"
-      #47 text "trip"
-  let notes : -
-    #48 list 368..644
-      #49 text "我上个月去了成都出差，顺便见了老朋友。"
-      #50 text "她的老家在北京，每年春节都回去。"
-      #51 text "我们计划明年夏天去成都和北京旅游。"
-      #52 text "他从成都调到了杭州分公司。"
-      #53 text "周末在家看书，哪儿也没去。"
-  let first : -
-    #54 construct sieve @5 659..704
-      #55 name notes
-      #56 construct fill @6 672..703
-        #57 name mention
-        #58 record 686..702
-          city:
-            #59 text "成都"
-  let second : -
-    #60 construct sieve @7 843..861
-      #61 name first
-      #62 name trip
-  result
-    #63 record 864..1222
-      first_act:
-        #64 call @8 876..915
-          callee:
-            #65 name map
-          #66 call 880..895
+                #52 unit
+  fn-stmt by_q
+    #53 fn (o:-, k:-) -> - effects=-
+      block 2980..3503
+        let keep : -
+          #55 fn (e:-) -> - effects=-
+            block 3003..3032
+              result
+                #56 binary &&
+                  #57 call 3005..3017
+                    callee:
+                      #58 name has
+                    #59 name e
+                    #60 text "qi"
+                  #61 binary ==
+                    #62 field .qi
+                      #63 name e
+                    #64 name k
+        let 键表 : -
+          #65 call @3 3051..3138
             callee:
-              #67 name accepted
-            #68 name first
-          #70 fn (e:-) -> - effects=-
+              #66 name map
+            #67 call @4 3055..3120
+              callee:
+                #68 name filter
+              #69 call 3062..3113
+                callee:
+                  #70 name concat
+                #71 call 3069..3101
+                  callee:
+                    #72 name concat
+                  #73 field .value
+                    #74 name o
+                  #75 field .ignore
+                    #76 field .detail
+                      #77 name o
+                #78 field .pending
+                  #79 name o
+              #80 name keep
+            #82 fn (e:-) -> - effects=-
+              block 3128..3137
+                result
+                  #83 field .key
+                    #84 name e
+        result
+          #85 construct outcome @5 3144..3501
+            #86 record 3152..3500
+              value:
+                #87 call @6 3160..3181
+                  callee:
+                    #88 name filter
+                  #89 field .value
+                    #90 name o
+                  #91 name keep
+              pending:
+                #92 call @7 3192..3215
+                  callee:
+                    #93 name filter
+                  #94 field .pending
+                    #95 name o
+                  #96 name keep
+              evidence:
+                #97 call @8 3240..3289
+                  callee:
+                    #98 name filter
+                  #99 field .evidence
+                    #100 name o
+                  #102 fn (x:-) -> - effects=-
+                    block 3265..3288
+                      result
+                        #103 call 3267..3286
+                          callee:
+                            #104 name contains
+                          #105 name 键表
+                          #106 name x
+              resume:
+                #107 field .resume
+                  #108 name o
+              detail:
+                #109 record 3330..3499
+                  question:
+                    #110 if @9 3341..3423
+                      cond:
+                        #111 call 3344..3370
+                          callee:
+                            #112 name has
+                          #113 field .detail
+                            #114 name o
+                          #115 text "questions"
+                      block 3371..3396
+                        result
+                          #116 index
+                            #117 field .questions
+                              #118 field .detail
+                                #119 name o
+                            #120 name k
+                      block 3402..3423
+                        result
+                          #121 field .question
+                            #122 field .detail
+                              #123 name o
+                  ignore:
+                    #124 call @10 3455..3484
+                      callee:
+                        #125 name filter
+                      #126 field .ignore
+                        #127 field .detail
+                          #128 name o
+                      #129 name keep
+                  shared:
+                    #130 bool true
+  fn-stmt by_fill
+    #131 fn (o:-, k:-) -> - effects=-
+      block 3521..3535
+        result
+          #132 call 3523..3533
+            callee:
+              #133 name by_q
+            #134 name o
+            #135 name k
+  let mention : -
+    #136 construct form @11 215..289
+      #137 text "test"
+      #138 text "这段话是否提到了{city}？"
+      #139 record 265..288
+        calib:
+          #140 text "form-mention"
+  let trip : -
+    #141 construct test @12 302..354
+      #142 text "这段话说的是工作出行吗？"
+      #143 text "trip"
+  let notes : -
+    #144 list 368..644
+      #145 text "我上个月去了成都出差，顺便见了老朋友。"
+      #146 text "她的老家在北京，每年春节都回去。"
+      #147 text "我们计划明年夏天去成都和北京旅游。"
+      #148 text "他从成都调到了杭州分公司。"
+      #149 text "周末在家看书，哪儿也没去。"
+  let first : -
+    #150 construct sieve @13 659..704
+      #151 name notes
+      #152 construct fill @14 672..703
+        #153 name mention
+        #154 record 686..702
+          city:
+            #155 text "成都"
+  let second : -
+    #156 construct sieve @15 843..861
+      #157 name first
+      #158 name trip
+  result
+    #159 record 864..1222
+      first_act:
+        #160 call @16 876..915
+          callee:
+            #161 name map
+          #162 call 880..895
+            callee:
+              #163 name accepted
+            #164 name first
+          #166 fn (e:-) -> - effects=-
             block 903..914
               result
-                #71 field .index
-                  #72 name e
+                #167 field .index
+                  #168 name e
       second:
-        #73 record 926..1195
+        #169 record 926..1195
           asked:
-            #74 field .text
-              #75 field .question
-                #76 field .detail
-                  #77 name second
+            #170 field .text
+              #171 field .question
+                #172 field .detail
+                  #173 name second
           act:
-            #78 call @9 978..1070
+            #174 call @17 978..1070
               callee:
-                #79 name map
-              #80 call 982..998
+                #175 name map
+              #176 call 982..998
                 callee:
-                  #81 name accepted
-                #82 name second
-              #84 fn (e:-) -> - effects=-
+                  #177 name accepted
+                #178 name second
+              #180 fn (e:-) -> - effects=-
                 block 1006..1069
                   result
-                    #85 record 1008..1067
+                    #181 record 1008..1067
                       item:
-                        #86 field .item
-                          #87 name e
+                        #182 field .item
+                          #183 name e
                       trail:
-                        #88 call @10 1030..1066
+                        #184 call @18 1030..1066
                           callee:
-                            #89 name map
-                          #90 field .trail
-                            #91 name e
-                          #93 fn (x:-) -> - effects=-
+                            #185 name map
+                          #186 field .trail
+                            #187 name e
+                          #189 fn (x:-) -> - effects=-
                             block 1049..1065
                               result
-                                #94 call 1051..1063
+                                #190 call 1051..1063
                                   callee:
-                                    #95 name exit_kind
-                                  #96 name x
+                                    #191 name exit_kind
+                                  #192 name x
           ignore:
-            #97 call @11 1090..1128
+            #193 call @19 1090..1128
               callee:
-                #98 name map
-              #99 call 1094..1109
+                #194 name map
+              #195 call 1094..1109
                 callee:
-                  #100 name ignored
-                #101 name second
-              #103 fn (e:-) -> - effects=-
+                  #196 name ignored
+                #197 name second
+              #199 fn (e:-) -> - effects=-
                 block 1117..1127
                   result
-                    #104 field .item
-                      #105 name e
+                    #200 field .item
+                      #201 name e
           kind:
-            #106 field .kind
-              #107 name second
+            #202 field .kind
+              #203 name second
           evidence_keys:
-            #108 call 1174..1194
+            #204 call 1174..1194
               callee:
-                #109 name len
-              #110 field .evidence
-                #111 name second
+                #205 name len
+              #206 field .evidence
+                #207 name second
       pending:
-        #112 field .pending
-          #113 name second
-sites 12
-  @0 #8 hof:filter 1798..1846 fn=#7 in=-
-  @1 #19 hof:filter 1943..1991 fn=#18 in=-
-  @2 #30 if 2058..2118 fn=#29 in=-
-  @3 #40 construct:form 215..289 fn=- in=-
-  @4 #45 construct:test 302..354 fn=- in=-
-  @5 #54 construct:sieve 659..704 fn=- in=-
-  @6 #56 construct:fill 672..703 fn=- in=@5
-  @7 #60 construct:sieve 843..861 fn=- in=-
-  @8 #64 hof:map 876..915 fn=- in=-
-  @9 #78 hof:map 978..1070 fn=- in=-
-  @10 #88 hof:map 1030..1066 fn=#84 in=@9
-  @11 #97 hof:map 1090..1128 fn=- in=-
+        #208 field .pending
+          #209 name second
+sites 20
+  @0 #20 hof:filter 2158..2213 fn=#19 in=-
+  @1 #32 hof:filter 2311..2365 fn=#31 in=-
+  @2 #43 if 2432..2492 fn=#42 in=-
+  @3 #65 hof:map 3051..3138 fn=#53 in=-
+  @4 #67 hof:filter 3055..3120 fn=#53 in=@3
+  @5 #85 construct:outcome 3144..3501 fn=#53 in=-
+  @6 #87 hof:filter 3160..3181 fn=#53 in=@5
+  @7 #92 hof:filter 3192..3215 fn=#53 in=@5
+  @8 #97 hof:filter 3240..3289 fn=#53 in=@5
+  @9 #110 if 3341..3423 fn=#53 in=@5
+  @10 #124 hof:filter 3455..3484 fn=#53 in=@5
+  @11 #136 construct:form 215..289 fn=- in=-
+  @12 #141 construct:test 302..354 fn=- in=-
+  @13 #150 construct:sieve 659..704 fn=- in=-
+  @14 #152 construct:fill 672..703 fn=- in=@13
+  @15 #156 construct:sieve 843..861 fn=- in=-
+  @16 #160 hof:map 876..915 fn=- in=-
+  @17 #174 hof:map 978..1070 fn=- in=-
+  @18 #184 hof:map 1030..1066 fn=#180 in=@17
+  @19 #193 hof:map 1090..1128 fn=- in=-

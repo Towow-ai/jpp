@@ -23,14 +23,14 @@ name = "逐字节重放"
 jpp = "账本 v2、E-replay、W-header"
 baseline = "自录每次调用并回放"
 status = "measured"
-measure = "cargo test -p jpp-cli --test golden --offline -- examples_match_golden_and_replay；scripts/replay_scan.py 差异组数 = 0"
+measure = "cargo test -p jpp --test golden --offline -- examples_match_golden_and_replay；scripts/replay_scan.py 差异组数 = 0"
 
 [capabilities.A4]
 name = "值级 taint 拦不可逆 do"
 jpp = "B33、J-08、谱系（17b 后）"
 baseline = "无"
 status = "measured"
-measure = "cargo test -p jpp-core --test failopen --offline"
+measure = "cargo test -p jpp --test failopen --offline"
 
 [capabilities.A5]
 name = "同状态多题合并、层批发"
@@ -86,4 +86,4 @@ name = "静态诊断"
 jpp = "J-*、B13"
 baseline = "无"
 status = "measured"
-measure = "金样 error-question-field-typo：写坏题面时报编号诊断（W-diag-mention-scope、E-field）；cargo test -p jpp-cli --test golden 通过即成立"
+measure = "金样 error-question-field-typo：写坏题面时报编号诊断（W-diag-mention-scope、E-field）；cargo test -p jpp --test golden 通过即成立"

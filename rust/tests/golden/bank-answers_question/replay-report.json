@@ -1,0 +1,178 @@
+{
+  "backend": "fixed-0",
+  "cost": {
+    "asks": 0,
+    "calls": 0,
+    "replayed": 4,
+    "tokens": 0,
+    "usd": 0.0
+  },
+  "entry": [],
+  "exits": [
+    {
+      "exit": "act",
+      "grade": "Form",
+      "index": 0,
+      "item": "b3dfbdfafc9d",
+      "key": "\u001fform\u001f1d77f7a203b4258048dfefea",
+      "pos": 0,
+      "releases": true,
+      "site": 1182
+    },
+    {
+      "exit": "act",
+      "grade": "Form",
+      "index": 1,
+      "item": "4efaff365f80",
+      "key": "\u001fform\u001f1d77f7a203b4258048dfefea",
+      "pos": 1,
+      "releases": true,
+      "site": 1182
+    },
+    {
+      "exit": "ignore",
+      "grade": "Form",
+      "index": 2,
+      "item": "6d0b6883699c",
+      "key": "\u001fform\u001f1d77f7a203b4258048dfefea",
+      "pos": 2,
+      "releases": true,
+      "site": 1182
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Form",
+      "index": 3,
+      "item": "bd1cf96441c7",
+      "key": "\u001fform\u001f1d77f7a203b4258048dfefea",
+      "pos": 3,
+      "releases": true,
+      "site": 1182
+    }
+  ],
+  "fixture_description": "步 27a 题库条目 answers_question 的金样夹具。四对取自认证集（地基/评估/27a-准备/F2-回答了问题，标注编号 h7622b5cfc3、h03d7ea417b、h44ba93f7a5、hc8afb06cb3），读数是该次真机账本的原读数；线由条目目录的校准记录给出。",
+  "local_checks": [],
+  "mode": "replay; no model API requests",
+  "pending": [],
+  "questions": [
+    {
+      "fill": {},
+      "form_hash": "1d77f7a203b4258048dfefea",
+      "kind": "attr",
+      "q": "f0ef4a5eb953ad767fdd05f3",
+      "template": "b 是否给出了 a 所问的信息？（间接但足以推出答案的说法也算）"
+    }
+  ],
+  "replay": true,
+  "resumed": false,
+  "returned_unsure": [
+    "unsure(band)"
+  ],
+  "status": "returned",
+  "trace": {
+    "events": [
+      {
+        "cost": 0.0,
+        "key": "1fa92b2217417b08b9522a10",
+        "kind": "judge",
+        "note": "「b 是否给出了 a 所问的信息？（间接但足以推出答案的说法也算）」",
+        "replayed": true,
+        "site": {
+          "end": 1223,
+          "start": 1182
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "a3b7dd2cc1b801115a599719",
+        "kind": "judge",
+        "note": "「b 是否给出了 a 所问的信息？（间接但足以推出答案的说法也算）」",
+        "replayed": true,
+        "site": {
+          "end": 1223,
+          "start": 1182
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "31a7a10023f6c4f363741b82",
+        "kind": "judge",
+        "note": "「b 是否给出了 a 所问的信息？（间接但足以推出答案的说法也算）」",
+        "replayed": true,
+        "site": {
+          "end": 1223,
+          "start": 1182
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "a78e352c93eb4a9a551cea4c",
+        "kind": "judge",
+        "note": "「b 是否给出了 a 所问的信息？（间接但足以推出答案的说法也算）」",
+        "replayed": true,
+        "site": {
+          "end": 1223,
+          "start": 1182
+        }
+      }
+    ],
+    "warnings": [
+      "W-window-untested: @1182 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
+      "W-form-line: @1182 题级校准键 rel-answers-question 无上岗记录，用题式级线 form:1d77f7a203b4258048dfefea（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1182 题级校准键 rel-answers-question 无上岗记录，用题式级线 form:1d77f7a203b4258048dfefea（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1182 题级校准键 rel-answers-question 无上岗记录，用题式级线 form:1d77f7a203b4258048dfefea（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1182 题级校准键 rel-answers-question 无上岗记录，用题式级线 form:1d77f7a203b4258048dfefea（n=80）；出口带 line_source=题式级",
+      "returned_unsure: unsure(band)"
+    ]
+  },
+  "value": {
+    "answered": [
+      {
+        "ask": "这款手机防水吗？",
+        "reply": "它是 IP68 级防水，可以在 1.5 米水下待 30 分钟。"
+      },
+      {
+        "ask": "你们的健身房有淋浴吗？",
+        "reply": "有，男女更衣室里都有淋浴间。"
+      }
+    ],
+    "not_answered": [
+      {
+        "ask": "路由器的默认密码是多少？",
+        "reply": "路由器的问题我们建议您重启试试。"
+      }
+    ],
+    "pending": [
+      {
+        "at": [
+          2,
+          3
+        ],
+        "cause": "band",
+        "exit": {
+          "consumed": true,
+          "exit": "unsure(band)",
+          "id": 3,
+          "q": "f0ef4a5eb953ad767fdd05f3"
+        },
+        "item": {
+          "a": "路由器的默认密码是多少？",
+          "b": "默认密码印在路由器底部的标签上。"
+        },
+        "key": "a78e352c93eb4a9a551cea4c",
+        "left": "路由器的默认密码是多少？",
+        "pos": 3,
+        "q": {
+          "calib": "rel-answers-question",
+          "op": "noul",
+          "question": "f0ef4a5eb953ad767fdd05f3",
+          "text": "b 是否给出了 a 所问的信息？（间接但足以推出答案的说法也算）"
+        },
+        "qi": 0,
+        "right": "默认密码印在路由器底部的标签上。",
+        "trail": []
+      }
+    ],
+    "unobserved": []
+  }
+}

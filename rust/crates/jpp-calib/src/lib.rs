@@ -1,12 +1,12 @@
 //! J++ 校准（`20` §2.3 `jpp-calib`，L3）：校准记录与证书、校准库（`commission` 是唯一产线）、
-//! `fit` 注册表、真值通道、强度估计。只依赖 `jpp-ir`、`jpp-value`、`jpp-effects`。
+//! `fit` 注册表、真值通道。强度估计（`strength`）步 14a 搬进 `jpp-runtime`（`allocate` 构造是唯一调用方，运行时不依赖本 crate）。只依赖 `jpp-ir`、`jpp-value`、`jpp-effects`。
 //!
 //! 运行时与检查器经 `jpp_effects::views::CalibView` 读线，不直接依赖这里的类型（`20` §2.2 第 4 条）；
 //! 步 11 起 `CalibStore` 实现 `CalibView`。`jpp-core` 在原路径重导出本 crate 的公共项。
 
 pub mod calib;
+pub mod feed;
 pub mod fit;
-pub mod strength;
 pub mod truth;
 
 pub use calib::*;
@@ -30,11 +30,13 @@ use serde_json::Value as Json;
 /// 让空库也占 `None`，两种情形在账本上就分不开。
 pub fn calib_hash(store: &CalibStore) -> String {
     /// 说明性字段：改了不影响执行，所以不进哈希。
-    /// **今天这张表是空的**——`CalibRecord` 每个字段都承载行为（`hi`/`lo`/`n`/`status` 进 `cut`，
+    /// 步 20a-1 之前这张表是空的——`CalibRecord` 每个字段都承载行为（`hi`/`lo`/`n`/`status` 进 `cut`，
     /// `delta` 进 `delta_for`，`unsure_rate` 进 J-10，`set_id` 进 J-16，`samples` 是证据本身）。
     /// **空表不是摆设**：它是加 `note` 那类字段时该动的那一处，
     /// 有了它，新字段的默认归宿是「进哈希」而不是「被忘掉」。
-    const 说明字段: &[&str] = &[];
+    /// 步 20a-1 起有一项：`kind`（B76 题类）是 `op`、`request`、槽声明的函数，不携带新信息，
+    /// 按 B76 不进任何哈希。
+    const 说明字段: &[&str] = &["kind"];
 
     // BTreeMap：哈希不随写入顺序变，否则同一批线会因写入顺序不同报假 W-header
     let mut sorted: std::collections::BTreeMap<&str, Json> = Default::default();
@@ -48,44 +50,125 @@ pub fn calib_hash(store: &CalibStore) -> String {
     jpp_effects::profile::hash16(&Json::Array(sorted.into_values().collect()))
 }
 
-fn cert_view(c: &Cert) -> jpp_effects::views::CertView {
+fn cert_view(c: &Cert, alpha_eff: f64) -> jpp_effects::views::CertView {
+    // 依据：B89 解读 (b)（地基/附注/2026-09-25-批量裁定.md §五）：试用上限取导入时记下的试用 α，旧证书按缺省
+    let 试用上限 = c
+        .eff
+        .as_ref()
+        .and_then(|e| e.trial_alpha)
+        .unwrap_or(jpp_value::stat::ALPHA_TRIAL_DEFAULT);
+    let 临时 = alpha_eff > 试用上限;
     jpp_effects::views::CertView {
         alpha: c.alpha,
         hi: c.hi,
         cost: c.cost,
         label_source_suspicious: c.label_source.可疑(),
         label_source: format!("{:?}", c.label_source),
-        trial: c.grade == CertGrade::Trial,
+        // B89：有效 α 超过证书自己的 α（模型真值、复核没有全覆盖）→ 按试用线，不放行不可逆 do；
+        // 解读 (b)（步 20c）：超过试用 α 为临时上岗，不是试用
+        trial: !临时 && (c.grade == CertGrade::Trial || alpha_eff > c.alpha),
+        provisional: 临时,
         n_accepted: c.n_accepted,
+        delta: c.selection.as_ref().and_then(|s| s.delta),
+        delta_shifted: c.selection.is_some(),
+        alpha_eff,
     }
 }
 
-/// 记录 → 只读视图（运行时只见这个形状）。
-pub fn lookup_of(r: &CalibRecord) -> jpp_effects::views::Lookup {
-    jpp_effects::views::Lookup {
-        key: r.key.clone(),
-        hi: r.hi,
-        lo: r.lo,
-        n: r.n,
-        status: r.status.clone(),
-        delta: r.delta,
-        fixture: r.fixture,
-        set_id: r.set_id.clone(),
-        truth_gate: r.truth.as_ref().map(|t| t.gate.clone()),
-        certs: r.certs.values().map(cert_view).collect(),
-        selected: r.选中的证书().map(cert_view),
-        rerun_independent: r.rerun_independent,
-        scope: r.scope.as_ref().and_then(|s| s.fingerprint.clone()),
+impl CalibStore {
+    /// **证书的有效 α**（B89）。证书写了 `eff` 用它；真值账没有 `model:` 来源时等于 `alpha`；
+    /// 旧的模型真值记录（证书无 `eff`）按 `α + (1 − a_lb) / c` 补算：a_lb 取抽检账的下界（旧账没有时按
+    /// 一致数补算），c 为带标注样本落在这条线已决区（p ≥ hi + δ 或 p ≤ lo − δ，K 元只有上侧）的占比。
+    /// 没有复核账时为 1（不放行）。
+    pub fn alpha_eff_of(&self, rec: &CalibRecord, c: &Cert) -> f64 {
+        if let Some(e) = &c.eff {
+            return e.alpha_eff;
+        }
+        let Some(t) = &rec.truth else { return c.alpha };
+        if !t.sources.keys().any(|k| k.starts_with("model:")) {
+            return c.alpha;
+        }
+        let Some(sc) = &t.spot_check else {
+            return jpp_value::stat::ALPHA_EFF_NONE;
+        };
+        let a_lb = sc.lower.unwrap_or_else(|| {
+            jpp_value::stat::agreement_lower(
+                sc.agree,
+                sc.n,
+                sc.conf.unwrap_or(jpp_value::stat::REVIEW_CONF_DEFAULT),
+            )
+        });
+        let 带标注: Vec<&Sample> = rec
+            .samples
+            .iter()
+            .filter(|s| s.label.is_some() && s.p.is_some())
+            .collect();
+        let op = 带标注
+            .first()
+            .and_then(|s| calib::反查题型_pub(&s.phys))
+            .unwrap_or(jpp_value::value::Op::Test);
+        let _ = op;
+        // 与 cut 同一个 δ 与同一边界比较（步 15d-2）；取不到 δ 时已决为空（不放行）
+        let 已决 = match CalibStore::cert_delta(rec, c) {
+            Some(delta) => 带标注
+                .iter()
+                .filter(|s| {
+                    let p = s.p.expect("已滤");
+                    jpp_value::stat::decided_up(p, rec.hi, delta)
+                        || (rec.lower.is_some() && jpp_value::stat::decided_down(p, rec.lo, delta))
+                })
+                .count(),
+            None => 0,
+        };
+        let cov = if 带标注.is_empty() {
+            None
+        } else {
+            Some(已决 as f64 / 带标注.len() as f64)
+        };
+        jpp_value::stat::alpha_eff(c.alpha, a_lb, Some(cov.unwrap_or_default()))
+    }
+
+    /// 记录 → 只读视图（运行时只见这个形状）。
+    pub fn lookup_of(&self, r: &CalibRecord) -> jpp_effects::views::Lookup {
+        let cv = |c: &Cert| cert_view(c, self.alpha_eff_of(r, c));
+        jpp_effects::views::Lookup {
+            key: r.key.clone(),
+            hi: r.hi,
+            lo: r.lo,
+            n: r.n,
+            status: r.status.clone(),
+            delta: r.delta,
+            fixture: r.fixture,
+            set_id: r.set_id.clone(),
+            truth_gate: r.truth.as_ref().map(|t| t.gate.clone()),
+            certs: r.certs.values().map(cv).collect(),
+            selected: r.选中的证书().map(cv),
+            rerun_independent: r.rerun_independent,
+            scope: r.scope.as_ref().and_then(|s| s.fingerprint.clone()),
+            scope_n_text: r.scope.as_ref().and_then(|s| s.n_text),
+            // B91：扩展 α 大于记录选中证书的 α 即试用级
+            scope_extensions: r
+                .scope
+                .as_ref()
+                .map(|s| {
+                    let a = r.选中的证书().map(|c| c.alpha).unwrap_or(f64::INFINITY);
+                    s.extensions
+                        .iter()
+                        .map(|e| (e.fingerprint.clone(), e.alpha > a))
+                        .collect()
+                })
+                .unwrap_or_default(),
+        }
     }
 }
 
 /// 校准库的只读视图（`20` §2.3）。步 11 起由 `CalibStore` 实现；步 11b 起运行时与 `strength` 只经它读校准。
 impl jpp_effects::views::CalibView for CalibStore {
     fn lookup(&self, key: &str) -> Option<jpp_effects::views::Lookup> {
-        self.records.get(key).map(lookup_of)
+        self.records.get(key).map(|r| self.lookup_of(r))
     }
     fn line(&self, key: &str) -> jpp_effects::views::Lookup {
-        lookup_of(&self.get(key))
+        self.lookup_of(&self.get(key))
     }
     fn hash(&self) -> String {
         calib_hash(self)
@@ -108,7 +191,7 @@ impl jpp_effects::views::CalibView for CalibStore {
     }
     fn chain(&self, key: &str, form_hash: Option<&str>) -> jpp_effects::views::Chain {
         let link = |k: String| jpp_effects::views::Link {
-            rec: lookup_of(&self.get(&k)),
+            rec: self.lookup_of(&self.get(&k)),
             key: k,
         };
         jpp_effects::views::Chain {

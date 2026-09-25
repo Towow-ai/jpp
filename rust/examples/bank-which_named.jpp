@@ -1,0 +1,21 @@
+// 题库条目 which_named 的用法（步 27a）：在程序写定的一组标签里选出材料直接写出的那一个。
+// 线从条目目录 bank/entries/e49770913911a79525896988/calib/ 取，是在两序读数上认证的，题式带 permute: true。
+// 材料取自认证集（地基/评估/27a-置换重跑/F3-提到哪一个），夹具读数与置换测量是真机账本的原值。
+import "../lib/bank/which_named.jpp";
+budget {calls: 3, cost: 0.01, depth: 16};
+
+let countries = ["日本", "法国", "巴西", "埃及"];
+let texts = ["他在挪威工作过一年，后来被派去了法国。", "他在法国读了两年研究生。", "新闻说日本今年的出口增长很快。"];
+
+fn one(t) !{judge} {
+    handle(cut(judge(state(mat(t), {over: countries}), fill(which_named, {kind: "国家"}))), {
+        pick: fn(k) { {text: t, named: countries[k], open: []} },
+        unsure: fn(u) { {text: t, named: unit, open: [u]} }
+    })
+}
+
+let rows = map(texts, fn(t) !{judge} { one(t) });
+
+{named: map(rows, fn(r) { {text: r.text, named: r.named} }),
+ // 未决随返回值交出（J-05）
+ pending: fold(rows, [], fn(acc, r) { concat(acc, r.open) })}

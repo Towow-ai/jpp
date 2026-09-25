@@ -7,214 +7,305 @@
     "tokens": 0,
     "usd": 0.0
   },
+  "entry": [],
   "exits": [
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 0,
+      "item": "c7b08f54d4f2",
       "key": "layer",
+      "pos": 0,
       "releases": false,
       "site": 871
     },
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 1,
+      "item": "7f85e41f77a6",
       "key": "layer",
-      "releases": false,
-      "site": 871
-    },
-    {
-      "exit": "ignore",
-      "grade": "Fixture",
-      "key": "layer",
-      "releases": false,
-      "site": 871
-    },
-    {
-      "exit": "act",
-      "grade": "Fixture",
-      "key": "layer",
-      "releases": false,
-      "site": 871
-    },
-    {
-      "exit": "act",
-      "grade": "Fixture",
-      "key": "layer",
+      "pos": 1,
       "releases": false,
       "site": 871
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 2,
+      "item": "47bff5b64617",
       "key": "layer",
+      "pos": 2,
+      "releases": false,
+      "site": 871
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 3,
+      "item": "4161010e63db",
+      "key": "layer",
+      "pos": 3,
+      "releases": false,
+      "site": 871
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 4,
+      "item": "c84d56f3f30c",
+      "key": "layer",
+      "pos": 4,
       "releases": false,
       "site": 871
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 5,
+      "item": "d7955af55fb6",
       "key": "layer",
+      "pos": 5,
       "releases": false,
       "site": 871
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 0,
+      "item": "c7b08f54d4f2",
       "key": "layer",
-      "releases": false,
-      "site": 871
-    },
-    {
-      "exit": "act",
-      "grade": "Fixture",
-      "key": "layer",
-      "releases": false,
-      "site": 871
-    },
-    {
-      "exit": "act",
-      "grade": "Fixture",
-      "key": "layer",
-      "releases": false,
-      "site": 871
-    },
-    {
-      "exit": "act",
-      "grade": "Fixture",
-      "key": "layer",
-      "releases": false,
-      "site": 871
-    },
-    {
-      "exit": "act",
-      "grade": "Fixture",
-      "key": "layer",
-      "releases": false,
-      "site": 871
-    },
-    {
-      "exit": "act",
-      "grade": "Fixture",
-      "key": "layer",
-      "releases": false,
-      "site": 1123
-    },
-    {
-      "exit": "act",
-      "grade": "Fixture",
-      "key": "layer",
-      "releases": false,
-      "site": 1123
-    },
-    {
-      "exit": "ignore",
-      "grade": "Fixture",
-      "key": "layer",
-      "releases": false,
-      "site": 1123
-    },
-    {
-      "exit": "act",
-      "grade": "Fixture",
-      "key": "layer",
-      "releases": false,
-      "site": 1123
-    },
-    {
-      "exit": "act",
-      "grade": "Fixture",
-      "key": "layer",
-      "releases": false,
-      "site": 1123
-    },
-    {
-      "exit": "ignore",
-      "grade": "Fixture",
-      "key": "layer",
-      "releases": false,
-      "site": 1123
-    },
-    {
-      "exit": "ignore",
-      "grade": "Fixture",
-      "key": "layer",
-      "releases": false,
-      "site": 1123
-    },
-    {
-      "exit": "ignore",
-      "grade": "Fixture",
-      "key": "layer",
-      "releases": false,
-      "site": 1123
-    },
-    {
-      "exit": "act",
-      "grade": "Fixture",
-      "key": "layer",
-      "releases": false,
-      "site": 1123
-    },
-    {
-      "exit": "act",
-      "grade": "Fixture",
-      "key": "layer",
-      "releases": false,
-      "site": 1123
-    },
-    {
-      "exit": "act",
-      "grade": "Fixture",
-      "key": "layer",
-      "releases": false,
-      "site": 1123
-    },
-    {
-      "exit": "act",
-      "grade": "Fixture",
-      "key": "layer",
-      "releases": false,
-      "site": 1123
-    },
-    {
-      "exit": "act",
-      "grade": "Fixture",
-      "key": "layer",
-      "releases": false,
-      "site": 871
-    },
-    {
-      "exit": "act",
-      "grade": "Fixture",
-      "key": "layer",
+      "pos": 0,
       "releases": false,
       "site": 871
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 1,
+      "item": "7f85e41f77a6",
       "key": "layer",
+      "pos": 1,
       "releases": false,
       "site": 871
     },
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 2,
+      "item": "4161010e63db",
       "key": "layer",
+      "pos": 2,
       "releases": false,
       "site": 871
     },
     {
       "exit": "act",
       "grade": "Fixture",
+      "index": 3,
+      "item": "c84d56f3f30c",
       "key": "layer",
+      "pos": 3,
+      "releases": false,
+      "site": 871
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 0,
+      "item": "4161010e63db",
+      "key": "layer",
+      "pos": 0,
+      "releases": false,
+      "site": 871
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 1,
+      "item": "c84d56f3f30c",
+      "key": "layer",
+      "pos": 1,
+      "releases": false,
+      "site": 871
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 0,
+      "item": "c7b08f54d4f2",
+      "key": "layer",
+      "pos": 0,
+      "releases": false,
+      "site": 1123
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 1,
+      "item": "7f85e41f77a6",
+      "key": "layer",
+      "pos": 1,
+      "releases": false,
+      "site": 1123
+    },
+    {
+      "exit": "ignore",
+      "grade": "Fixture",
+      "index": 2,
+      "item": "47bff5b64617",
+      "key": "layer",
+      "pos": 2,
+      "releases": false,
+      "site": 1123
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 3,
+      "item": "4161010e63db",
+      "key": "layer",
+      "pos": 3,
+      "releases": false,
+      "site": 1123
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 4,
+      "item": "c84d56f3f30c",
+      "key": "layer",
+      "pos": 4,
+      "releases": false,
+      "site": 1123
+    },
+    {
+      "exit": "ignore",
+      "grade": "Fixture",
+      "index": 5,
+      "item": "d7955af55fb6",
+      "key": "layer",
+      "pos": 5,
+      "releases": false,
+      "site": 1123
+    },
+    {
+      "exit": "ignore",
+      "grade": "Fixture",
+      "index": 0,
+      "item": "c7b08f54d4f2",
+      "key": "layer",
+      "pos": 0,
+      "releases": false,
+      "site": 1123
+    },
+    {
+      "exit": "ignore",
+      "grade": "Fixture",
+      "index": 1,
+      "item": "7f85e41f77a6",
+      "key": "layer",
+      "pos": 1,
+      "releases": false,
+      "site": 1123
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 2,
+      "item": "4161010e63db",
+      "key": "layer",
+      "pos": 2,
+      "releases": false,
+      "site": 1123
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 3,
+      "item": "c84d56f3f30c",
+      "key": "layer",
+      "pos": 3,
+      "releases": false,
+      "site": 1123
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 0,
+      "item": "4161010e63db",
+      "key": "layer",
+      "pos": 0,
+      "releases": false,
+      "site": 1123
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 1,
+      "item": "c84d56f3f30c",
+      "key": "layer",
+      "pos": 1,
+      "releases": false,
+      "site": 1123
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 0,
+      "item": "c7b08f54d4f2",
+      "key": "layer",
+      "pos": 0,
+      "releases": false,
+      "site": 871
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 1,
+      "item": "7f85e41f77a6",
+      "key": "layer",
+      "pos": 1,
       "releases": false,
       "site": 871
     },
     {
       "exit": "ignore",
       "grade": "Fixture",
+      "index": 2,
+      "item": "47bff5b64617",
       "key": "layer",
+      "pos": 2,
+      "releases": false,
+      "site": 871
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 3,
+      "item": "4161010e63db",
+      "key": "layer",
+      "pos": 3,
+      "releases": false,
+      "site": 871
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 4,
+      "item": "c84d56f3f30c",
+      "key": "layer",
+      "pos": 4,
+      "releases": false,
+      "site": 871
+    },
+    {
+      "exit": "ignore",
+      "grade": "Fixture",
+      "index": 5,
+      "item": "d7955af55fb6",
+      "key": "layer",
+      "pos": 5,
       "releases": false,
       "site": 871
     }
@@ -223,6 +314,20 @@
   "local_checks": [],
   "mode": "replay; no model API requests",
   "pending": [],
+  "questions": [
+    {
+      "kind": "attr",
+      "q": "af25f9d7133321073993264c"
+    },
+    {
+      "kind": "attr",
+      "q": "8821def5b07ba00142b366da"
+    },
+    {
+      "kind": "attr",
+      "q": "ad49bd34b262b12754bda3d2"
+    }
+  ],
   "replay": true,
   "resumed": false,
   "returned_unsure": [],
@@ -561,6 +666,7 @@
       }
     ],
     "warnings": [
+      "W-window-untested: @871 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
       "W-fixture-line: @871 键 layer 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
       "W-fixture-line: @871 键 layer 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
       "W-fixture-line: @871 键 layer 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
@@ -569,6 +675,7 @@
       "W-fixture-line: @871 键 layer 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
       "W-fixture-line: @871 键 layer 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
       "W-fixture-line: @871 键 layer 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-window-untested: @1123 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
       "W-fixture-line: @1123 键 layer 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
       "W-fixture-line: @1123 键 layer 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
       "W-fixture-line: @1123 键 layer 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
@@ -603,6 +710,10 @@
       "rounds": 3
     },
     "by_tokens": {
+      "left": [
+        "会员价比原价便宜了五十元，现金刷卡都行。",
+        "这本书二十九元，现金付款。"
+      ],
       "measures": [
         79,
         61,

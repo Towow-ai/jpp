@@ -7,256 +7,365 @@
     "tokens": 0,
     "usd": 0.0
   },
+  "entry": [],
   "exits": [
     {
       "exit": "act",
       "grade": "Form",
+      "index": 0,
+      "item": "6c974ab26a8b",
       "key": "\u001fform\u001ff84be62010fca87cacb0637e",
-      "releases": true,
-      "site": 1682
-    },
-    {
-      "exit": "ignore",
-      "grade": "Form",
-      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
-      "releases": true,
-      "site": 1682
-    },
-    {
-      "exit": "ignore",
-      "grade": "Form",
-      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
-      "releases": true,
-      "site": 1682
-    },
-    {
-      "exit": "ignore",
-      "grade": "Form",
-      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
-      "releases": true,
-      "site": 1682
-    },
-    {
-      "exit": "ignore",
-      "grade": "Form",
-      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
-      "releases": true,
-      "site": 1682
-    },
-    {
-      "exit": "ignore",
-      "grade": "Form",
-      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 0,
       "releases": true,
       "site": 1682
     },
     {
       "exit": "unsure(band)",
       "grade": "Form",
+      "index": 1,
+      "item": "47cebf70c873",
       "key": "\u001fform\u001ff84be62010fca87cacb0637e",
-      "releases": true,
-      "site": 1682
-    },
-    {
-      "exit": "ignore",
-      "grade": "Form",
-      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
-      "releases": true,
-      "site": 1682
-    },
-    {
-      "exit": "ignore",
-      "grade": "Form",
-      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
-      "releases": true,
-      "site": 1682
-    },
-    {
-      "exit": "ignore",
-      "grade": "Form",
-      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
-      "releases": true,
-      "site": 1682
-    },
-    {
-      "exit": "act",
-      "grade": "Form",
-      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
-      "releases": true,
-      "site": 1682
-    },
-    {
-      "exit": "ignore",
-      "grade": "Form",
-      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
-      "releases": true,
-      "site": 1682
-    },
-    {
-      "exit": "ignore",
-      "grade": "Form",
-      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
-      "releases": true,
-      "site": 1682
-    },
-    {
-      "exit": "act",
-      "grade": "Form",
-      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
-      "releases": true,
-      "site": 1682
-    },
-    {
-      "exit": "ignore",
-      "grade": "Form",
-      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
-      "releases": true,
-      "site": 1682
-    },
-    {
-      "exit": "ignore",
-      "grade": "Form",
-      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
-      "releases": true,
-      "site": 1682
-    },
-    {
-      "exit": "ignore",
-      "grade": "Form",
-      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
-      "releases": true,
-      "site": 1682
-    },
-    {
-      "exit": "ignore",
-      "grade": "Form",
-      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
-      "releases": true,
-      "site": 1682
-    },
-    {
-      "exit": "ignore",
-      "grade": "Form",
-      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
-      "releases": true,
-      "site": 1682
-    },
-    {
-      "exit": "ignore",
-      "grade": "Form",
-      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
-      "releases": true,
-      "site": 1682
-    },
-    {
-      "exit": "ignore",
-      "grade": "Form",
-      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
-      "releases": true,
-      "site": 1682
-    },
-    {
-      "exit": "ignore",
-      "grade": "Form",
-      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
-      "releases": true,
-      "site": 1682
-    },
-    {
-      "exit": "ignore",
-      "grade": "Form",
-      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
-      "releases": true,
-      "site": 1682
-    },
-    {
-      "exit": "ignore",
-      "grade": "Form",
-      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 1,
       "releases": true,
       "site": 1682
     },
     {
       "exit": "unsure(band)",
       "grade": "Form",
+      "index": 2,
+      "item": "95075dab44bd",
       "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 2,
       "releases": true,
       "site": 1682
     },
     {
-      "exit": "ignore",
+      "exit": "unsure(band)",
       "grade": "Form",
+      "index": 3,
+      "item": "1e433a7b71b9",
       "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 3,
       "releases": true,
       "site": 1682
     },
     {
-      "exit": "ignore",
+      "exit": "unsure(band)",
       "grade": "Form",
+      "index": 4,
+      "item": "756f3743bd39",
       "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 4,
+      "releases": true,
+      "site": 1682
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Form",
+      "index": 5,
+      "item": "19f81748c334",
+      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 5,
+      "releases": true,
+      "site": 1682
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Form",
+      "index": 6,
+      "item": "4cc654db653c",
+      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 6,
+      "releases": true,
+      "site": 1682
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Form",
+      "index": 7,
+      "item": "4b7fb98f62f0",
+      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 7,
+      "releases": true,
+      "site": 1682
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Form",
+      "index": 8,
+      "item": "950b6cad537c",
+      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 8,
+      "releases": true,
+      "site": 1682
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Form",
+      "index": 9,
+      "item": "7a485a9003e5",
+      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 9,
+      "releases": true,
+      "site": 1682
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Form",
+      "index": 10,
+      "item": "a3a2fba54e94",
+      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 10,
+      "releases": true,
+      "site": 1682
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Form",
+      "index": 11,
+      "item": "fb06bc2b6f3f",
+      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 11,
+      "releases": true,
+      "site": 1682
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Form",
+      "index": 0,
+      "item": "6c974ab26a8b",
+      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 0,
       "releases": true,
       "site": 1682
     },
     {
       "exit": "act",
       "grade": "Form",
+      "index": 1,
+      "item": "47cebf70c873",
       "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 1,
+      "releases": true,
+      "site": 1682
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Form",
+      "index": 2,
+      "item": "95075dab44bd",
+      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 2,
+      "releases": true,
+      "site": 1682
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Form",
+      "index": 3,
+      "item": "1e433a7b71b9",
+      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 3,
+      "releases": true,
+      "site": 1682
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Form",
+      "index": 4,
+      "item": "756f3743bd39",
+      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 4,
+      "releases": true,
+      "site": 1682
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Form",
+      "index": 5,
+      "item": "19f81748c334",
+      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 5,
+      "releases": true,
+      "site": 1682
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Form",
+      "index": 6,
+      "item": "4cc654db653c",
+      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 6,
+      "releases": true,
+      "site": 1682
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Form",
+      "index": 7,
+      "item": "4b7fb98f62f0",
+      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 7,
+      "releases": true,
+      "site": 1682
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Form",
+      "index": 8,
+      "item": "950b6cad537c",
+      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 8,
+      "releases": true,
+      "site": 1682
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Form",
+      "index": 9,
+      "item": "7a485a9003e5",
+      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 9,
+      "releases": true,
+      "site": 1682
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Form",
+      "index": 10,
+      "item": "a3a2fba54e94",
+      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 10,
       "releases": true,
       "site": 1682
     },
     {
       "exit": "ignore",
       "grade": "Form",
+      "index": 11,
+      "item": "fb06bc2b6f3f",
       "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 11,
       "releases": true,
       "site": 1682
     },
     {
-      "exit": "ignore",
+      "exit": "unsure(band)",
       "grade": "Form",
+      "index": 0,
+      "item": "6c974ab26a8b",
       "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 0,
       "releases": true,
       "site": 1682
     },
     {
-      "exit": "ignore",
+      "exit": "unsure(band)",
       "grade": "Form",
+      "index": 1,
+      "item": "47cebf70c873",
       "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 1,
       "releases": true,
       "site": 1682
     },
     {
-      "exit": "ignore",
+      "exit": "unsure(band)",
       "grade": "Form",
+      "index": 2,
+      "item": "95075dab44bd",
       "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 2,
       "releases": true,
       "site": 1682
     },
     {
-      "exit": "act",
+      "exit": "unsure(band)",
       "grade": "Form",
+      "index": 3,
+      "item": "1e433a7b71b9",
       "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 3,
       "releases": true,
       "site": 1682
     },
     {
-      "exit": "ignore",
+      "exit": "unsure(band)",
       "grade": "Form",
+      "index": 4,
+      "item": "756f3743bd39",
       "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 4,
       "releases": true,
       "site": 1682
     },
     {
-      "exit": "ignore",
+      "exit": "unsure(band)",
       "grade": "Form",
+      "index": 5,
+      "item": "19f81748c334",
       "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 5,
       "releases": true,
       "site": 1682
     },
     {
-      "exit": "ignore",
+      "exit": "unsure(band)",
       "grade": "Form",
+      "index": 6,
+      "item": "4cc654db653c",
       "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 6,
+      "releases": true,
+      "site": 1682
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Form",
+      "index": 7,
+      "item": "4b7fb98f62f0",
+      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 7,
+      "releases": true,
+      "site": 1682
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Form",
+      "index": 8,
+      "item": "950b6cad537c",
+      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 8,
+      "releases": true,
+      "site": 1682
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Form",
+      "index": 9,
+      "item": "7a485a9003e5",
+      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 9,
+      "releases": true,
+      "site": 1682
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Form",
+      "index": 10,
+      "item": "a3a2fba54e94",
+      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 10,
+      "releases": true,
+      "site": 1682
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Form",
+      "index": 11,
+      "item": "fb06bc2b6f3f",
+      "key": "\u001fform\u001ff84be62010fca87cacb0637e",
+      "pos": 11,
       "releases": true,
       "site": 1682
     }
@@ -265,9 +374,49 @@
   "local_checks": [],
   "mode": "replay; no model API requests",
   "pending": [],
+  "questions": [
+    {
+      "fill": {
+        "concept": "城市通勤"
+      },
+      "form_hash": "f84be62010fca87cacb0637e",
+      "kind": "attr",
+      "q": "7a6f10be28556d2c104d925d",
+      "template": "这段话的内容是否与「{concept}」这个话题相关？"
+    },
+    {
+      "fill": {
+        "concept": "理财"
+      },
+      "form_hash": "f84be62010fca87cacb0637e",
+      "kind": "attr",
+      "q": "be4ff96fca4662e112a0336e",
+      "template": "这段话的内容是否与「{concept}」这个话题相关？"
+    },
+    {
+      "fill": {
+        "concept": "职业焦虑"
+      },
+      "form_hash": "f84be62010fca87cacb0637e",
+      "kind": "attr",
+      "q": "c5f33984208e42a67dda8e17",
+      "template": "这段话的内容是否与「{concept}」这个话题相关？"
+    }
+  ],
   "replay": true,
   "resumed": false,
   "returned_unsure": [
+    "unsure(band)",
+    "unsure(band)",
+    "unsure(band)",
+    "unsure(band)",
+    "unsure(band)",
+    "unsure(band)",
+    "unsure(band)",
+    "unsure(band)",
+    "unsure(band)",
+    "unsure(band)",
+    "unsure(band)",
     "unsure(band)",
     "unsure(band)"
   ],
@@ -672,56 +821,59 @@
       }
     ],
     "warnings": [
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=388）；出口带 line_source=题式级",
-      "returned_unsure: unsure(band), unsure(band)"
+      "W-window-untested: @1682 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-form-line: @1682 题级校准键 form-topic 无上岗记录，用题式级线 form:f84be62010fca87cacb0637e（n=80）；出口带 line_source=题式级",
+      "W-untyped-transfer: summary 把 unsure(band) 装在返回值里交了出去，但返回类型没提 Exit，调用者从签名上看不出自己收到了一份未决。修法：把返回类型标为含 Exit（如 `-> Exit`、`-> Record<Exit>`）",
+      "W-untyped-transfer: summary 把 unsure(band) 装在返回值里交了出去，但返回类型没提 Exit，调用者从签名上看不出自己收到了一份未决。修法：把返回类型标为含 Exit（如 `-> Exit`、`-> Record<Exit>`）",
+      "W-untyped-transfer: summary 把 unsure(band) 装在返回值里交了出去，但返回类型没提 Exit，调用者从签名上看不出自己收到了一份未决。修法：把返回类型标为含 Exit（如 `-> Exit`、`-> Record<Exit>`）",
+      "returned_unsure: unsure(band), unsure(band), unsure(band), unsure(band), unsure(band), unsure(band), unsure(band), unsure(band), unsure(band), unsure(band), unsure(band), unsure(band), unsure(band)"
     ]
   },
   "value": {
     "streams": [
       {
         "act": [
-          0,
-          10
+          0
         ],
         "asked": "这段话的内容是否与「城市通勤」这个话题相关？",
         "count": [
-          2,
-          3
+          1,
+          12
         ],
         "exists": {
           "consumed": true,
@@ -729,45 +881,62 @@
           "id": 36,
           "q": "tally:exists"
         },
-        "ignore": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          7,
-          8,
-          9,
-          11
-        ],
+        "ignore": [],
         "pending": [
           {
             "cause": "band",
-            "element": {
-              "cause": "band",
-              "exit": {
-                "consumed": true,
-                "exit": "unsure(band)",
-                "id": 6,
-                "q": "7a6f10be28556d2c104d925d"
-              },
-              "index": 6,
-              "item": "孩子第一次独自坐公交去上学，爸爸悄悄跟在后面好几站。",
-              "source": "孩子第一次独自坐公交去上学，爸爸悄悄跟在后面好几站。",
-              "trail": []
-            },
             "exit": {
               "consumed": true,
               "exit": "unsure(band)",
-              "id": 6,
-              "q": "7a6f10be28556d2c104d925d"
+              "id": 37,
+              "q": "tally:all"
             }
           }
         ],
         "unsure": [
           {
             "cause": "band",
+            "index": 1
+          },
+          {
+            "cause": "band",
+            "index": 2
+          },
+          {
+            "cause": "band",
+            "index": 3
+          },
+          {
+            "cause": "band",
+            "index": 4
+          },
+          {
+            "cause": "band",
+            "index": 5
+          },
+          {
+            "cause": "band",
             "index": 6
+          },
+          {
+            "cause": "band",
+            "index": 7
+          },
+          {
+            "cause": "band",
+            "index": 8
+          },
+          {
+            "cause": "band",
+            "index": 9
+          },
+          {
+            "cause": "band",
+            "index": 10
+          },
+          {
+            "cause": "band",
+            "index": 11
           }
         ]
       },
@@ -778,7 +947,7 @@
         "asked": "这段话的内容是否与「理财」这个话题相关？",
         "count": [
           1,
-          1
+          11
         ],
         "exists": {
           "consumed": true,
@@ -787,69 +956,324 @@
           "q": "tally:exists"
         },
         "ignore": [
-          0,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10,
-          11
-        ],
-        "pending": [],
-        "unsure": []
-      },
-      {
-        "act": [
-          3,
-          8
-        ],
-        "asked": "这段话的内容是否与「职业焦虑」这个话题相关？",
-        "count": [
-          2,
-          3
-        ],
-        "exists": {
-          "consumed": true,
-          "exit": "act",
-          "id": 40,
-          "q": "tally:exists"
-        },
-        "ignore": [
-          1,
-          2,
-          4,
-          5,
-          6,
-          7,
-          9,
-          10,
           11
         ],
         "pending": [
           {
             "cause": "band",
-            "element": {
-              "cause": "band",
-              "exit": {
-                "consumed": true,
-                "exit": "unsure(band)",
-                "id": 24,
-                "q": "c5f33984208e42a67dda8e17"
-              },
-              "index": 0,
-              "item": "早高峰的地铁挤得像沙丁鱼罐头，她每天六点半就得出门才能准时打卡。",
-              "source": "早高峰的地铁挤得像沙丁鱼罐头，她每天六点半就得出门才能准时打卡。",
-              "trail": []
-            },
             "exit": {
               "consumed": true,
               "exit": "unsure(band)",
-              "id": 24,
-              "q": "c5f33984208e42a67dda8e17"
+              "id": 12,
+              "q": "be4ff96fca4662e112a0336e"
+            },
+            "fill": {
+              "concept": "理财"
+            },
+            "index": 0,
+            "item": "早高峰的地铁挤得像沙丁鱼罐头，她每天六点半就得出门才能准时打卡。",
+            "key": "01940e95b43375f4bd653543",
+            "pos": 0,
+            "q": {
+              "calib": "form-topic",
+              "op": "noul",
+              "question": "be4ff96fca4662e112a0336e",
+              "text": "这段话的内容是否与「理财」这个话题相关？"
+            },
+            "qi": 1,
+            "trail": []
+          },
+          {
+            "cause": "band",
+            "exit": {
+              "consumed": true,
+              "exit": "unsure(band)",
+              "id": 14,
+              "q": "be4ff96fca4662e112a0336e"
+            },
+            "fill": {
+              "concept": "理财"
+            },
+            "index": 2,
+            "item": "奶奶在阳台上种了几盆番茄和辣椒，今年结得特别多。",
+            "key": "93550f409a233b3f5e93f02d",
+            "pos": 2,
+            "q": {
+              "calib": "form-topic",
+              "op": "noul",
+              "question": "be4ff96fca4662e112a0336e",
+              "text": "这段话的内容是否与「理财」这个话题相关？"
+            },
+            "qi": 1,
+            "trail": []
+          },
+          {
+            "cause": "band",
+            "exit": {
+              "consumed": true,
+              "exit": "unsure(band)",
+              "id": 15,
+              "q": "be4ff96fca4662e112a0336e"
+            },
+            "fill": {
+              "concept": "理财"
+            },
+            "index": 3,
+            "item": "新来的实习生第一次做汇报，手心全是汗，讲完才松了口气。",
+            "key": "a32395f4f7124c07672f3bf6",
+            "pos": 3,
+            "q": {
+              "calib": "form-topic",
+              "op": "noul",
+              "question": "be4ff96fca4662e112a0336e",
+              "text": "这段话的内容是否与「理财」这个话题相关？"
+            },
+            "qi": 1,
+            "trail": []
+          },
+          {
+            "cause": "band",
+            "exit": {
+              "consumed": true,
+              "exit": "unsure(band)",
+              "id": 16,
+              "q": "be4ff96fca4662e112a0336e"
+            },
+            "fill": {
+              "concept": "理财"
+            },
+            "index": 4,
+            "item": "周末她骑共享单车去江边，一路吹风，心情好了很多。",
+            "key": "f0f25e53c4deaa5af2dc0970",
+            "pos": 4,
+            "q": {
+              "calib": "form-topic",
+              "op": "noul",
+              "question": "be4ff96fca4662e112a0336e",
+              "text": "这段话的内容是否与「理财」这个话题相关？"
+            },
+            "qi": 1,
+            "trail": []
+          },
+          {
+            "cause": "band",
+            "exit": {
+              "consumed": true,
+              "exit": "unsure(band)",
+              "id": 17,
+              "q": "be4ff96fca4662e112a0336e"
+            },
+            "fill": {
+              "concept": "理财"
+            },
+            "index": 5,
+            "item": "这家店的咖啡豆是自己烘的，手冲一杯要等十分钟。",
+            "key": "768d278bbff9086b5430d4bd",
+            "pos": 5,
+            "q": {
+              "calib": "form-topic",
+              "op": "noul",
+              "question": "be4ff96fca4662e112a0336e",
+              "text": "这段话的内容是否与「理财」这个话题相关？"
+            },
+            "qi": 1,
+            "trail": []
+          },
+          {
+            "cause": "band",
+            "exit": {
+              "consumed": true,
+              "exit": "unsure(band)",
+              "id": 18,
+              "q": "be4ff96fca4662e112a0336e"
+            },
+            "fill": {
+              "concept": "理财"
+            },
+            "index": 6,
+            "item": "孩子第一次独自坐公交去上学，爸爸悄悄跟在后面好几站。",
+            "key": "0e21ccf219d9aa33e24b1235",
+            "pos": 6,
+            "q": {
+              "calib": "form-topic",
+              "op": "noul",
+              "question": "be4ff96fca4662e112a0336e",
+              "text": "这段话的内容是否与「理财」这个话题相关？"
+            },
+            "qi": 1,
+            "trail": []
+          },
+          {
+            "cause": "band",
+            "exit": {
+              "consumed": true,
+              "exit": "unsure(band)",
+              "id": 19,
+              "q": "be4ff96fca4662e112a0336e"
+            },
+            "fill": {
+              "concept": "理财"
+            },
+            "index": 7,
+            "item": "他把旧手机、旧电池都送到了社区的回收点，没有随手扔掉。",
+            "key": "cef34a6788da3a4f88e17c3b",
+            "pos": 7,
+            "q": {
+              "calib": "form-topic",
+              "op": "noul",
+              "question": "be4ff96fca4662e112a0336e",
+              "text": "这段话的内容是否与「理财」这个话题相关？"
+            },
+            "qi": 1,
+            "trail": []
+          },
+          {
+            "cause": "band",
+            "exit": {
+              "consumed": true,
+              "exit": "unsure(band)",
+              "id": 20,
+              "q": "be4ff96fca4662e112a0336e"
+            },
+            "fill": {
+              "concept": "理财"
+            },
+            "index": 8,
+            "item": "年底要考核了，组里每个人都在担心自己的绩效评级。",
+            "key": "cc6c66dd0608169295a3f7ec",
+            "pos": 8,
+            "q": {
+              "calib": "form-topic",
+              "op": "noul",
+              "question": "be4ff96fca4662e112a0336e",
+              "text": "这段话的内容是否与「理财」这个话题相关？"
+            },
+            "qi": 1,
+            "trail": []
+          },
+          {
+            "cause": "band",
+            "exit": {
+              "consumed": true,
+              "exit": "unsure(band)",
+              "id": 21,
+              "q": "be4ff96fca4662e112a0336e"
+            },
+            "fill": {
+              "concept": "理财"
+            },
+            "index": 9,
+            "item": "她翻出一张二十年前的全家福，照片上的人一个个都年轻得认不出来。",
+            "key": "5678a96440b97d7ef61c565f",
+            "pos": 9,
+            "q": {
+              "calib": "form-topic",
+              "op": "noul",
+              "question": "be4ff96fca4662e112a0336e",
+              "text": "这段话的内容是否与「理财」这个话题相关？"
+            },
+            "qi": 1,
+            "trail": []
+          },
+          {
+            "cause": "band",
+            "exit": {
+              "consumed": true,
+              "exit": "unsure(band)",
+              "id": 22,
+              "q": "be4ff96fca4662e112a0336e"
+            },
+            "fill": {
+              "concept": "理财"
+            },
+            "index": 10,
+            "item": "暴雨把路冲坏了，外卖小哥推着电动车在水里走了半个小时。",
+            "key": "e73dd158d5db2f1d2da94595",
+            "pos": 10,
+            "q": {
+              "calib": "form-topic",
+              "op": "noul",
+              "question": "be4ff96fca4662e112a0336e",
+              "text": "这段话的内容是否与「理财」这个话题相关？"
+            },
+            "qi": 1,
+            "trail": []
+          }
+        ],
+        "unsure": [
+          {
+            "cause": "band",
+            "index": 0
+          },
+          {
+            "cause": "band",
+            "index": 2
+          },
+          {
+            "cause": "band",
+            "index": 3
+          },
+          {
+            "cause": "band",
+            "index": 4
+          },
+          {
+            "cause": "band",
+            "index": 5
+          },
+          {
+            "cause": "band",
+            "index": 6
+          },
+          {
+            "cause": "band",
+            "index": 7
+          },
+          {
+            "cause": "band",
+            "index": 8
+          },
+          {
+            "cause": "band",
+            "index": 9
+          },
+          {
+            "cause": "band",
+            "index": 10
+          }
+        ]
+      },
+      {
+        "act": [],
+        "asked": "这段话的内容是否与「职业焦虑」这个话题相关？",
+        "count": [
+          0,
+          12
+        ],
+        "exists": {
+          "consumed": true,
+          "exit": "unsure(band)",
+          "id": 40,
+          "q": "tally:exists"
+        },
+        "ignore": [],
+        "pending": [
+          {
+            "cause": "band",
+            "exit": {
+              "consumed": true,
+              "exit": "unsure(band)",
+              "id": 40,
+              "q": "tally:exists"
+            }
+          },
+          {
+            "cause": "band",
+            "exit": {
+              "consumed": true,
+              "exit": "unsure(band)",
+              "id": 41,
+              "q": "tally:all"
             }
           }
         ],
@@ -857,6 +1281,50 @@
           {
             "cause": "band",
             "index": 0
+          },
+          {
+            "cause": "band",
+            "index": 1
+          },
+          {
+            "cause": "band",
+            "index": 2
+          },
+          {
+            "cause": "band",
+            "index": 3
+          },
+          {
+            "cause": "band",
+            "index": 4
+          },
+          {
+            "cause": "band",
+            "index": 5
+          },
+          {
+            "cause": "band",
+            "index": 6
+          },
+          {
+            "cause": "band",
+            "index": 7
+          },
+          {
+            "cause": "band",
+            "index": 8
+          },
+          {
+            "cause": "band",
+            "index": 9
+          },
+          {
+            "cause": "band",
+            "index": 10
+          },
+          {
+            "cause": "band",
+            "index": 11
           }
         ]
       }

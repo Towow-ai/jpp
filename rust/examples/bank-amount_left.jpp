@@ -1,0 +1,20 @@
+// 题库条目 amount_left 的用法（步 27a）：同一物品在几段话里还剩多少，按三档出 at 出口。
+// 线从条目目录 bank/entries/e4d4be39383a1eb88f75af2c/calib/ 取。材料取自认证集（地基/评估/27a-准备/F5-还剩多少），
+// 其中两条同时写了另一物品及另一档余量（认证集里的干扰设计），夹具读数是真机原读数。
+import "../lib/bank/amount_left.jpp";
+budget {calls: 3, cost: 0.01, depth: 16};
+
+let levels = ["已经没有了", "只剩一点", "还有很多"];
+let texts = ["电池全部断货了，胶带倒是够用好几个月。", "胶带所剩无几，不过纸杯多得是。", "盘点结果：大米堆满了半个仓库；胶带早就用光了。"];
+
+fn one(t) !{judge} {
+    handle(cut(judge(state(mat(t)), fill(amount_left, {thing: "胶带"}))), {
+        at: fn(k) { {text: t, left: levels[k], open: []} },
+        unsure: fn(u) { {text: t, left: unit, open: [u]} }
+    })
+}
+
+let rows = map(texts, fn(t) !{judge} { one(t) });
+
+{left: map(rows, fn(r) { {text: r.text, left: r.left} }),
+ pending: fold(rows, [], fn(acc, r) { concat(acc, r.open) })}

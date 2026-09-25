@@ -1,5 +1,5 @@
 ir v1
-budget calls=6 cost=0 depth=256 escalate=- unsure=- latency_p95=- absent=-
+budget calls=9 cost=0 depth=256 escalate=- unsure=- latency_p95=- absent=-
 block 78..5687
   fn-stmt observe
     #0 fn (m:{"Named":"Mat"}, q:{"Named":"Question"}) -> {"Named":"Record"} effects=[judge] ; {"effect":{"known":["judge"],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}

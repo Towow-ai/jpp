@@ -6,9 +6,26 @@
 fn accepted(o) { o.value }
 // sieve 的忽略流（已决信息，在 detail 里）
 fn ignored(o) { o.detail.ignore }
+// 未决原因是不是「没观察到」：预算停机、判断器缺席、超时（B95 缺席类原因，与运行时 E-drop-unobserved 同一集合）。
+// 这一类不能 drop，只能转交或 escalate；其余原因（band、cold、rejected_all……）是判过而拿不准
+fn unobserved_cause(c) { c == "budget" || c == "absent" || c == "latency" }
 // 未决清单里真正判过、但拿不准的项
-fn undecided(o) { filter(o.pending, fn(p) { p.cause != "budget" }) }
-// 未决清单里因预算停止而没有观察到的项：Unsure(budget)
-fn unobserved(o) { filter(o.pending, fn(p) { p.cause == "budget" }) }
+fn undecided(o) { filter(o.pending, fn(p) { !unobserved_cause(p.cause) }) }
+// 未决清单里没有观察到的项：Unsure(budget | absent | latency)
+fn unobserved(o) { filter(o.pending, fn(p) { unobserved_cause(p.cause) }) }
 // 停在半路的原因（没有则为 unit）
 fn stopped(o) { if has(o.resume, "detail") { o.resume.detail } else { unit } }
+
+// 多题或多填法的 sieve 返回一个契约值，元素 = 材料 × 题，每个元素带 qi（题在列表里的位置）。
+// by_q(o, k)：只留第 k 道题的元素（产出、忽略流、未决），证据按这些元素的账本键过滤；
+// 花费由证据键算（融合的调用各题共享，与整体相同），detail 标 shared。by_fill 是它的别名。
+// 注意：从输入契约值带进来的未决条目保留它们自己那一层的 qi。
+fn by_q(o, k) {
+    let keep = fn(e) { has(e, "qi") && e.qi == k };
+    let 键表 = map(filter(concat(concat(o.value, o.detail.ignore), o.pending), keep), fn(e) { e.key });
+    outcome({value: filter(o.value, keep), pending: filter(o.pending, keep),
+             evidence: filter(o.evidence, fn(x) { contains(键表, x) }), resume: o.resume,
+             detail: {question: if has(o.detail, "questions") { o.detail.questions[k] } else { o.detail.question },
+                      ignore: filter(o.detail.ignore, keep), shared: true}})
+}
+fn by_fill(o, k) { by_q(o, k) }

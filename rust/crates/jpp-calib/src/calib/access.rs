@@ -53,7 +53,18 @@ impl CalibStore {
     /// **不许静默丢字段。** 与 `Profile::load` 缺字段就报错同一条纪律：
     /// 文件里有而内核没地方放的字段，要么报错、要么**具名地**「知道但不映射」。
     /// 无声吞掉一个字段，和把限定写进注释是同一件事——**那个数会照常丢掉**。
+    ///
+    /// **装载即重跑认证**（步 20c，J-03 文件面，B117）：读完后按每张证书的方法重跑（[`CalibStore::recertify_all`]），
+    /// 不复现的记录降为夹具，复现的写回（旧证书进 `certs_history`），缺 δ 的旧证书由样本与线解出 δ 后写回；
+    /// 结论记在 `load_report`。与画像无关：证书的 δ 取证书自己的或解出来的，画像只在 `cut` 时用。
     pub fn load(dir: &std::path::Path) -> Result<CalibStore, String> {
+        let mut store = CalibStore::load_raw(dir)?;
+        store.load_report = store.recertify_all();
+        Ok(store)
+    }
+
+    /// 只读文件、不重跑认证（`load` 的前一半；审计与测试用，运行路径不用它）。
+    pub fn load_raw(dir: &std::path::Path) -> Result<CalibStore, String> {
         /// 知道、但**故意不映射**的字段。**这张表是具名的**：
         /// `source` 是自由散文（Python 全仓零引用，E-CAL 把 `label_source` 埋在里面）；
         /// `cost_matrix` / `drift_stat` 今天 Rust 侧没有对应承载，**而留一个没有
@@ -106,6 +117,9 @@ impl CalibStore {
                 fixture: false,
                 rerun_independent: None,
                 sources: Default::default(),
+                material_fps: vec![],
+                kind: None,
+                certs_history: vec![],
             }) {
                 Ok(Json::Object(m)) => m.keys().cloned().collect(),
                 _ => return Err("内部错误：CalibRecord 序列化不出对象".into()),
@@ -121,6 +135,12 @@ impl CalibStore {
                     "rerun_independent".to_string(),
                     "unsure_rate_delta".to_string(),
                     "sources".to_string(),
+                    // 20g-1 加的字段（为空不序列化）：漏在这张表里，带文本导入的记录喂不回 --calib（步 20h-1 发现）
+                    "material_fps".to_string(),
+                    // 步 20a-1 加的分类字段（B76，为空不序列化）
+                    "kind".to_string(),
+                    // 步 20c 加的旧证书历史（B117 (b)，为空不序列化）
+                    "certs_history".to_string(),
                 ])
                 .collect();
             for k in obj.keys() {
@@ -254,6 +274,7 @@ impl CalibStore {
         format!("{key}{}", mode.suffix())
     }
     /// 带模式地写一条记录（`12`:136 的第五维）
+    #[allow(clippy::too_many_arguments)] // 步 15d-2：第 8 参 δ（夹具线显式声明 δ）
     pub fn put_moded(
         &mut self,
         key: &str,
@@ -262,8 +283,9 @@ impl CalibStore {
         lo: f64,
         n: u64,
         status: &str,
+        delta: Option<f64>,
     ) -> Result<(), String> {
-        self.put(&CalibStore::keyed(key, mode), hi, lo, n, status)
+        self.put(&CalibStore::keyed(key, mode), hi, lo, n, status, delta)
     }
     /// 带模式地读一条记录。**没写过的那一档仍是冷的——不继承别的模式的线。**
     pub fn get_moded(&self, key: &str, mode: LiteralMode) -> CalibRecord {
@@ -292,15 +314,22 @@ impl CalibStore {
             fixture: false,
             rerun_independent: None,
             sources: Default::default(),
+            material_fps: vec![],
+            kind: None,
+            certs_history: vec![],
         })
     }
-    /// 这种题式的 δ：记录自带的优先，否则用档案的
-    pub fn delta_for(&self, rec: &CalibRecord, op: Op) -> f64 {
-        rec.delta.unwrap_or(match op {
-            Op::Test => self.profile.delta.0,
-            Op::Select => self.profile.delta.1,
-            Op::Measure => self.profile.delta.2,
-        })
+    /// 记录自带的 δ（步 15d-2：δ 只从记录取，没有画像或代码兜底；`op` 保留为调用口径，不参与取值）
+    pub fn delta_for(&self, rec: &CalibRecord, _op: Op) -> Option<f64> {
+        rec.delta
+    }
+    /// 某张证书的线用的 δ，与 `cut`（`CalibView::line_delta`）同一规则：证书记了认证带宽用它；证书不按 δ
+    /// 平移（`certify` 线、代价线，批量裁定解读 (a)）为 0；否则记录自带；都没有为 `None`。
+    pub fn cert_delta(rec: &CalibRecord, c: &super::record::Cert) -> Option<f64> {
+        match c.selection.as_ref() {
+            Some(s) => s.delta.or(rec.delta),
+            None => Some(0.0),
+        }
     }
     /// **J-10 可用的 unsure 率**：只认上岗记录；认证时绑了 δ 的，要与现在 `cut` 用的 δ 一致，
     /// 否则当未知（按 1 计）。`unsure_bound`（运行期）与 J-10 的静态那一半共用这一处，口径不会分叉。
@@ -311,17 +340,15 @@ impl CalibStore {
         let u = rec.unsure_rate?;
         match rec.unsure_rate_delta {
             // 按记录自己的题型取 δ（B63 起 K 元划分的率也绑 δ）；无样本的旧记录按 test
+            // 与 `cut` 同一个 δ（选中证书的规则，步 15d-2）；取不到 δ 当未知
             Some(d)
-                if (d - self.delta_for(
-                    rec,
-                    rec.samples
-                        .iter()
-                        .find(|s| s.label.is_some())
-                        .and_then(|s| super::record::反查题型(&s.phys))
-                        .unwrap_or(Op::Test),
-                ))
-                .abs()
-                    > 1e-12 =>
+                if rec
+                    .certs
+                    .values()
+                    .max_by(|a, b| a.hi.total_cmp(&b.hi))
+                    .and_then(|c| CalibStore::cert_delta(rec, c))
+                    .or(rec.delta)
+                    .is_none_or(|now| (d - now).abs() > 1e-12) =>
             {
                 None
             }
@@ -329,11 +356,12 @@ impl CalibStore {
         }
     }
     /// 判断用的线：上岗记录用自己的，其余一律用档案的保守线（与 Python `_uncertainty` 同口径）
-    pub fn lines_for(&self, rec: &CalibRecord) -> (f64, f64) {
+    pub fn lines_for(&self, rec: &CalibRecord) -> Option<(f64, f64)> {
         if rec.status == "上岗" {
-            (rec.hi, rec.lo)
+            Some((rec.hi, rec.lo))
         } else {
-            self.profile.safety
+            // 画像没测保守线（步 15d-2）：没有线
+            self.profile.safety.get().copied()
         }
     }
 }
