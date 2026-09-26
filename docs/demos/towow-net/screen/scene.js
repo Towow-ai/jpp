@@ -354,7 +354,8 @@ export class NetScene {
   }
 
   ghostId(rel) {
-    return `ghost:${rel.to}`;
+    // 转介到网外的人时 to 为空、对象在 ext.id（接口第九节）；每个网外的人各占一个幽灵位
+    return `ghost:${rel.to ?? (rel.ext && rel.ext.id) ?? rel.id}`;
   }
 
   // 参照读数 → 位移方向：每道参照题一个固定方向，act 朝外推，ignore 轻微回收

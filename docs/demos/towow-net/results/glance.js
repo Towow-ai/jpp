@@ -33,7 +33,8 @@ export function glyphIcon(kind, col, size = 22) {
 // ---------- 排序：三方以上且全部成立 → 含转介 → 其余；同样成员的只留一个 ----------
 function tier(m) {
   const allAct = m.edges.length > 0 && m.ex.act === m.edges.length;
-  if (m.size >= 3 && allAct) return 0;
+  // 三方以上、环上的边全部成立、而且环经过发信人，才排在最前（只在中间人和他熟人之间闭合的环不算）
+  if (m.size >= 3 && allAct && m.ringHasOrigin !== false) return 0;
   if (m.hasRelay) return 1;
   return 2;
 }
@@ -66,7 +67,9 @@ export function createGlance(env) {
     if (!edges.length && ids.length >= 2) edges = ids.map((id, i) => ({ from: id, to: ids[(i + 1) % ids.length], give: '', exit: null }));
     return edges.map((e, k) => {
       const row = m.rows.find((r) => r.id === e.from) || {};
-      return { ...e, k, label: String(e.give || row.give || '').trim() };
+      // give_cut：引擎已把超长的 give 截到 6 字（CP1 修订第 4 条），这里补一个省略号
+      const cut = e.give ? e.give_cut : row.give_cut;
+      return { ...e, k, cut: !!cut, label: String(e.give || row.give || '').trim() };
     });
   }
 
@@ -100,7 +103,8 @@ export function createGlance(env) {
     const n = ids.length;
     const narrow = W < 640;
     const S = Math.min(W, H);
-    const roles = ids.map((id) => roleOf(s.nodes.get(id)) || String(id));
+    // 网外的人角色形如「东阳木雕师傅·大徒弟」（中间人·关系）：环上中间人已在，只显示「·」后面那段
+    const roles = ids.map((id) => { const r = roleOf(s.nodes.get(id)) || String(id); const k = r.lastIndexOf('·'); return k > 0 && k < r.length - 1 ? r.slice(k + 1) : r; });
     const edges = edgesOf(m);
     const title = titleOf(m);
     const F = fit(m, roles, edges, title);
@@ -115,14 +119,20 @@ export function createGlance(env) {
     const fGive = Math.max(12, Math.min(28, S * 0.034));
     let perLine = 99; // 旁边的角色字每行几个字（窄屏折成两行）
     let R = 0;
+    let topPad = 0; let botPad = 0; let topCoef = 1; let botCoef = 1;
     const layout = () => {
       const lines = shown.map((t, i) => (side[i] && tw(t) > perLine ? [chars(t).slice(0, Math.ceil(chars(t).length / 2)).join(''), chars(t).slice(Math.ceil(chars(t).length / 2)).join('')] : [t]));
       const sideW = Math.max(0, ...lines.map((ls, i) => (side[i] ? Math.max(...ls.map(tw)) * fRole : 0)));
       const hasTop = angs.some((a, i) => !side[i] && Math.sin(a) < 0);
       const hasBot = angs.some((a, i) => !side[i] && Math.sin(a) > 0);
       const vPad = ar + fRole * 1.5;
+      // 上下两端各自的外伸：顶点（及其上方角色字）和最低的点（及其下方角色字）分开算，不按对称估
+      topPad = hasTop ? vPad : ar + fRole * 0.6;
+      botPad = hasBot ? vPad : ar + fRole * 0.6;
+      topCoef = Math.max(0, ...angs.map((a) => -Math.sin(a)));
+      botCoef = Math.max(0, ...angs.map((a) => Math.sin(a)));
       const rH = n === 2 ? W / 2 - ar - 16 - sideW - 6 : Math.min(W / 2 - ar - 16 - sideW - 6, W * 0.36);
-      const rV = n === 2 ? S * 0.4 : (H - (hasTop ? vPad : ar) - (hasBot ? vPad : ar) - 12) / 2 / (n === 3 ? 0.75 : 1);
+      const rV = n === 2 ? S * 0.4 : (H - topPad - botPad - 12) / Math.max(0.5, topCoef + botCoef);
       R = Math.min(rH, rV, S * 0.42);
       return lines;
     };
@@ -135,7 +145,8 @@ export function createGlance(env) {
     }
     const cx = W / 2;
     // 三方环上下不对称：顶点在上，底边在下；把重心放到画面中间
-    const cy = n === 3 ? H / 2 + R * 0.25 : H / 2;
+    // 竖直方向：把「顶端外伸 + 环 + 底端外伸」整体放在画面正中（五方环底下两点不在最低处，重心上移会压到标题）
+    const cy = n === 2 ? H / 2 : (H - (topCoef + botCoef) * R - topPad - botPad) / 2 + topPad + topCoef * R;
     const pos = new Map();
     ids.forEach((id, i) => pos.set(id, [cx + R * Math.cos(angs[i]), cy + R * Math.sin(angs[i])]));
 
@@ -173,7 +184,7 @@ export function createGlance(env) {
       }
       back += `<path class="g-hit" data-e="${k}" d="${d}" fill="none" stroke="transparent" stroke-width="${Math.max(22, fGive * 1.4).toFixed(0)}"/>`;
       if (F.showGive && e.label) {
-        const txt = clip(e.label, F.gl);
+        const txt = e.cut && chars(e.label).length <= F.gl ? `${e.label}…` : clip(e.label, F.gl);
         const qx = 0.25 * x1 + 0.5 * mx + 0.25 * x2;
         const qy = 0.25 * y1 + 0.5 * my + 0.25 * y2;
         const w = chars(txt).reduce((a, c) => a + (/[\u0000-ÿ]/.test(c) ? 0.6 : 1), 0) * fGive + fGive * 1.1;
@@ -324,7 +335,8 @@ export function createGlance(env) {
 
   // ---------- 依据浮层 ----------
   function relFor(m, id) {
-    const rs = m.rels.filter((r) => r.to === id || r.via === id);
+    // 转介到网外的人：to 为空，对象在 ext.id（接口第九节）
+    const rs = m.rels.filter((r) => r.to === id || r.via === id || (r.ext && r.ext.id === id));
     return rs[rs.length - 1] || null;
   }
   function lastReadJudge(s, ids) {

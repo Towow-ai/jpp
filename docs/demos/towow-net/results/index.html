@@ -23,7 +23,7 @@
 
 <header class="top">
   <div class="brand">
-    <h1>通爻网络</h1><span class="sub">结果</span>
+    <h1 title="通爻网络 · 结果">通爻网络</h1>
     <button id="method-info" class="info" aria-label="方法说明" title="方法说明">i</button>
     <span id="src-badge" class="badge" hidden></span>
   </div>
@@ -53,6 +53,20 @@
       <div id="ov-sub" class="subline"></div>
     </div>
     <div class="tiles" id="ov-tiles"></div>
+    <section class="verdicts" aria-label="正式结论">
+      <h2>正式结论（预注册判定，照实）</h2>
+      <table>
+        <tr><th>假设</th><th>结果</th><th>判定</th></tr>
+        <tr class="bad"><td>H3 方案质量不弱于大模型一次读完</td><td>有价值方案：大模型 21 / 22（Opus / Sonnet 评），J++ 3 / 2</td><td>不成立</td></tr>
+        <tr class="bad"><td>H2 三方以上的环多创造价值</td><td>三方以上且缺一不可：0/3（Opus），0/2（Sonnet）</td><td>不成立</td></tr>
+        <tr class="bad"><td>H1 整波（预注册）</td><td>痕迹组降 10.2%，对照组降 4.5%，规模比 1.07</td><td>不成立，触发推翻</td></tr>
+        <tr class="ok"><td>H1 名次（预注册）</td><td>痕迹组降 61.5%，对照组 −19.7%，规模比 1.04</td><td>成立</td></tr>
+        <tr class="bad"><td>H1 命中预埋目标（冒烟后改定）</td><td>痕迹组降 33.9%，对照组 −8.0%，规模比 1.12</td><td>不成立，预测未达</td></tr>
+        <tr class="bad"><td>H4 预埋结构召回（工程读数）</td><td>7 / 64 = 10.9%，预测 ≥ 60%</td><td>不成立</td></tr>
+        <tr class="ok"><td>花费</td><td>J++ 主运行 $0.219，大模型一次读完 $16.13，约 1/74</td><td>成立</td></tr>
+      </table>
+      <p>盲评的两位评审同属一家公司，独立性有限。H1 的「命中预埋目标」口径和 0.55/0.45 判断线是看过冒烟读数后改定的。</p>
+    </section>
     <div class="chart-card">
       <div class="legend" id="ov-legend"></div>
       <div id="ov-chart" class="ov-chart"></div>
@@ -82,7 +96,7 @@
   <section id="tab-data" class="tab-page data" hidden>
     <div class="dgrid">
       <div class="dcard wide">
-        <div class="dhead"><h2>越算越快</h2><button class="info" data-info="h1" aria-label="口径">i</button></div>
+        <div class="dhead"><h2>越算越快</h2><span id="d-h1-tag" class="tagm" hidden></span><button class="info" data-info="h1" aria-label="口径">i</button></div>
         <div id="d-h1" class="dchart"></div>
       </div>
       <div class="dcard">
@@ -90,12 +104,12 @@
         <div id="d-cmp" class="dchart"></div>
       </div>
       <div class="dcard">
-        <div class="dhead"><h2>判断次数分布</h2><button class="info" data-info="hj" aria-label="口径">i</button></div>
-        <div id="d-hj" class="dchart"></div>
+        <div class="dhead"><h2 title="主运行里每个主体出现在多少个构型里">集中</h2><button class="info" data-info="freq" aria-label="口径">i</button></div>
+        <div id="d-freq" class="dchart"></div>
       </div>
       <div class="dcard">
-        <div class="dhead"><h2>花费分布</h2><button class="info" data-info="hu" aria-label="口径">i</button></div>
-        <div id="d-hu" class="dchart"></div>
+        <div class="dhead"><h2 title="主运行里没判成的关系">未决</h2><button class="info" data-info="unsure" aria-label="口径">i</button></div>
+        <div id="d-unsure" class="dchart"></div>
       </div>
     </div>
     <div id="d-foot" class="dfoot"></div>
@@ -116,6 +130,5 @@
 <div id="tip" class="tip" hidden></div>
 <div id="err" class="err" hidden></div>
 <script type="module" src="./app.js"></script>
-<div style="position:fixed;left:8px;top:6px;z-index:9999;font:12px/1.2 system-ui,-apple-system,sans-serif;color:rgba(255,255,255,.55);background:rgba(0,0,0,.35);padding:2px 6px;border-radius:4px;pointer-events:none">假结果 · mock data</div>
 </body>
 </html>

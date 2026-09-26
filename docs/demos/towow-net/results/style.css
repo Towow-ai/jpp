@@ -250,7 +250,8 @@ body.g-mode.g-peek .g-menu { top: calc(var(--top) + 10px); }
 @keyframes gflow { from { offset-distance: 0%; } to { offset-distance: 100%; } }
 .g-svg.still .g-node, .g-svg.still .g-eb, .g-svg.still .g-lab, .g-svg.still .g-dot { animation: none; opacity: 1; }
 .g-svg.still .g-lit { display: none; }
-.g-nums { position: absolute; right: 0; bottom: 0; display: flex; gap: clamp(18px, 2.4vw, 48px); align-items: flex-end; pointer-events: none; }
+/* 两个大数放右上：各种环形（2–6 方）右上角都空着；放右下会压到右下方成员的角色字 */
+.g-nums { position: absolute; right: 0; top: 0; display: flex; gap: clamp(18px, 2.4vw, 48px); align-items: flex-end; pointer-events: none; }
 .g-num { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; justify-content: flex-end; max-width: 9em; }
 .g-num b { font-family: var(--mono); font-variant-numeric: tabular-nums; font-weight: 700; font-size: clamp(40px, 4.6vw, 96px); line-height: 1; color: #fff; }
 .g-num i { font-style: normal; font-family: var(--mono); font-size: clamp(22px, 2.2vw, 46px); color: var(--fg-2); }
@@ -309,3 +310,36 @@ body.g-mode.g-peek .g-menu { top: calc(var(--top) + 10px); }
   .g-num span { text-align: center; }
   .g-thumbs { flex-wrap: wrap; gap: 10px; padding: 14px 0 24px; }
 }
+.cut { opacity: 0.6; margin-left: 1px; }
+/* H1 口径标签：主口径（命中目标）绿框，退回 discovery 的次要口径黄框 */
+.tagm { display: inline-block; font-size: calc(var(--u) * 0.72); padding: 1px 7px; border-radius: 999px; border: 1px solid var(--act, #3ef0b0); color: var(--act, #3ef0b0); letter-spacing: 0.04em; vertical-align: middle; }
+.tagm.sec { border-color: #ffb547; color: #ffb547; }
+
+/* H1 三个口径并列（同样大小） */
+.h1grid { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.h1m { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.h1h { display: flex; align-items: center; gap: 6px; font-size: calc(var(--u) * 0.9); white-space: nowrap; }
+.h1h b { font-weight: 600; letter-spacing: 0.06em; }
+.h1d { margin-left: auto; font-family: var(--mono); color: var(--fg-2); }
+.h1d small { margin-left: 3px; color: var(--fg-3); font-size: 0.85em; }
+.h1c { flex: 1; min-height: 0; position: relative; }
+.h1c svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.h1p { white-space: nowrap; }
+.h1sep { font-style: normal; margin: 0 0.6em; color: var(--fg-3); }
+@media (max-width: 720px) {
+  .h1grid { position: static; grid-template-columns: minmax(0, 1fr); grid-auto-rows: 200px; }
+  .dgrid .dcard.wide { height: auto; }
+}
+.amend { color: #ffb547; font-family: var(--mono); font-weight: 700; margin-left: 1px; }
+.subline b.bad { color: #ff8a96; }
+
+.verdicts { margin: 18px 0 0; padding: 14px 18px; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; background: rgba(255,255,255,0.03); }
+.verdicts h2 { margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #cfd6e4; }
+.verdicts table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.verdicts th, .verdicts td { text-align: left; padding: 6px 8px; border-top: 1px solid rgba(255,255,255,0.07); vertical-align: top; }
+.verdicts th { color: #8a93a6; font-weight: 500; border-top: 0; }
+.verdicts td:last-child { white-space: nowrap; font-weight: 600; }
+.verdicts tr.bad td:last-child { color: #ff8a96; }
+.verdicts tr.ok td:last-child { color: #3ddc97; }
+.verdicts p { margin: 8px 0 0; font-size: 12px; color: #8a93a6; }
+@media (max-width: 640px) { .verdicts { padding: 12px; } .verdicts table, .verdicts tbody, .verdicts tr, .verdicts td { display: block; width: auto; } .verdicts tr { border-top: 1px solid rgba(255,255,255,0.07); padding: 6px 0; } .verdicts th, .verdicts tr:first-child { display: none; } .verdicts td { border: 0; padding: 1px 0; } .verdicts td:last-child { white-space: normal; } }

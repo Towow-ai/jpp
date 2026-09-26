@@ -1,5 +1,5 @@
 // 大屏入口。数据来源由地址参数决定（部署在子路径下也能用，全部是相对地址）：
-//   ?src=../mock/out/events.jsonl      静态事件文件（默认）
+//   ?src=../run/events.jsonl      静态事件文件（默认）
 //   ?sse=../events%3Frun%3Ddemo         SSE 直播或服务端重放（GET /events）
 //   &speed=4 &autoplay=0 &compress=0 &seek=end &bloom=1 &color=kind &compare=1 &select=node:p001
 
@@ -29,13 +29,13 @@ function showError(msg) {
 // ---------- 称呼：页面一律显示角色，名字只在节点详情里小字出现一次 ----------
 function nodeName(id) {
   const n = store.nodes.get(id);
-  if (n && !n.placeholder) return roleOf(n);
+  if (n && (!n.placeholder || n.role)) return roleOf(n); // 网外的人（x:…）是占位节点，但带角色
   return String(id ?? '');
 }
 function nodeLink(id) {
   const n = store.nodes.get(id);
   if (n && !n.placeholder) return `<a class="link" data-sel="node:${esc(id)}">${esc(roleOf(n))}</a>`;
-  return `<span title="不在网内">${esc(id)}</span>`;
+  return `<span title="不在网内">${esc(n && n.role ? roleOf(n) : id)}</span>`;
 }
 function aboutText(about) {
   const it = store.intents.get(about);
@@ -73,7 +73,7 @@ function buildSpeeds() {
   });
 }
 function renderPlayer() {
-  $('btn-play').textContent = player.playing ? '暂停' : '播放';
+  $('btn-play').textContent = player.playing ? '❚❚' : '▶';
   for (const b of $('speeds').children) b.classList.toggle('on', Number(b.dataset.speed) === player.speed);
   $('progress-bar').style.width = `${(player.progress * 100).toFixed(2)}%`;
   const live = player.mode === 'sse';
@@ -86,7 +86,8 @@ function renderPlayer() {
     badge.textContent = { live: '直播 · SSE', connecting: '连接中', reconnecting: '重连中', closed: '连接已断' }[player.status] || player.status;
     if (player.status === 'live') badge.classList.add('badge-live');
   } else {
-    badge.textContent = player.status === 'loading' ? '读取中' : '录制重放';
+    badge.textContent = player.status === 'loading' ? '读取中' : '回放';
+    badge.title = '录制重放：事件流来自一次已经跑完的运行';
   }
   scene.speedHint = player.mode === 'sse' ? 1 : player.speed;
 }
@@ -103,9 +104,19 @@ player.onSeek = () => {
   renderFeed();
   lastIntentShown = null;
   updateHud(true);
+  if (selected && !selectionExists(selected)) closeDetail();
 };
 
 $('btn-play').addEventListener('click', () => player.toggle());
+// 细节开关：演示页硬标准第 7 条要求每屏默认可见汉字 ≤ 60，说明、全部计数、事件流、完整图例、构型成员标签都收在这里
+const moreOn = () => document.body.classList.contains('more');
+function toggleMore(on = !moreOn()) {
+  document.body.classList.toggle('more', on);
+  $('btn-more').setAttribute('aria-pressed', String(on));
+  if (!on) for (const k of [...labels.keys()]) if (k.startsWith('cfg:') || k.startsWith('join:')) labels.delete(k);
+}
+$('btn-more').addEventListener('click', () => toggleMore());
+if (qs.get('more') === '1') toggleMore(true);
 $('btn-end').addEventListener('click', () => seekSilently(player.totalT));
 $('chk-compress').addEventListener('change', (e) => { player.compressIdle = e.target.checked; });
 $('sel-color').addEventListener('change', (e) => { scene.setColorBy(e.target.value); renderLegend(); });
@@ -118,6 +129,7 @@ window.addEventListener('keydown', (e) => {
   if (e.target.matches('input, select, textarea')) return;
   if (e.code === 'Space') { e.preventDefault(); player.toggle(); }
   if (e.key === 'c' || e.key === 'C') toggleCompare();
+  if (e.key === 'i' || e.key === 'I') toggleMore();
   if (e.key === 'Escape') { closeDetail(); $('compare').hidden = true; }
   const i = '123456'.indexOf(e.key);
   if (i >= 0) player.setSpeed(SPEEDS[i]);
@@ -159,7 +171,7 @@ store.on((ev, ctx) => {
       const kind = { direct: '直接关系', relay: '转介', unsure: '拿不准' }[ev.kind] || ev.kind;
       const col = ev.kind === 'relay' ? COLORS.relay : ev.kind === 'unsure' ? COLORS.relUnsure : COLORS.direct;
       const via = ev.via != null ? `经 ${nodeName(ev.via)} → ` : '';
-      pushFeed({ tag: kind, color: col, text: `${nodeName(ev.from)} ⇢ ${via}${nodeName(ev.to)}`, sel: `relation:${ev.id}` });
+      pushFeed({ tag: kind, color: col, text: `${nodeName(ev.from)} ⇢ ${via}${nodeName(ev.to ?? (ev.ext && ev.ext.id))}`, sel: `relation:${ev.id}` });
       break;
     }
     case 'config':
@@ -203,7 +215,7 @@ function renderIntent() {
     const el = $('intent-text');
     el.textContent = `「${it.text}」`;
     el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
-    labels.set('origin', { id: it.from, cls: 'origin', text: nodeName(it.from), role: '发信人', until: Infinity });
+    labels.set('origin', { id: it.from, cls: 'origin', text: nodeName(it.from), role: moreOn() ? '发信人' : '', until: Infinity });
   }
   const dt = Math.max(0, it.lastT - it.t);
   const stable = [...it.configs].filter((c) => store.configs.get(c)?.status === 'stable').length;
@@ -239,6 +251,8 @@ function renderLabels() {
 scene.onJoinFx = (id, live) => {
   const n = store.nodes.get(id);
   if (!n) return;
+  // 默认只给现场参与者和后来入网的人挂名字标签；开场那一批（几十个同时入网）只闪光，不挂字
+  if (!live && !n.lateJoin && !moreOn()) return;
   labels.set(`join:${id}`, { id, cls: live ? 'live' : '', text: roleOf(n), role: live ? '现场参与者' : '入网', until: performance.now() + (live ? 12000 : 5000) });
   if (live) {
     document.querySelectorAll('.toast').forEach((x) => x.remove());
@@ -251,6 +265,7 @@ scene.onJoinFx = (id, live) => {
 };
 scene.onConfigFx = (cfg, prev) => {
   if (cfg.status !== 'stable' || prev === 'stable') return;
+  if (!moreOn()) return; // 构型稳定时默认只靠发光的簇表达，成员角色字在细节模式里才挂
   for (const k of [...labels.keys()]) if (k.startsWith('cfg:')) labels.delete(k);
   cfg.members.slice(0, 6).forEach((m) => {
     labels.set(`cfg:${m}`, { id: m, cls: 'cfg', text: nodeName(m), until: performance.now() + 5000 });
@@ -366,7 +381,7 @@ $('gl').addEventListener('pointerup', (e) => {
   const hit = scene.pick(e.clientX, e.clientY);
   if (!hit) { closeDetail(); return; }
   if (hit.type === 'ghost') {
-    const rel = [...store.relations.values()].find((r) => `ghost:${r.to}` === hit.id);
+    const rel = [...store.relations.values()].find((r) => scene.ghostId(r) === hit.id);
     if (rel) select(`relation:${rel.id}`);
     return;
   }
@@ -375,19 +390,25 @@ $('gl').addEventListener('pointerup', (e) => {
 
 function judgeItem(j) {
   if (!j || typeof j !== 'object') return '';
-  return `<li><div class="q">${esc(j.q)}</div><div class="chips">${exitChip(j.exit)}<span class="chip">${nodeLink(j.node)}</span></div>
+  // 读数：接口第九节 judge.reading，是非题 {p}，选择题 {probs, over}
+  const r = j.reading || {};
+  const rd = Number.isFinite(Number(r.p)) ? Number(r.p).toFixed(2)
+    : Array.isArray(r.probs) ? r.probs.map((x) => Number(x).toFixed(2)).join(' / ') : '';
+  return `<li><div class="q">${esc(j.q)}</div><div class="chips">${exitChip(j.exit)}${rd ? `<span class="chip mono">${esc(rd)}</span>` : ''}<span class="chip">${nodeLink(j.node)}</span></div>
     <div class="meta">关于 ${aboutLink(j.about)}<br>判断 ${esc(j.id)} · 账本键 ${esc(j.key)} · ${j.usd != null ? fmtUsd(Number(j.usd)) : ''}</div></li>`;
 }
 
 // 构型的依据：同一条根意图下、两端都在成员里的关系，各自的触发上下文与判断
 function cfgBasis(c) {
   const mem = new Set(c.members);
-  const rels = [...store.relations.values()].filter((r) => r.root === c.root && mem.has(r.from) && (mem.has(r.to) || mem.has(r.via)));
+  // 接口第九节：config.relations 直接列出依据的关系 id；旧数据没有时退回「同一根意图下、两端都在成员里」
+  const listed = (c.relations || []).map((id) => store.relations.get(id)).filter(Boolean);
+  const rels = listed.length ? listed : [...store.relations.values()].filter((r) => r.root === c.root && mem.has(r.from) && (mem.has(r.to) || mem.has(r.via)));
   if (!rels.length) return '';
   return `<h4>依据（${rels.length} 条关系）</h4><ul class="jlist">${rels.slice(0, 8).map((r) => {
     const js = (r.judges || []).map((id) => store.judges.get(id)).filter(Boolean);
     const j = js[0];
-    return `<li><a class="link" data-sel="relation:${esc(r.id)}">${esc(nodeName(r.from))} ⇢ ${r.via ? esc(nodeName(r.via)) + ' → ' : ''}${esc(nodeName(r.to))}</a>
+    return `<li><a class="link" data-sel="relation:${esc(r.id)}">${esc(nodeName(r.from))} ⇢ ${r.via ? esc(nodeName(r.via)) + ' → ' : ''}${esc(nodeName(r.to ?? (r.ext && r.ext.id)))}</a>
       <div class="q">${esc(r.trigger || '')}</div>
       ${j ? `<div class="meta">判的题：${esc(j.q)}</div><div class="chips">${exitChip(j.exit)}</div>` : ''}</li>`;
   }).join('')}</ul>`;
@@ -401,10 +422,17 @@ function renderDetail(sel, soft = false) {
     if (!n) return;
     const badges = [];
     if (n.synthetic === true) badges.push('<span class="chip">合成主体</span>');
-    if (n.synthetic === false) badges.push('<span class="chip warn">真实公开报道</span>');
+    if (n.synthetic === false && !n.live) badges.push('<span class="chip warn">真实公开报道</span>'); // 现场参与者也是 synthetic:false，但不是报道
     if (n.demo_only) badges.push('<span class="chip warn">知名故事 · 仅演示</span>');
     if (n.live) badges.push(`<span class="chip ex" style="--c:${COLORS.live}">现场参与者</span>`);
     if (!n.alive) badges.push('<span class="chip">已离网</span>');
+    // node_join.node.source（接口第一、九节）：真实主体的出处 {url, title}（旧数据可能是字符串）；有网址就给链接。现场参与者不重复标
+    if (n.source && n.source !== 'live' && !n.participant) {
+      const url = typeof n.source === 'object' ? n.source.url : (/^https?:\/\//.test(String(n.source)) ? String(n.source) : null);
+      const title = typeof n.source === 'object' ? (n.source.title || '') : (url ? '' : String(n.source));
+      const lab = `出处${title ? `：${Array.from(title).slice(0, 14).join('')}` : ''}`;
+      badges.push(url && /^https?:\/\//.test(url) ? `<a class="chip" href="${esc(url)}" target="_blank" rel="noopener noreferrer" title="${esc(title || url)}">${esc(lab)}</a>` : `<span class="chip" title="${esc(title)}">${esc(lab)}</span>`);
+    }
     const kind = { person: '个人', company: '公司', org: '机构' }[n.kind] || n.kind;
     const refs = Object.entries(n.ref || {});
     const js = n.judges.slice(-8).reverse().map((id) => store.judges.get(id) || id);
@@ -419,14 +447,14 @@ function renderDetail(sel, soft = false) {
       <ul class="jlist">${js.map(judgeItem).join('') || '<li class="muted">暂无</li>'}</ul>
       ${n.enrich.length ? `<h4>拿不准时补的信息</h4><ul class="jlist">${n.enrich.slice(-4).reverse().map((e) => `<li><div class="q">缺：${esc(e.need)}</div><div class="meta">补自：${esc(e.got)}</div></li>`).join('')}</ul>` : ''}
       <h4>关系</h4>
-      <ul class="jlist">${rels.map((r) => `<li><a class="link" data-sel="relation:${esc(r.id)}">${esc(nodeName(r.from))} ⇢ ${r.via ? esc(nodeName(r.via)) + ' → ' : ''}${esc(nodeName(r.to))}</a><div class="meta">${esc(r.kind)} · ${esc(aboutText(r.about))}</div></li>`).join('') || '<li class="muted">暂无</li>'}</ul>`;
+      <ul class="jlist">${rels.map((r) => `<li><a class="link" data-sel="relation:${esc(r.id)}">${esc(nodeName(r.from))} ⇢ ${r.via ? esc(nodeName(r.via)) + ' → ' : ''}${esc(nodeName(r.to ?? (r.ext && r.ext.id)))}</a><div class="meta">${esc(r.kind)} · ${esc(aboutText(r.about))}</div></li>`).join('') || '<li class="muted">暂无</li>'}</ul>`;
   } else if (sel.type === 'relation') {
     const r = store.relations.get(sel.id);
     if (!r) return;
     const kind = { direct: '直接关系', relay: '转介', unsure: '拿不准的关系' }[r.kind] || r.kind;
     const js = (r.judges || []).map((id) => store.judges.get(id)).filter(Boolean);
     html = `<h3>${esc(kind)}</h3>
-      <dl class="kv"><dt>发起</dt><dd>${nodeLink(r.from)}</dd>${r.via != null ? `<dt>经由</dt><dd>${nodeLink(r.via)}</dd>` : ''}<dt>找到</dt><dd>${nodeLink(r.to)}</dd><dt>关于</dt><dd>${aboutLink(r.about)}</dd></dl>
+      <dl class="kv"><dt>发起</dt><dd>${nodeLink(r.from)}</dd>${r.via != null ? `<dt>经由</dt><dd>${nodeLink(r.via)}</dd>` : ''}<dt>找到</dt><dd>${nodeLink(r.to ?? (r.ext && r.ext.id))}</dd><dt>关于</dt><dd>${aboutLink(r.about)}</dd></dl>
       <h4>触发的上下文</h4><div class="trigger">${esc(r.trigger || '（事件里没有写）')}</div>
       <h4>依据的语义判断（${js.length} 次）</h4><ul class="jlist">${js.map(judgeItem).join('') || '<li class="muted">判断事件还没到或被省略</li>'}</ul>`;
   } else if (sel.type === 'config') {
@@ -607,7 +635,7 @@ async function start() {
       player.connectSSE(qs.get('sse'));
     } else {
       const t0 = performance.now();
-      await player.loadJsonl(qs.get('src') || '../mock/out/results.jsonl');
+      await player.loadJsonl(qs.get('src') || '../run/events.jsonl');
       perf.loadMs = performance.now() - t0;
     }
   } catch (e) {

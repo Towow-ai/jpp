@@ -2,14 +2,16 @@
 //   POST {api}/join      body = society/template.md 的 JSON
 //   GET  {api}/me/<id>   返回 {node, relations, configs, plans, nodes, intents}（字段形状见 open_questions）
 //   POST {api}/feedback  body = {target, member, verdict: yes|edit|no, note}
-// 地址参数：?api=..（默认，相对本页）&id=p001 &mock=../mock/out/events.jsonl
+// 地址参数：?api=..（默认，相对本页）&id=p001 &mock=../run/events.jsonl
 // 没连上服务时：加入不提交；「跟我有关」用本地事件流算出的样例；反馈提示稍后再试。
 
 import { roleOf } from '../shared/store.js';
 
 const qs = new URLSearchParams(location.search);
 const API = (qs.get('api') ?? '..').replace(/\/$/, '');
-const MOCK_SRC = qs.get('mock') || '../mock/out/results.jsonl';
+const MOCK_SRC = qs.get('mock') || '../run/events.jsonl';
+// 静态演示包（tools/build-demo 构建时改成 true）：没有服务，不探测接口，直接用包里的事件流
+const STATIC_BUNDLE = true;
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const store = {
@@ -62,6 +64,10 @@ function normalizeMe(d, id, fake) {
   const intents = {};
   const it = d.intents || {};
   if (Array.isArray(it)) for (const x of it) intents[x.id] = x; else Object.assign(intents, it);
+  // 网外的人（转介对象 x:…）不在 nodes 里：从 relation.ext 和 plan.members 补上角色，页面显示角色不显示 id
+  const addExt = (xid, role) => { if (xid != null && role && !nodes[xid]) nodes[xid] = { id: xid, role, ext: true, kind: 'unknown' }; };
+  for (const r of d.relations || d.candidates || []) if (r && r.ext) addExt(r.ext.id, r.ext.role);
+  for (const p of d.plans || []) for (const m of (p && p.members) || []) if (m) addExt(m.id, m.role);
   const configs = d.configs || [];
   const cfgById = {};
   for (const c of configs) cfgById[c.id] = c;
@@ -259,7 +265,10 @@ function actions(target) {
 
 function relCard(v, r) {
   const me = meId;
-  let title, kindCls = r.kind, kindTxt = { direct: '直接', relay: '转介', unsure: '拿不准' }[r.kind] || r.kind;
+  let title;
+  let kindCls = r.kind, kindTxt = { direct: '直接', relay: '转介', unsure: '拿不准' }[r.kind] || r.kind;
+  // 转介到网外的人时 to 为空，对象在 ext 里（接口第九节）
+  if (r.to == null && r.ext && r.ext.id != null) r = { ...r, to: r.ext.id };
   if (r.from === me && r.kind === 'relay' && r.via) title = `经 ${esc(nameOf(v, r.via))} 找到 ${esc(nameOf(v, r.to))}`;
   else if (r.from === me) title = esc(nameOf(v, r.to));
   else if (r.via === me) title = `你可以把 ${esc(nameOf(v, r.from))} 介绍给 ${esc(nameOf(v, r.to))}`;
@@ -392,7 +401,8 @@ $('me-go').addEventListener('click', () => {
 // ---------- 启动 ----------
 (async function start() {
   // 公网演示版（GitHub Pages）没有服务：不探测接口，直接用样例数据，并改掉「会发给模型」的提示
-  const publicDemo = /\.github\.io$/.test(location.hostname) && !qs.get('api');
+  // 显式给了 mock=（离线样例的事件文件）也不去探测接口：静态服务器上探测只会留一条 404
+  const publicDemo = (STATIC_BUNDLE || qs.get('mock') || /\.github\.io$/.test(location.hostname)) && !qs.get('api');
   if (publicDemo) {
     api.mode = 'offline';
     $('privacy').textContent = '这是演示版，表单不会发送；现场版会接上服务。';

@@ -1,0 +1,251 @@
+{
+ "anchors": "v1",
+ "arm": "main",
+ "binary": {
+  "path": "engine/target/release/jpp",
+  "sha": "c50960d2b9196256"
+ },
+ "budget_usd": 1.0,
+ "host": {
+  "sha": "4f1180887cee4681"
+ },
+ "intents": [
+  "i01",
+  "i02",
+  "i03",
+  "i04",
+  "i05",
+  "i06",
+  "i07",
+  "i08",
+  "i09",
+  "i10",
+  "i11",
+  "i12",
+  "i13",
+  "i14",
+  "i15",
+  "i16",
+  "i17",
+  "i18",
+  "i19",
+  "i20",
+  "i21",
+  "i22",
+  "i23",
+  "i24",
+  "i25",
+  "i26",
+  "i27",
+  "i28",
+  "i29",
+  "i30",
+  "i31",
+  "i32",
+  "i33",
+  "i34",
+  "i35",
+  "i36",
+  "i37",
+  "i38",
+  "i39",
+  "i40",
+  "i41",
+  "i42",
+  "i43",
+  "i44",
+  "i45",
+  "i46",
+  "i47",
+  "i48",
+  "i49",
+  "i50",
+  "i51",
+  "i52",
+  "i53",
+  "i54",
+  "i55",
+  "i56",
+  "i57",
+  "i58",
+  "i59"
+ ],
+ "intents_file": "society/intents.json",
+ "ledgers": "tasks/",
+ "nodes": 307,
+ "params": {
+  "budget_frac": 0.9,
+  "compile_batch": 4,
+  "coord_batch": 64,
+  "ext_valid": true,
+  "extend_max": 6,
+  "gen_model": "sonnet",
+  "gen_slots": 1,
+  "jev_slots": 8,
+  "k1": 8,
+  "k2": 10,
+  "k_explore": 2,
+  "lines": {
+   "_note": "CP2 用的开发线，与 engine/jpp/params-dev.json 逐项相同（2026-09-27）；宿主只读 lines 字段。正式运行换成 runs/frozen-params.json。",
+   "asm_line": {
+    "declare": {
+     "hi": 0.55,
+     "lo": 0.45
+    }
+   },
+   "coord_line": {
+    "declare": {
+     "hi": 0.5,
+     "lo": 0.5
+    }
+   },
+   "ext_line": {
+    "declare": {
+     "hi": 0.55,
+     "lo": 0.45
+    }
+   },
+   "recv_line": {
+    "declare": {
+     "hi": 0.55,
+     "lo": 0.45
+    }
+   },
+   "recv_need": {
+    "declare": {
+     "hi": 0.4
+    }
+   },
+   "recv_pick": {
+    "declare": {
+     "hi": 0.5
+    }
+   },
+   "recv_relay": {
+    "declare": {
+     "hi": 0.5
+    }
+   },
+   "recv_relay_confirm": {
+    "declare": {
+     "hi": 0.55,
+     "lo": 0.45
+    }
+   },
+   "recv_rounds": 2,
+   "ring_line": {
+    "declare": {
+     "hi": 0.55,
+     "lo": 0.45
+    }
+   },
+   "ring_objection": {
+    "declare": {
+     "hi": 0.4
+    }
+   },
+   "trace_pick": {
+    "declare": {
+     "hi": 0.5
+    }
+   }
+  },
+  "max_parts": 8,
+  "other_slots": 4,
+  "past_max": 8,
+  "relay_valid": true,
+  "repropagate": true,
+  "ring_max": 2,
+  "ring_members": 5,
+  "seed": 7,
+  "stop_at_first": false,
+  "timeouts": {
+   "assemble": 120,
+   "compile": 420,
+   "coord": 240,
+   "extend": 120,
+   "plan": 240,
+   "receive": 120,
+   "ring": 120,
+   "route": 60,
+   "trace": 60
+  },
+  "waves": 3
+ },
+ "params_file": "runs/frozen-params.json",
+ "pin": "d4ea050d4ef8d1759d3523eceec0054bc580f0fe",
+ "profile": {
+  "file": "jev-1.13.0.json",
+  "sha": "2138312439a23c24"
+ },
+ "programs": {
+  "assemble": "bda6d28ea67322a8",
+  "compile": "3ae3b6431b915111",
+  "coord": "2761aa07ca81f59b",
+  "extend": "3d15cde0ed162059",
+  "plan": "84d606e72382fc3e",
+  "receive": "af29cd264445a69e",
+  "ring": "695a4c607d1a285e",
+  "route": "708bdcb1c460a637",
+  "trace": "57b8271d72f247ef"
+ },
+ "run": "main",
+ "runner": "lib",
+ "society": "society",
+ "source": "live",
+ "status": "done",
+ "summary": {
+  "budget_stopped": false,
+  "calls": 6782,
+  "discoveries": 53,
+  "elapsed_ms": 1988456,
+  "failed_tasks": 0,
+  "gen_calls": 54,
+  "intents_done": 59,
+  "judgments": 27519,
+  "per_prog": {
+   "assemble": {
+    "judgments": 224,
+    "tasks": 50,
+    "usd": 0.005474532000000001
+   },
+   "coord": {
+    "judgments": 11600,
+    "tasks": 164,
+    "usd": 0.018356645999999997
+   },
+   "extend": {
+    "judgments": 46,
+    "tasks": 14,
+    "usd": 0.0009384060000000001
+   },
+   "plan": {
+    "judgments": 0,
+    "tasks": 54,
+    "usd": 0.0
+   },
+   "receive": {
+    "judgments": 14165,
+    "tasks": 1760,
+    "usd": 0.15691729200000032
+   },
+   "ring": {
+    "judgments": 1426,
+    "tasks": 97,
+    "usd": 0.034503167999999994
+   },
+   "route": {
+    "judgments": 0,
+    "tasks": 112,
+    "usd": 0.0
+   },
+   "trace": {
+    "judgments": 58,
+    "tasks": 58,
+    "usd": 0.003063144000000001
+   }
+  },
+  "tasks": 2309,
+  "usd": 0.2192531880000001
+ }
+}

@@ -1,0 +1,105 @@
+{
+ "source": "society/intents.json 的 group 字段（评估元数据）",
+ "intents": [
+  {
+   "id": "i02",
+   "group": "g1"
+  },
+  {
+   "id": "i04",
+   "group": "g2"
+  },
+  {
+   "id": "i06",
+   "group": "g3"
+  },
+  {
+   "id": "i08",
+   "group": "g4"
+  },
+  {
+   "id": "i10",
+   "group": "g5"
+  },
+  {
+   "id": "i13",
+   "group": "g1"
+  },
+  {
+   "id": "i15",
+   "group": "g2"
+  },
+  {
+   "id": "i17",
+   "group": "g3"
+  },
+  {
+   "id": "i19",
+   "group": "g4"
+  },
+  {
+   "id": "i21",
+   "group": "g5"
+  },
+  {
+   "id": "i24",
+   "group": "g1"
+  },
+  {
+   "id": "i26",
+   "group": "g2"
+  },
+  {
+   "id": "i28",
+   "group": "g3"
+  },
+  {
+   "id": "i30",
+   "group": "g4"
+  },
+  {
+   "id": "i32",
+   "group": "g5"
+  },
+  {
+   "id": "i35",
+   "group": "g1"
+  },
+  {
+   "id": "i37",
+   "group": "g2"
+  },
+  {
+   "id": "i39",
+   "group": "g3"
+  },
+  {
+   "id": "i41",
+   "group": "g4"
+  },
+  {
+   "id": "i43",
+   "group": "g5"
+  },
+  {
+   "id": "i46",
+   "group": "g1"
+  },
+  {
+   "id": "i48",
+   "group": "g2"
+  },
+  {
+   "id": "i50",
+   "group": "g3"
+  },
+  {
+   "id": "i52",
+   "group": "g4"
+  },
+  {
+   "id": "i54",
+   "group": "g5"
+  }
+ ]
+}

@@ -1004,7 +1004,7 @@
       { href: "./dinner/", no: "02", t: "杭州聚餐", s: D.c02 ? `${D.c02.points.length} 家餐厅筛到一家` : "餐厅筛到一家", mk: (g) => scene02(g) },
       { href: "#/03", no: "03", t: "最短书单", s: `${D.c03.articles.length} 篇条目收成书单`, mk: (g) => scene03(g, true) },
       { href: "#/04", no: "04", t: "合租分配", s: `${D.c04.hosts.length + D.c04.seekers.length} 人配成稳定合租`, mk: (g) => scene04(g, true) },
-      { href: "./towow-net/", no: "05", t: "通爻网络", s: "一句话长出多方方案", tag: "假结果", mk: (g) => scene05(g) },
+      { href: "./towow-net/", no: "05", t: "通爻网络", s: "一句话长出多方方案", mk: (g) => scene05(g) },
     ];
     const grid = el("div", { class: "home" });
     main.append(grid);

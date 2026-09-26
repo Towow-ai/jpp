@@ -17,6 +17,8 @@ export function exitClass(exit) {
 //   新闻里的真人带 source，现场的人没有）。
 export function isLiveParticipant(node) {
   if (!node) return false;
+  // B2b 的现场加入：node.participant === true（source 是 {title: "现场参与者自述", url: null}）
+  if (node.participant === true) return true;
   if (node.live === true || node.source === 'live') return true;
   if (typeof node.id === 'string' && /^live/i.test(node.id)) return true;
   if (Array.isArray(node.tags) && node.tags.some((t) => String(t).includes('现场'))) return true;
@@ -80,6 +82,8 @@ export class Store {
       baselineUsd: 0,
       elapsed: 0,
       unknownTypes: 0,
+      tasks: 0,
+      tasksFailed: 0,
     };
     this.lastMetric = null;
     this.anchors = new Map(); // 参照题 id → 题面（服务若发 anchors 事件）
@@ -149,6 +153,19 @@ export class Store {
     return n;
   }
 
+  // 网外的人（转介对象，id 形如 x:p001:1）：只在 relation.ext / plan.members 里出现，不入网。
+  // 仍是占位节点（大屏不给它分配位置），但带上角色，页面显示角色而不是 id（接口.md 第九节、CP1 修订第 2 条）。
+  noteExt(id, role, kind) {
+    if (id == null) return null;
+    const n = this.ensureNode(id);
+    if (n.placeholder) {
+      if (role && !n.role) n.role = String(role);
+      if (kind && n.kind === 'unknown') n.kind = kind;
+      n.ext = typeof id === 'string' && id.startsWith('x:');
+    }
+    return n;
+  }
+
   intentStat(root) {
     return root ? this.intents.get(root) : null;
   }
@@ -176,7 +193,7 @@ export class Store {
         Object.assign(n, {
           name: src.name ?? n.name, role: src.role ?? n.role ?? null, kind: src.kind ?? n.kind, synthetic: src.synthetic ?? n.synthetic,
           demo_only: !!src.demo_only, tags: Array.isArray(src.tags) ? src.tags : [], summary: src.summary ?? '',
-          source: src.source ?? n.source ?? null, city: src.city ?? n.city,
+          source: src.source ?? n.source ?? null, city: src.city ?? n.city, participant: src.participant === true,
         });
         n.placeholder = false;
         n.alive = true;
@@ -258,6 +275,7 @@ export class Store {
       }
       case 'relation': {
         const isNew = !this.relations.has(ev.id);
+        if (ev.ext && typeof ev.ext === 'object' && ev.ext.id != null) this.noteExt(ev.ext.id, ev.ext.role, ev.ext.kind);
         const root = this.rootIntent(ev.about);
         const r = { ...ev, root };
         this.relations.set(ev.id, r);
@@ -285,6 +303,9 @@ export class Store {
         Object.assign(cfg, {
           about: ev.about, members: Array.isArray(ev.members) ? ev.members : [], parent: ev.parent ?? null,
           summary: ev.summary ?? '', status: ev.status ?? 'forming', root, lastT: ev.t, lastSeq: ev.seq,
+          relations: Array.isArray(ev.relations) ? ev.relations : (cfg.relations || []),
+          kind: ev.kind ?? cfg.kind ?? null, valid: ev.valid ?? cfg.valid ?? null, parties: ev.parties ?? cfg.parties ?? null,
+          version: ev.version ?? cfg.version ?? null,
         });
         cfg.history.push({ t: ev.t, status: cfg.status, members: cfg.members.length });
         const it = this.intentStat(root);
@@ -301,6 +322,7 @@ export class Store {
       }
       case 'ring': {
         c.rings++;
+        // 接口第九节：status 只取 cleared / conditional / failed；旧值 closed/ok/stable 兼容
         const closed = ['closed', 'ok', 'stable', 'cleared', 'conditional'].includes(ev.status);
         if (closed) c.ringsClosed++;
         this.rings.push(ev);
@@ -314,6 +336,9 @@ export class Store {
       }
       case 'plan': {
         if (!this.plans.has(ev.id)) c.plans++;
+        for (const m of Array.isArray(ev.members) ? ev.members : []) {
+          if (m && m.id != null && m.role) this.noteExt(m.id, m.role);
+        }
         this.plans.set(ev.id, ev);
         const cfg = this.configs.get(ev.config);
         if (cfg) cfg.plan = ev;
@@ -347,6 +372,12 @@ export class Store {
       case 'compile': {
         const id = ev.id ?? ev.node;
         if (id != null && this.nodes.has(id)) { this.nodes.get(id).tree = ev.tree ?? ev.status; ctx.node = this.nodes.get(id); }
+        break;
+      }
+      case 'task': {
+        // 批量运行的任务回执（B2）：只计数，页面不单独显示
+        c.tasks++;
+        if (ev.status && ev.status !== 'ok') c.tasksFailed++;
         break;
       }
       case 'baseline': {

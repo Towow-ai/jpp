@@ -188,3 +188,21 @@ table.plan th { color: var(--fg-3); font-weight: 500; }
   *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; }
 }
 .detail .realname { color: var(--fg-3); font-size: calc(var(--u) * 0.78); margin: 0 0 6px; }
+/* 细节开关（演示页硬标准第 7 条：每屏默认可见汉字 ≤ 60）：带 more-only 的部件默认收起，按 i 或 I 展开 */
+body:not(.more) .more-only { display: none !important; }
+.more-btn { pointer-events: auto; width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(160, 190, 240, 0.35); background: transparent; color: rgba(220, 230, 250, 0.75); font: italic 600 12px/1 Georgia, serif; cursor: pointer; padding: 0; }
+.more-btn[aria-pressed="true"] { background: rgba(160, 190, 240, 0.18); color: #fff; }
+/* 手机竖屏（大屏页在手机上打开时）：计数收成底部一行，意图放在品牌下面，播放条折行，不压画面 */
+@media (max-width: 640px) {
+  .brand { top: 12px; left: 16px; max-width: calc(100vw - 32px); }
+  .intent { top: 58px; width: calc(100vw - 32px); }
+  .intent-text { font-size: 17px; }
+  .hud { top: auto; bottom: 128px; left: 16px; right: 16px; width: auto; padding: 8px 12px; }
+  .hud-big { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+  .stat-xl .v { font-size: 26px; }
+  .stat-grid { margin-top: 0; gap: 4px 14px; }
+  .stat .v { font-size: 15px; }
+  .legend { bottom: 206px; left: 16px; }
+  .player { flex-wrap: wrap; width: calc(100vw - 32px); gap: 6px; padding: 6px 8px; }
+  .player .progress { order: 9; flex-basis: 100%; }
+}
