@@ -964,7 +964,7 @@
   function home() {
     const cards = [
       { href: "#/01", no: "01", t: "谁在说谎", s: "八份证词两两对质", mk: (g) => scene01(g, "B", true) },
-      { href: "../dinner/index.html", no: "02", t: "杭州聚餐", s: D.c02 ? `${D.c02.points.length} 家餐厅筛到一家` : "餐厅筛到一家", mk: (g) => scene02(g) },
+      { href: "./dinner/", no: "02", t: "杭州聚餐", s: D.c02 ? `${D.c02.points.length} 家餐厅筛到一家` : "餐厅筛到一家", mk: (g) => scene02(g) },
       { href: "#/03", no: "03", t: "最短书单", s: `${D.c03.articles.length} 篇条目收成书单`, mk: (g) => scene03(g, true) },
       { href: "#/04", no: "04", t: "合租分配", s: `${D.c04.hosts.length + D.c04.seekers.length} 人配成稳定合租`, mk: (g) => scene04(g, true) },
     ];

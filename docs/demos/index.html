@@ -2,42 +2,32 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>J++ 演示 / J++ Demos</title>
-<style>
-:root{--bg:#fff;--fg:#1a1a1a;--mute:#666;--line:#ddd;--accent:#1f5fd1}
-@media (prefers-color-scheme:dark){:root{--bg:#141414;--fg:#eee;--mute:#999;--line:#333;--accent:#7aa7ff}}
-body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,"PingFang SC","Helvetica Neue",sans-serif}
-main{max-width:720px;margin:0 auto;padding:32px 16px 64px}
-h1{font-size:24px;margin:0 0 4px}
-.sub{color:var(--mute);margin:0 0 28px}
-.card{border-top:1px solid var(--line);padding:18px 0}
-.card a.t{font-size:19px;font-weight:600;color:var(--accent);text-decoration:none}
-.card p{margin:6px 0 0}
-.en{color:var(--mute)}
-footer{margin-top:24px;border-top:1px solid var(--line);padding-top:16px;color:var(--mute);font-size:14px}
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>J++ 案例集</title>
+<meta name="description" content="四个用 J++ 写的程序，自动播放计算过程：证词关系图、餐厅筛选、书单收拢、稳定匹配。数据全部来自真机运行的账本与报告。">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<main>
-<h1>J++ 演示 <span class="en">/ Demos</span></h1>
-<p class="sub">每个页面自动播放一次真机运行的计算过程，数字来自运行记录的报告与账本。<br><span class="en">Each page replays one real run. Every number comes from the run's report and ledger.</span></p>
-
-<div class="card">
-<a class="t" href="./cases/">案例总页：谁在说谎、最短书单、合租分配 / Cases: who is lying, shortest reading list, flat-share matching</a>
-<p>三个程序各在真机上跑了一次，页面逐步展示每一次判断。三个案子都没有完全定案：谁在说谎的三个案子里都仍有拿不准的证词对，A、B 两案圈出的两人里含真凶，C 案程序认定周琳，而出题设定的是韩梅；最短书单选出 6 篇，仍有 5 个概念没有一篇讲清；合租分配在同分时换 8 种排序，得到 4 种稳定匹配。</p>
-<p class="en">Three programs, each run once on the real backend, with every judgment shown step by step. None of the three cases is fully settled. In all three who-is-lying cases some testimony pairs stay uncertain; cases A and B circle two people that include the culprit, while in case C the program names Zhou Lin and the case design says Han Mei. The shortest reading list picks 6 articles and 5 concepts remain unexplained by any of them. In the flat-share case, 8 tie-break orderings give 4 different stable matchings.</p>
-</div>
-
-<div class="card">
-<a class="t" href="./dinner/">杭州聚餐 / Hangzhou dinner</a>
-<p>五个人在杭州约一顿饭，程序用 OpenStreetMap 的真实餐厅数据筛店、排座位、分组。每组约 290 次判断、花费不到 0.01 美元。语义判断对忌口几乎都拿不准，选出的店多半缺菜系标签，结果照实保留。</p>
-<p class="en">Five people plan a dinner in Hangzhou; the program filters restaurants from real OpenStreetMap data, seats guests and splits groups. Each group takes about 290 judgments for under $0.01. Nearly all dietary-clash judgments came back uncertain, and most chosen venues lack a cuisine tag; the result is kept as it came out.</p>
-</div>
-
-<footer>
-地图数据 © OpenStreetMap contributors，ODbL 1.0。 / Map data © OpenStreetMap contributors, ODbL 1.0. <a href="https://www.openstreetmap.org/copyright">openstreetmap.org/copyright</a>
-</footer>
-</main>
+<header class="top">
+  <a class="brand" href="#/">J++ 案例</a>
+  <nav>
+    <a href="#/01" data-r="01" title="谁在说谎"><b>01</b><span class="nm">谁在说谎</span></a>
+    <a href="./dinner/" data-r="02" title="杭州聚餐"><b>02</b><span class="nm">杭州聚餐</span></a>
+    <a href="#/03" data-r="03" title="最短书单"><b>03</b><span class="nm">最短书单</span></a>
+    <a href="#/04" data-r="04" title="合租分配"><b>04</b><span class="nm">合租分配</span></a>
+  </nav>
+  <button class="icon-btn" id="theme" type="button" aria-label="切换深浅色" title="切换深浅色">
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.5a6.5 6.5 0 0 1 0 13z" fill="currentColor"/></svg>
+  </button>
+</header>
+<main id="main"></main>
+<footer class="foot" id="foot"><span>地图数据 © OpenStreetMap contributors，ODbL 1.0 / Map data © OpenStreetMap contributors, ODbL 1.0</span><a href="towow/">早期通爻演示 / Earlier Towow demos</a></footer>
+<noscript><p style="padding:16px">这个页面需要 JavaScript 才能画图。数据在 data.js，来自真机运行的报告与账本。</p></noscript>
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script>
+(function(){var f=document.getElementById("foot");function u(){var h=location.hash;f.hidden=!(h===""||h==="#"||h==="#/");}addEventListener("hashchange",u);u();})();
+</script>
 </body>
 </html>
