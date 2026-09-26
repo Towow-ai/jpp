@@ -10,6 +10,17 @@ J++ is an experimental programming-language project exploring semantic judgment 
 
 **Write standalone `.jpp` source and run it with the native Rust implementation.** It parses source, checks language rules and executes methods through one shared kernel. The earlier Python 3.12 embedded implementation remains available as a behavior reference and experiment tool. [Rust package and examples](rust/README.md) · [Language implementation decision](docs/adr/0001-rust-kernel.md).
 
+## Demos / 演示
+
+All demos live on one page: **[towow-ai.github.io/jpp/demos/](https://towow-ai.github.io/jpp/demos/)**. Each card replays one real run; every number comes from that run's report and ledger. None of the cases is fully settled, and the pages say so.
+
+所有演示都在这一页：**[towow-ai.github.io/jpp/demos/](https://towow-ai.github.io/jpp/demos/)**。每张卡片回放一次真机运行，数字来自该次运行的报告与账本。没有一个案子完全定案，页面照实写出。
+
+- **01 Who is lying / 谁在说谎**: eight testimonies compared pair by pair. Cases A and B circle two people that include the culprit; in case C the program names Zhou Lin while the case design says Han Mei; some pairs stay uncertain in all three. / 八份证词两两对质。A、B 两案圈出的两人含真凶，C 案程序认定周琳而出题设定是韩梅，三案都仍有拿不准的证词对。
+- **02 Hangzhou dinner / 杭州聚餐**: five people, 576 real OpenStreetMap restaurants; the program filters venues, seats guests and splits groups, about 270–305 judgments and $0.006–0.007 per group. After the relations are filled in, one pair turns red in groups A and C while group B stays uncertain. / 五个人、576 家 OpenStreetMap 真实餐厅，程序筛店、排座、分组，每组约 270–305 次判断、$0.006–0.007。关系补完信息后，甲组、丙组各有一对变红，乙组仍拿不准。
+- **03 Shortest reading list / 最短书单**: 30 Wikipedia articles reduced to a list of 6, with 5 concepts still unexplained by any of them. / 30 篇维基百科条目收成 6 篇书单，仍有 5 个概念没有一篇讲清。
+- **04 Flat-share matching / 合租分配**: 12 people matched; 8 tie-break orderings give 4 different stable matchings. / 12 人配对，同分时换 8 种排序，得到 4 种稳定匹配。
+
 ## Why we are doing this
 
 We are drawn to a familiar power of algorithms: a few simple operations, organized well, can accomplish something surprisingly complex. JEV led us to ask what happens when semantic judgment joins those operations, alongside exact computation, search and feedback.

@@ -301,3 +301,9 @@ main { flex: 1 1 auto; min-height: 0; position: relative; }
   .headline, .card { transition: none; }
 }
 .tag { font-size: 14px; font-weight: 700; pointer-events: none; }
+
+/* ---------- 页脚（只在首页显示） ---------- */
+.foot { flex: none; display: flex; flex-wrap: wrap; gap: 4px 18px; justify-content: space-between; padding: 0 28px 10px; font-size: 14px; color: var(--muted); }
+.foot[hidden] { display: none; }
+.foot a { color: var(--muted); }
+@media (max-width: 720px) { .foot { padding: 0 16px 14px; } }
