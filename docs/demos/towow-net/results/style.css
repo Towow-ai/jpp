@@ -348,3 +348,5 @@ body.g-mode.g-peek .g-menu { top: calc(var(--top) + 10px); }
 .fb-tag { display: inline-block; margin-right: 6px; padding: 0 6px; font-size: 11px; font-weight: 500; color: #ffb547; border: 1px solid rgba(255,181,71,0.5); border-radius: 4px; vertical-align: 1px; }
 .fb-note { color: #ffb547; font-size: 13px; }
 .verdicts tr:not(.bad):not(.ok) td:last-child { color: #cfd6e4; }
+
+.cost-note { margin-top: 4px; font-size: 12px; color: #8a93a6; text-align: center; }

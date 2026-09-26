@@ -51,11 +51,12 @@
    "prog",
    "q_hash",
    "run",
-   "task"
+   "task",
+   "key"
   ],
   "events": 33267,
   "bytes_original": 14077239,
-  "bytes_published": 10055950,
+  "bytes_published": 9101643,
   "events_sha256_original": "7b9181809498887adeb69aaacac9858ca660f6ba405d3fe6316505ad050141d5",
   "ledgers": {
    "files": 2309,

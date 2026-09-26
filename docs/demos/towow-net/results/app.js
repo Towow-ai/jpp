@@ -794,7 +794,7 @@ function cardHtml(s, m) {
   return `<article class="card${m.fallback ? ' fallback' : ''}" tabindex="0" data-plan="${esc(m.id)}" data-size="${m.size}" data-relay="${m.hasRelay ? 1 : 0}" aria-label="方案 ${esc(planTitle(s, m))}">
     ${ringSvg(s, m, { labels: true })}
     <div class="card-foot">
-      <h3 class="ptitle" title="${esc(planTitle(s, m))}">${m.fallback ? '<span class="fb-tag" title="大模型出方案失败，这是按模板补的兜底版，给什么、得什么是空的">兜底</span>' : ''}${esc(planTitle(s, m))}</h3>
+      <h3 class="ptitle" title="${esc(planTitle(s, m))}">${m.fallback ? '<span class="fb-tag" title="大模型出方案失败，这是按模板补的兜底版，给什么、得什么常是空的或由模板拼出">兜底</span>' : ''}${esc(planTitle(s, m))}</h3>
       <div class="ratio${allOk ? ' ok' : ''}" title="环上各边：成立 ${m.ex.act}，拿不准 ${m.ex.unsure}，不成立 ${m.ex.other}"><b>${tot ? m.ex.act : '—'}</b>${tot ? `<i>/${tot}</i>` : ''}</div>
     </div>
   </article>`;
