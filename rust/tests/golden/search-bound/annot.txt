@@ -1,0 +1,991 @@
+ir v1
+budget calls=16 cost=0.02 depth=64 escalate=- unsure=- latency_p95=- absent=-
+block 527..1518
+  fn-stmt accepted
+    #0 fn (o:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
+      block 8836..8847
+        result
+          #1 field .value
+            #2 name o
+  fn-stmt ignored
+    #3 fn (o:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
+      block 8919..8938
+        result
+          #4 field .ignore
+            #5 field .detail
+              #6 name o
+  fn-stmt unobserved_cause
+    #7 fn (c:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
+      block 9246..9298
+        result
+          #8 binary ||
+            #9 binary ||
+              #10 binary ==
+                #11 name c
+                #12 text "budget"
+              #13 binary ==
+                #14 name c
+                #15 text "absent"
+            #16 binary ==
+              #17 name c
+              #18 text "latency"
+  fn-stmt undecided
+    #19 fn (o:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
+      block 9367..9426
+        result
+          #20 call @0 9369..9424
+            callee:
+              #21 name filter
+            #22 field .pending
+              #23 name o
+            #25 fn (p:-) -> - effects=-
+              block 9393..9423
+                result
+                  #26 unary !
+                    #27 call 9396..9421
+                      callee:
+                        #28 name unobserved_cause
+                      #29 field .cause
+                        #30 name p
+  fn-stmt unobserved
+    #31 fn (o:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
+      block 9520..9578
+        result
+          #32 call @1 9522..9576
+            callee:
+              #33 name filter
+            #34 field .pending
+              #35 name o
+            #37 fn (p:-) -> - effects=-
+              block 9546..9575
+                result
+                  #38 call 9548..9573
+                    callee:
+                      #39 name unobserved_cause
+                    #40 field .cause
+                      #41 name p
+  fn-stmt stopped
+    #42 fn (o:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
+      block 9641..9705
+        result
+          #43 if @2 9643..9703
+            cond:
+              #44 call 9646..9669
+                callee:
+                  #45 name has
+                #46 field .resume
+                  #47 name o
+                #48 text "detail"
+            block 9670..9689
+              result
+                #49 field .detail
+                  #50 field .resume
+                    #51 name o
+            block 9695..9703
+              result
+                #52 unit
+  fn-stmt by_q
+    #53 fn (o:-, k:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
+      block 10191..10714
+        let keep : -
+          #55 fn (e:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
+            block 10214..10243
+              result
+                #56 binary &&
+                  #57 call 10216..10228
+                    callee:
+                      #58 name has
+                    #59 name e
+                    #60 text "qi"
+                  #61 binary ==
+                    #62 field .qi
+                      #63 name e
+                    #64 name k
+        let 键表 : -
+          #65 call @3 10262..10349
+            callee:
+              #66 name map
+            #67 call @4 10266..10331
+              callee:
+                #68 name filter
+              #69 call 10273..10324
+                callee:
+                  #70 name concat
+                #71 call 10280..10312
+                  callee:
+                    #72 name concat
+                  #73 field .value
+                    #74 name o
+                  #75 field .ignore
+                    #76 field .detail
+                      #77 name o
+                #78 field .pending
+                  #79 name o
+              #80 name keep
+            #82 fn (e:-) -> - effects=-
+              block 10339..10348
+                result
+                  #83 field .key
+                    #84 name e
+        result
+          #85 construct outcome @5 10355..10712
+            #86 record 10363..10711
+              value:
+                #87 call @6 10371..10392
+                  callee:
+                    #88 name filter
+                  #89 field .value
+                    #90 name o
+                  #91 name keep
+              pending:
+                #92 call @7 10403..10426
+                  callee:
+                    #93 name filter
+                  #94 field .pending
+                    #95 name o
+                  #96 name keep
+              evidence:
+                #97 call @8 10451..10500
+                  callee:
+                    #98 name filter
+                  #99 field .evidence
+                    #100 name o
+                  #102 fn (x:-) -> - effects=-
+                    block 10476..10499
+                      result
+                        #103 call 10478..10497
+                          callee:
+                            #104 name contains
+                          #105 name 键表
+                          #106 name x
+              resume:
+                #107 field .resume
+                  #108 name o
+              detail:
+                #109 record 10541..10710
+                  question:
+                    #110 if @9 10552..10634
+                      cond:
+                        #111 call 10555..10581
+                          callee:
+                            #112 name has
+                          #113 field .detail
+                            #114 name o
+                          #115 text "questions"
+                      block 10582..10607
+                        result
+                          #116 index
+                            #117 field .questions
+                              #118 field .detail
+                                #119 name o
+                            #120 name k
+                      block 10613..10634
+                        result
+                          #121 field .question
+                            #122 field .detail
+                              #123 name o
+                  ignore:
+                    #124 call @10 10666..10695
+                      callee:
+                        #125 name filter
+                      #126 field .ignore
+                        #127 field .detail
+                          #128 name o
+                      #129 name keep
+                  shared:
+                    #130 bool true
+  fn-stmt by_fill
+    #131 fn (o:-, k:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
+      block 10732..10746
+        result
+          #132 call 10734..10744
+            callee:
+              #133 name by_q
+            #134 name o
+            #135 name k
+  fn-stmt carry
+    #136 fn (outer:-, inner:-, layer:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
+      block 11279..11405
+        result
+          #137 call 11285..11403
+            callee:
+              #138 name concat
+            #139 name outer
+            #140 call @11 11299..11402
+              callee:
+                #141 name map
+              #142 name inner
+              #144 fn (p:-) -> - effects=-
+                block 11316..11401
+                  result
+                    #145 call 11326..11395
+                      callee:
+                        #146 name with
+                      #147 name p
+                      #148 text "via"
+                      #149 call 11341..11394
+                        callee:
+                          #150 name append
+                        #151 if @12 11348..11386
+                          cond:
+                            #152 call 11351..11364
+                              callee:
+                                #153 name has
+                              #154 name p
+                              #155 text "via"
+                          block 11365..11374
+                            result
+                              #156 field .via
+                                #157 name p
+                          block 11380..11386
+                            result
+                              #158 list 11382..11384
+                        #159 name layer
+  fn-stmt search
+    #160 fn (seed:-, propose:-, feasible:-, objective:-, rounds:-, opts:-) -> - effects=- ; {"effect":{"known":["gen","judge"],"open":true},"summary":{"may_touch_world":true,"may_refresh":true},"duty_kind":null,"refresh_point":false}
+      block 4708..8433
+        let width : -
+          #161 field .width
+            #162 name opts
+        let how : -
+          #163 if @13 4752..4813
+            cond:
+              #164 call 4755..4777
+                callee:
+                  #165 name has
+                #166 name opts
+                #167 text "unsure_to"
+            block 4778..4796
+              result
+                #168 field .unsure_to
+                  #169 name opts
+            block 4802..4813
+              result
+                #170 text "carry"
+        let grounded : -
+          #172 fn (cands:-) -> - effects=- ; {"effect":{"known":[],"open":true},"summary":{"may_touch_world":true,"may_refresh":true},"duty_kind":null,"refresh_point":false}
+            block 4844..4913
+              result
+                #173 if @14 4846..4911
+                  cond:
+                    #174 call 4849..4868
+                      callee:
+                        #175 name has
+                      #176 name opts
+                      #177 text "ground"
+                  block 4869..4896
+                    result
+                      #178 call @15 4871..4894
+                        callee:
+                          #179 name map
+                        #180 name cands
+                        #181 field .ground
+                          #182 name opts
+                  block 4902..4911
+                    result
+                      #183 name cands
+        let dedupe : -
+          #185 fn (acc:-, raw:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
+            block 5036..5309
+              result
+                #186 call @16 5046..5303
+                  callee:
+                    #187 name fold
+                  #188 name raw
+                  #189 record 5056..5092
+                    seen:
+                      #190 field .seen
+                        #191 name acc
+                    fresh:
+                      #192 list 5080..5082
+                    dups:
+                      #193 int 0
+                  #195 fn (st:-, m:-) -> - effects=-
+                    block 5104..5302
+                      result
+                        #196 if @17 5118..5292
+                          cond:
+                            #197 call 5121..5146
+                              callee:
+                                #198 name contains
+                              #199 field .seen
+                                #200 name st
+                              #201 field .hash
+                                #202 name m
+                          block 5147..5180
+                            result
+                              #203 call 5149..5178
+                                callee:
+                                  #204 name with
+                                #205 name st
+                                #206 text "dups"
+                                #207 binary +
+                                  #208 field .dups
+                                    #209 name st
+                                  #210 int 1
+                          block 5186..5292
+                            result
+                              #211 record 5204..5278
+                                seen:
+                                  #212 call 5211..5234
+                                    callee:
+                                      #213 name append
+                                    #214 field .seen
+                                      #215 name st
+                                    #216 field .hash
+                                      #217 name m
+                                fresh:
+                                  #218 call 5243..5262
+                                    callee:
+                                      #219 name append
+                                    #220 field .fresh
+                                      #221 name st
+                                    #222 name m
+                                dups:
+                                  #223 field .dups
+                                    #224 name st
+        let settle : -
+          #226 fn (acc:-, from_ok:-, from_obj:-, i:-) -> - effects=- ; {"effect":{"known":[],"open":true},"summary":{"may_touch_world":true,"may_refresh":true},"duty_kind":null,"refresh_point":false}
+            block 5445..5884
+              let label : -
+                #227 binary +
+                  #228 text "search#"
+                  #229 call 5479..5486
+                    callee:
+                      #230 name text
+                    #231 name i
+              result
+                #232 if @18 5496..5878
+                  cond:
+                    #233 binary ||
+                      #234 binary ==
+                        #235 name how
+                        #236 text "carry"
+                      #237 binary ==
+                        #238 name how
+                        #239 text "refine"
+                  block 5533..5730
+                    let now : -
+                      #240 call 5557..5582
+                        callee:
+                          #241 name concat
+                        #242 name from_ok
+                        #243 name from_obj
+                    result
+                      #244 record 5596..5720
+                        extra:
+                          #245 if @19 5604..5665
+                            cond:
+                              #246 binary ==
+                                #247 name how
+                                #248 text "refine"
+                            block 5623..5653
+                              result
+                                #249 call @20 5625..5651
+                                  callee:
+                                    #250 name map
+                                  #251 name now
+                                  #253 fn (p:-) -> - effects=-
+                                    block 5640..5650
+                                      result
+                                        #254 field .item
+                                          #255 name p
+                            block 5659..5665
+                              result
+                                #256 list 5661..5663
+                        pending:
+                          #257 call 5689..5719
+                            callee:
+                              #258 name carry
+                            #259 field .pending
+                              #260 name acc
+                            #261 name now
+                            #262 name label
+                  block 5736..5878
+                    result
+                      #263 record 5750..5868
+                        extra:
+                          #264 list 5758..5760
+                        pending:
+                          #265 call 5784..5867
+                            callee:
+                              #266 name carry
+                            #267 field .pending
+                              #268 name acc
+                            #269 call 5803..5859
+                              callee:
+                                #270 name concat
+                              #271 call 5810..5832
+                                callee:
+                                  #272 name how
+                                #273 name from_ok
+                                #274 name feasible
+                              #275 call 5834..5858
+                                callee:
+                                  #276 name how
+                                #277 name from_obj
+                                #278 name objective
+                            #279 name label
+        let front : -
+          #281 fn (pool:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
+            block 5911..5952
+              result
+                #282 call 5913..5950
+                  callee:
+                    #283 name slice
+                  #284 name pool
+                  #285 int 0
+                  #286 call 5928..5949
+                    callee:
+                      #287 name min
+                    #288 name width
+                    #289 call 5939..5948
+                      callee:
+                        #290 name len
+                      #291 name pool
+        let step : -
+          #293 fn (acc:-, i:-) -> - effects=- ; {"effect":{"known":["gen","judge"],"open":true},"summary":{"may_touch_world":true,"may_refresh":true},"duty_kind":null,"refresh_point":false}
+            block 5980..7581
+              let raw : -
+                #294 call 6000..6024
+                  callee:
+                    #295 name propose
+                  #296 field .frontier
+                    #297 name acc
+                  #298 name i
+              result
+                #299 if @21 6034..7575
+                  cond:
+                    #300 call 6037..6049
+                      callee:
+                        #301 name is_fail
+                      #302 name raw
+                  block 6050..6389
+                    let lost : -
+                      #303 record 6197..6266
+                        item:
+                          #304 name raw
+                        exit:
+                          #305 call 6215..6229
+                            callee:
+                              #306 name unsure
+                            #307 text "fail"
+                        cause:
+                          #308 text "fail"
+                        round:
+                          #309 name i
+                        trail:
+                          #310 list 6263..6265
+                    result
+                      #311 call 6280..6379
+                        callee:
+                          #312 name with
+                        #313 call 6285..6354
+                          callee:
+                            #314 name with
+                          #315 name acc
+                          #316 text "pending"
+                          #317 call 6306..6353
+                            callee:
+                              #318 name carry
+                            #319 field .pending
+                              #320 name acc
+                            #321 list 6325..6331
+                              #322 name lost
+                            #323 binary +
+                              #324 text "search#"
+                              #325 call 6345..6352
+                                callee:
+                                  #326 name text
+                                #327 name i
+                        #328 text "fails"
+                        #329 binary +
+                          #330 field .fails
+                            #331 name acc
+                          #332 int 1
+                  block 6395..7575
+                    let d : -
+                      #333 call 6417..6433
+                        callee:
+                          #334 name dedupe
+                        #335 name acc
+                        #336 name raw
+                    let ok : -
+                      #337 construct sieve @22 6456..6490
+                        #338 call 6462..6479
+                          callee:
+                            #339 name grounded
+                          #340 field .fresh
+                            #341 name d
+                        #342 name feasible
+                    let has_obj : -
+                      #343 binary !=
+                        #344 name objective
+                        #345 unit
+                    let by_obj : -
+                      #346 if @23 6562..6619
+                        cond:
+                          #347 name has_obj
+                        block 6573..6607
+                          result
+                            #348 construct sieve @24 6575..6605
+                              #349 call 6581..6593
+                                callee:
+                                  #350 name accepted
+                                #351 name ok
+                              #352 name objective
+                        block 6613..6619
+                          result
+                            #353 name ok
+                    let fresh_good : -
+                      #354 call @25 6650..6702
+                        callee:
+                          #355 name map
+                        #356 call 6654..6670
+                          callee:
+                            #357 name accepted
+                          #358 name by_obj
+                        #360 fn (e:-) -> - effects=-
+                          block 6678..6701
+                            result
+                              #361 call 6680..6699
+                                callee:
+                                  #362 name with
+                                #363 name e
+                                #364 text "round"
+                                #365 name i
+                    let pool : -
+                      #366 call 6727..6755
+                        callee:
+                          #367 name concat
+                        #368 field .pool
+                          #369 name acc
+                        #370 name fresh_good
+                    let dropped : -
+                      #371 if @26 6783..6855
+                        cond:
+                          #372 name has_obj
+                        block 6794..6834
+                          result
+                            #373 call 6796..6832
+                              callee:
+                                #374 name concat
+                              #375 call 6803..6814
+                                callee:
+                                  #376 name ignored
+                                #377 name ok
+                              #378 call 6816..6831
+                                callee:
+                                  #379 name ignored
+                                #380 name by_obj
+                        block 6840..6855
+                          result
+                            #381 call 6842..6853
+                              callee:
+                                #382 name ignored
+                              #383 name ok
+                    let s : -
+                      #384 call 6877..6946
+                        callee:
+                          #385 name settle
+                        #386 name acc
+                        #387 field .pending
+                          #388 name ok
+                        #389 if @27 6901..6942
+                          cond:
+                            #390 name has_obj
+                          block 6912..6930
+                            result
+                              #391 field .pending
+                                #392 name by_obj
+                          block 6936..6942
+                            result
+                              #393 list 6938..6940
+                        #394 name i
+                    let grace : -
+                      #395 if @28 7095..7175
+                        cond:
+                          #396 binary &&
+                            #397 binary &&
+                              #398 binary ==
+                                #399 name how
+                                #400 text "refine"
+                              #401 binary ==
+                                #402 field .judged
+                                  #403 name acc
+                                #404 int 0
+                            #405 binary ==
+                              #406 call 7136..7145
+                                callee:
+                                  #407 name len
+                                #408 name pool
+                              #409 int 0
+                        block 7151..7156
+                          result
+                            #410 int 1
+                        block 7162..7175
+                          result
+                            #411 field .grace
+                              #412 name acc
+                    let next : -
+                      #413 record 7200..7501
+                        frontier:
+                          #414 call 7211..7262
+                            callee:
+                              #415 name concat
+                            #416 call @29 7218..7252
+                              callee:
+                                #417 name map
+                              #418 call 7222..7233
+                                callee:
+                                  #419 name front
+                                #420 name pool
+                              #422 fn (e:-) -> - effects=-
+                                block 7241..7251
+                                  result
+                                    #423 field .item
+                                      #424 name e
+                            #425 field .extra
+                              #426 name s
+                        pool:
+                          #427 name pool
+                        ignored:
+                          #428 call 7309..7337
+                            callee:
+                              #429 name concat
+                            #430 field .ignored
+                              #431 name acc
+                            #432 name dropped
+                        pending:
+                          #433 field .pending
+                            #434 name s
+                        fails:
+                          #435 field .fails
+                            #436 name acc
+                        grace:
+                          #437 name grace
+                        judged:
+                          #438 binary +
+                            #439 field .judged
+                              #440 name acc
+                            #441 int 1
+                        seen:
+                          #442 field .seen
+                            #443 name d
+                        dups:
+                          #444 binary +
+                            #445 field .dups
+                              #446 name acc
+                            #447 field .dups
+                              #448 name d
+                    result
+                      #449 if @30 7515..7565
+                        cond:
+                          #450 binary >=
+                            #451 call 7518..7527
+                              callee:
+                                #452 name len
+                              #453 name pool
+                            #454 name width
+                        block 7537..7551
+                          result
+                            #455 call 7539..7549
+                              callee:
+                                #456 name stop
+                              #457 name next
+                        block 7557..7565
+                          result
+                            #458 name next
+        let stall : -
+          #460 fn (acc:-) -> - effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
+            block 7607..7679
+              result
+                #461 binary -
+                  #462 binary -
+                    #463 binary *
+                      #464 call 7609..7638
+                        callee:
+                          #465 name max
+                        #466 binary -
+                          #467 name width
+                          #468 call 7621..7634
+                            callee:
+                              #469 name len
+                            #470 field .pool
+                              #471 name acc
+                        #472 int 0
+                      #473 binary +
+                        #474 name rounds
+                        #475 int 1
+                    #476 field .fails
+                      #477 name acc
+                  #478 field .grace
+                    #479 name acc
+        let r : -
+          #480 construct iterate @31 7693..7886
+            #481 name rounds
+            #482 record 7729..7852
+              frontier:
+                #483 name seed
+              pool:
+                #484 list 7752..7754
+              ignored:
+                #485 list 7765..7767
+              pending:
+                #486 list 7778..7780
+              fails:
+                #487 int 0
+              grace:
+                #488 int 0
+              judged:
+                #489 int 0
+              seen:
+                #490 list 7840..7842
+              dups:
+                #491 int 0
+            #492 name step
+            #493 name stall
+        let last : -
+          #494 field .value
+            #495 name r
+        let value : -
+          #496 call @32 8062..8151
+            callee:
+              #497 name map
+            #498 call 8066..8082
+              callee:
+                #499 name front
+              #500 field .pool
+                #501 name last
+            #503 fn (e:-) -> - effects=-
+              block 8090..8150
+                result
+                  #504 call 8092..8148
+                    callee:
+                      #505 name with
+                    #506 name e
+                    #507 text "exit"
+                    #508 call 8108..8147
+                      callee:
+                        #509 name compose
+                      #510 call 8116..8139
+                        callee:
+                          #511 name append
+                        #512 field .trail
+                          #513 name e
+                        #514 field .exit
+                          #515 name e
+                      #516 text "all"
+        result
+          #517 construct outcome @33 8157..8431
+            #518 record 8165..8430
+              value:
+                #519 name value
+              pending:
+                #520 field .pending
+                  #521 name last
+              evidence:
+                #522 field .evidence
+                  #523 name r
+              resume:
+                #524 field .resume
+                  #525 name r
+              detail:
+                #526 record 8264..8429
+                  ignore:
+                    #527 field .ignored
+                      #528 name last
+                  rounds:
+                    #529 field .rounds
+                      #530 field .resume
+                        #531 name r
+                  reason:
+                    #532 field .reason
+                      #533 field .resume
+                        #534 name r
+                  measures:
+                    #535 field .measures
+                      #536 field .resume
+                        #537 name r
+                  fails:
+                    #538 field .fails
+                      #539 name last
+                  duplicates:
+                    #540 field .dups
+                      #541 name last
+  let brief : -
+    #542 call 583..662
+      callee:
+        #543 name mat
+      #544 text "为一家社区咖啡馆起名：温暖、好记、不超过四个汉字"
+  let propose : -
+    #546 fn (frontier:-, i:-) -> - effects=- ; {"effect":{"known":["gen"],"open":false},"summary":{"may_touch_world":false,"may_refresh":true},"duty_kind":null,"refresh_point":false}
+      block 694..871
+        result
+          #547 effect gen @34 700..869 ; {"effect":{"known":["gen"],"open":false},"summary":null,"duty_kind":null,"refresh_point":false}
+            prompt:
+              #548 text "按下面的需求提出 3 个候选店名，每个候选是一个字符串；需求之后的上下文是上一轮留下的候选"
+            ctx:
+              #549 call 837..862
+                callee:
+                  #550 name concat
+                #551 list 844..851
+                  #552 name brief
+                #553 name frontier
+            n:
+              #554 int 3
+            retry_seq:
+              #555 name i
+  let fits : -
+    #556 construct test @35 884..963
+      #557 text "这个名字适合做一家社区咖啡馆的店名吗？"
+      #558 text "search-fit"
+  let memorable : -
+    #559 construct test @36 981..1043
+      #560 text "这个名字读一遍就能记住吗？"
+      #561 text "search-memo"
+  let r : -
+    #562 call 1054..1105
+      callee:
+        #563 name search
+      #564 list 1061..1063
+      #565 name propose
+      #566 name fits
+      #567 name memorable
+      #568 int 2
+      #569 record 1094..1104
+        width:
+          #570 int 4
+  result
+    #571 record 1107..1518
+      kept:
+        #572 call @37 1114..1144
+          callee:
+            #573 name map
+          #574 field .value
+            #575 name r
+          #577 fn (e:-) -> - effects=-
+            block 1133..1143
+              result
+                #578 field .item
+                  #579 name e
+      found_in:
+        #580 call @38 1156..1187
+          callee:
+            #581 name map
+          #582 field .value
+            #583 name r
+          #585 fn (e:-) -> - effects=-
+            block 1175..1186
+              result
+                #586 field .round
+                  #587 name e
+      duplicates:
+        #588 field .duplicates
+          #589 field .detail
+            #590 name r
+      trail_kinds:
+        #591 call @39 1236..1283
+          callee:
+            #592 name map
+          #593 field .value
+            #594 name r
+          #596 fn (e:-) -> - effects=-
+            block 1255..1282
+              result
+                #597 call @40 1257..1280
+                  callee:
+                    #598 name map
+                  #599 field .trail
+                    #600 name e
+                  #601 name exit_kind
+      rejected:
+        #602 call @41 1296..1334
+          callee:
+            #603 name map
+          #604 field .ignore
+            #605 field .detail
+              #606 name r
+          #608 fn (e:-) -> - effects=-
+            block 1323..1333
+              result
+                #609 field .item
+                  #610 name e
+      undecided:
+        #611 call @42 1348..1416
+          callee:
+            #612 name map
+          #613 field .pending
+            #614 name r
+          #616 fn (p:-) -> - effects=-
+            block 1369..1415
+              result
+                #617 record 1371..1413
+                  item:
+                    #618 field .item
+                      #619 name p
+                  cause:
+                    #620 field .cause
+                      #621 name p
+                  via:
+                    #622 field .via
+                      #623 name p
+      reason:
+        #624 field .reason
+          #625 field .detail
+            #626 name r
+      rounds:
+        #627 field .rounds
+          #628 field .detail
+            #629 name r
+      measures:
+        #630 field .measures
+          #631 field .detail
+            #632 name r
+      pending:
+        #633 field .pending
+          #634 name r
+sites 43
+  @0 #20 hof:filter 9369..9424 fn=#19 in=-
+  @1 #32 hof:filter 9522..9576 fn=#31 in=-
+  @2 #43 if 9643..9703 fn=#42 in=-
+  @3 #65 hof:map 10262..10349 fn=#53 in=-
+  @4 #67 hof:filter 10266..10331 fn=#53 in=@3
+  @5 #85 construct:outcome 10355..10712 fn=#53 in=-
+  @6 #87 hof:filter 10371..10392 fn=#53 in=@5
+  @7 #92 hof:filter 10403..10426 fn=#53 in=@5
+  @8 #97 hof:filter 10451..10500 fn=#53 in=@5
+  @9 #110 if 10552..10634 fn=#53 in=@5
+  @10 #124 hof:filter 10666..10695 fn=#53 in=@5
+  @11 #140 hof:map 11299..11402 fn=#136 in=-
+  @12 #151 if 11348..11386 fn=#144 in=@11
+  @13 #163 if 4752..4813 fn=#160 in=-
+  @14 #173 if 4846..4911 fn=#172 in=-
+  @15 #178 hof:map 4871..4894 fn=#172 in=-
+  @16 #186 hof:fold 5046..5303 fn=#185 in=-
+  @17 #196 if 5118..5292 fn=#195 in=@16
+  @18 #232 if 5496..5878 fn=#226 in=-
+  @19 #245 if 5604..5665 fn=#226 in=-
+  @20 #249 hof:map 5625..5651 fn=#226 in=-
+  @21 #299 if 6034..7575 fn=#293 in=-
+  @22 #337 construct:sieve 6456..6490 fn=#293 in=-
+  @23 #346 if 6562..6619 fn=#293 in=-
+  @24 #348 construct:sieve 6575..6605 fn=#293 in=-
+  @25 #354 hof:map 6650..6702 fn=#293 in=-
+  @26 #371 if 6783..6855 fn=#293 in=-
+  @27 #389 if 6901..6942 fn=#293 in=-
+  @28 #395 if 7095..7175 fn=#293 in=-
+  @29 #416 hof:map 7218..7252 fn=#293 in=-
+  @30 #449 if 7515..7565 fn=#293 in=-
+  @31 #480 construct:iterate 7693..7886 fn=#160 in=-
+  @32 #496 hof:map 8062..8151 fn=#160 in=-
+  @33 #517 construct:outcome 8157..8431 fn=#160 in=-
+  @34 #547 effect:gen 700..869 fn=#546 in=-
+  @35 #556 construct:test 884..963 fn=- in=-
+  @36 #559 construct:test 981..1043 fn=- in=-
+  @37 #572 hof:map 1114..1144 fn=- in=-
+  @38 #580 hof:map 1156..1187 fn=- in=-
+  @39 #591 hof:map 1236..1283 fn=- in=-
+  @40 #597 hof:map 1257..1280 fn=#596 in=@39
+  @41 #602 hof:map 1296..1334 fn=- in=-
+  @42 #611 hof:map 1348..1416 fn=- in=-

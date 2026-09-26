@@ -47,7 +47,8 @@ fn 账本键与python的不一致是已知的() {
         24,
         "Rust 侧取 sha256 前 12 字节 = 24 个十六进制字符"
     );
-    assert_eq!(k, "66b055d30697ec3173510075");
+    // 步 15i（B155）：渲染版本 r1 → r2，键随之换值（r1 下是 66b055d30697ec3173510075）
+    assert_eq!(k, "6baeabe7a0e84834d5c70d09");
     const PYTHON: &str = "718d5bfb5eac67dd";
     assert_eq!(PYTHON.len(), 16, "Python 侧取前 16 个十六进制字符");
     assert_ne!(

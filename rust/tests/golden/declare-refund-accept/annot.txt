@@ -1,0 +1,128 @@
+ir v1
+budget calls=4 cost=0.01 depth=16 escalate=1 unsure=- latency_p95=- absent=-
+block 743..1707
+  let refund : -
+    #0 construct test @0 811..901
+      #1 text "这段客服对话里，顾客是否明确提出要退款或退钱？"
+      #2 text "cs-refund"
+  fn-stmt 退款
+    #3 fn (chat:-) -> - effects=- ; {"effect":{"known":["do"],"open":false},"summary":{"may_touch_world":true,"may_refresh":true},"duty_kind":null,"refresh_point":false}
+      block 919..989
+        result
+          #4 call 921..987
+            callee:
+              #5 name content
+            #6 effect do @1 929..986 ; {"effect":{"known":["do"],"open":false},"summary":null,"duty_kind":null,"refresh_point":false}
+              action:
+                #7 text "write_json"
+              args:
+                #8 list 946..982
+                  #9 text "refund-issued.json"
+                  #10 record 969..981
+                    chat:
+                      #11 name chat
+              iter_seq:
+                #12 int 0
+  fn-stmt 处理
+    #13 fn (chat:-) -> - effects=- ; {"effect":{"known":["ask","do","judge"],"open":false},"summary":{"may_touch_world":true,"may_refresh":true},"duty_kind":null,"refresh_point":false}
+      block 1006..1447
+        let m : -
+          #14 call 1020..1029
+            callee:
+              #15 name mat
+            #16 name chat
+        result
+          #17 handle @2 1035..1445
+            exit:
+              #18 cut @3 1042..1101
+                reading:
+                  #19 effect judge @4 1046..1069 ; {"effect":{"known":["judge"],"open":false},"summary":null,"duty_kind":null,"refresh_point":false}
+                    state:
+                      #20 state @5 1052..1060
+                        on:
+                          #21 name m
+                    questions:
+                      #22 name refund
+                #23 record 1071..1100
+                  declare:
+                    #24 record 1081..1099
+                      hi:
+                        #25 dec 0.7
+                      lo:
+                        #26 dec 0.3
+            arms:
+              #27 record 1103..1444
+                act:
+                  #29 fn () -> - effects=-
+                    block 1123..1139
+                      result
+                        #30 call 1125..1137
+                          callee:
+                            #31 name 退款
+                          #32 name chat
+                ignore:
+                  #34 fn () -> - effects=-
+                    block 1162..1174
+                      result
+                        #35 text "不退"
+                unsure:
+                  #37 fn (u:-) -> - effects=-
+                    block 1198..1443
+                      #38 consume @6 1212..1230
+                        #39 name u
+                        #40 text "drop"
+                      result
+                        #41 handle @7 1244..1433
+                          exit:
+                            #42 effect ask @8 1251..1272 ; {"effect":{"known":["ask"],"open":false},"summary":null,"duty_kind":null,"refresh_point":false}
+                              state:
+                                #43 state @9 1255..1263
+                                  on:
+                                    #44 name m
+                              question:
+                                #45 name refund
+                          arms:
+                            #46 record 1274..1432
+                              act:
+                                #48 fn () -> - effects=-
+                                  block 1302..1318
+                                    result
+                                      #49 call 1304..1316
+                                        callee:
+                                          #50 name 退款
+                                        #51 name chat
+                              ignore:
+                                #53 fn () -> - effects=-
+                                  block 1349..1361
+                                    result
+                                      #54 text "不退"
+                              unsure:
+                                #56 fn (v:-) -> - effects=-
+                                  block 1393..1431
+                                    #57 consume @10 1395..1413
+                                      #58 name v
+                                      #59 text "drop"
+                                    result
+                                      #60 text "人工未答"
+  result
+    #61 list 1448..1707
+      #62 call 1449..1570
+        callee:
+          #63 name 处理
+        #64 text "顾客：你好，我想问一下这款耳机有没有黑色的。客服：有的，黑色和白色都有货。"
+      #65 call 1573..1706
+        callee:
+          #66 name 处理
+        #67 text "顾客：这个用着不太顺手，你们能帮我看看怎么处理吗？客服：好的，请问是哪方面的问题？"
+sites 11
+  @0 #0 construct:test 811..901 fn=- in=-
+  @1 #6 effect:do 929..986 fn=#3 in=-
+  @2 #17 handle 1035..1445 fn=#13 in=-
+  @3 #18 cut 1042..1101 fn=#13 in=-
+  @4 #19 effect:judge 1046..1069 fn=#13 in=-
+  @5 #20 state 1052..1060 fn=#13 in=-
+  @6 #38 consume:consume 1212..1230 fn=#37 in=-
+  @7 #41 handle 1244..1433 fn=#37 in=-
+  @8 #42 effect:ask 1251..1272 fn=#37 in=-
+  @9 #43 state 1255..1263 fn=#37 in=-
+  @10 #57 consume:consume 1395..1413 fn=#56 in=-

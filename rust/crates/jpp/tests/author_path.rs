@@ -96,6 +96,7 @@ handle(cut(judge(state(mat("材料")), test("行吗", "k"))), {
                         cost: 0.0,
                         mode_share: vec![],
                         perms: vec![],
+                        confidence: vec![],
                     })
                 }))
                 .with(FnPort::generate("m", |_p, _c, _n, _r| {
@@ -153,6 +154,7 @@ fn j08没触发的两个原因各自独立成立() {
                     cost: 0.0,
                     mode_share: vec![],
                     perms: vec![],
+                    confidence: vec![],
                 })
             }))
             .with(FnPort::generate("m", |_p, _c, n, _r| {
@@ -160,6 +162,7 @@ fn j08没触发的两个原因各自独立成立() {
                     outputs: (0..n).map(|_| Json::String("生成的材料".into())).collect(),
                     tokens: 0,
                     cost: 0.0,
+                    ..Default::default()
                 })
             }))
             .with(FnPort::ask("m", |_s, _q| Err(EffectError("x".into()))))

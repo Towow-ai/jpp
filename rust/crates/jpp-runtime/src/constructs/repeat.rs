@@ -75,8 +75,8 @@ impl<'a> Interp<'a> {
         let n_runs = rs.len();
         let 键 = format!("{}\u{1f}repeat(n={n_runs})", first.calib);
         let lk = format!("repeat(n={n_runs},{method}):{}", first.ledger_key);
-        if caps.ledger_write().ledger_mut(self).get(&lk).is_none() {
-            caps.ledger_write().ledger_mut(self).put(Entry::effect_keyed(lk.clone(), "repeat", serde_json::json!({"n": n_runs, "method": method, "calib": 键.replace('\u{1f}', ":")}), 0.0));
+        if caps.ledger_write().ledger(self).get(&lk).is_none() {
+            caps.ledger_write().ledger_put(self, Entry::effect_keyed(lk.clone(), "repeat", serde_json::json!({"n": n_runs, "method": method, "calib": 键.replace('\u{1f}', ":")}), 0.0));
         }
         caps.ledger_write().trace_event(
             self,
@@ -142,8 +142,75 @@ impl<'a> Interp<'a> {
                 )
             }
         };
-        arity(1)?;
+        if n != 2 {
+            arity(1)?;
+        }
+        // 步 15k（B167 (1)）：第二个参数 `{stat?, tie?}`，`stat` 与 `cut` 同一枚举、同一解析
+        let 选项错 = |msg: String| -> R<Value> { err(Some("E-order-options"), msg, sp) };
+        let mut stat: Option<jpp_value::stat::Stat> = None;
+        let mut tie: Option<f64> = None;
+        if let Some(opt) = args.get(1) {
+            // 依据：B167 (1)、(3)（地基/附注/2026-09-26-批6裁定.md §十五）
+            let Value::Record(fields) = opt else {
+                return 选项错(format!(
+                    "order 的第二个参数要是记录 {{stat?, tie?}}，收到 {}（B167）",
+                    opt.type_name()
+                ));
+            };
+            for (k, v) in fields.iter() {
+                match k.as_str() {
+                    "stat" => match crate::host_builtins::解析统计量(v) {
+                        Ok(s) => stat = Some(s),
+                        Err(m) => return 选项错(format!("order 的 {m}")),
+                    },
+                    "tie" => match v {
+                        Value::Int(i, _) if *i >= 0 => tie = Some(*i as f64),
+                        Value::Float(f, _) if *f >= f64::default() => tie = Some(*f),
+                        _ => {
+                            return 选项错(
+                                "order 的 tie 要是非负数：期望档位相差不超过它就并成一档（B167 (3)）".into(),
+                            );
+                        }
+                    },
+                    other => {
+                        return 选项错(format!(
+                            "order 的选项只认 stat、tie：{{stat: \"expect\", tie: 0.1}}；收到字段 {other}（B167）"
+                        ));
+                    }
+                }
+            }
+            if tie.is_some() && stat != Some(jpp_value::stat::Stat::Expect) {
+                return 选项错(
+                    "order 的 tie 只配 stat: \"expect\"：概率型统计量按画像 δ 并档，argmax 按档位相等并档（B167 (3)）".into(),
+                );
+            }
+        }
         self.flush("order")?;
+        // 步 15k（B166）：一条 `select` 读数（不是列表）→ 候选下标按概率分档；不产生出口
+        if let Value::Reading(r) = &args[0]
+            && r.op == Op::Select
+        {
+            // 依据：B166 (1)、B167 (4)（候选序是单元，不收 stat）
+            if args.len() == 2 {
+                return 选项错(
+                    "order 对一条 select 读数按候选概率分档，不收 stat / tie：候选序就是单元（B166、B167 (4)）".into(),
+                );
+            }
+            if r.mode_share.get().is_none()
+                && self
+                    .unknown_reported
+                    .insert(format!("order-unpermuted@{}", sp.start))
+            {
+                // 依据：B166 (2)、B64（位置偏差；只告警不阻止）
+                self.trace.warn(format!(
+                    "W-order-unpermuted: @{} order 按一条 select 读数的候选概率分档，这条读数没有置换测量（没声明 {{permute: true}}，或候选是 {{label, text}} 记录）：候选的位置可能改变分档（B64、B166）",
+                    sp.start
+                ));
+            }
+            return Ok(Self::下标分档(
+                self.candidate_tiers(caps.read_answer(), r),
+            ));
+        }
         let rs = self.readings_of(&args[0], "order", sp)?;
         // J-04（12:255）：跨题、跨候选集、跨刻度或异锚的读数**不可比**。
         // order 是排序，排序就是比——两道题各有各的校准线，p 不在同一把尺子上，
@@ -166,8 +233,34 @@ impl<'a> Interp<'a> {
                 }
             }
         }
-        Ok(Value::list(
-            self.order_tiers(caps.read_answer(), &rs)
+        // 缺省统计量（B167 (2)）：`measure` 按档位，`test`、`select` 按 p / p_max（现状）
+        let stat = stat.unwrap_or(match rs.first().map(|r| r.op) {
+            Some(Op::Measure) => jpp_value::stat::Stat::Argmax,
+            _ => jpp_value::stat::Stat::Max,
+        });
+        match self.order_tiers(caps.read_answer(), &rs, &stat, tie) {
+            Ok(t) => Ok(Self::下标分档(t)),
+            // 依据：B167 (1)（统计量与题型不配）
+            Err(jpp_value::stat::StatError::Options(m)) => err(
+                Some("E-order-options"),
+                format!("order 的 stat: {}：{m}（B167）", stat.to_json()),
+                sp,
+            ),
+            // 依据：B154 (3)（取不到 confidence 不退回 p_max）
+            Err(jpp_value::stat::StatError::Unavailable(m)) => err(
+                Some("E-stat-unavailable"),
+                format!(
+                    "@{} order 的 stat: \"confidence\" 取不到数：{m}。修法：换一个随答案报 confidence 的判断器（画像 H9 reports_confidence: true），或在夹具观察里给 confidence（B154）",
+                    sp.start
+                ),
+                sp,
+            ),
+        }
+    }
+
+    fn 下标分档(tiers: Vec<Vec<usize>>) -> Value {
+        Value::list(
+            tiers
                 .into_iter()
                 .map(|tier| {
                     Value::list(
@@ -177,6 +270,6 @@ impl<'a> Interp<'a> {
                     )
                 })
                 .collect(),
-        ))
+        )
     }
 }

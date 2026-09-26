@@ -74,7 +74,7 @@
     "events": [
       {
         "cost": 0.0,
-        "key": "fc38377a65b241c703182864",
+        "key": "b23fd22d3e7c8b8e6dfb0967",
         "kind": "judge",
         "note": "「这段话是否提到了成都？」",
         "replayed": true,
@@ -85,7 +85,7 @@
       },
       {
         "cost": 0.0,
-        "key": "3ef291947a4d4c81c91731e1",
+        "key": "c463d57734853a29e9d1aebc",
         "kind": "judge",
         "note": "「这段话是否提到了北京？」",
         "replayed": true,
@@ -96,7 +96,7 @@
       },
       {
         "cost": 0.0,
-        "key": "bea9f3125b264d55eb7259bd",
+        "key": "4db8e3865b57794293c6ce1d",
         "kind": "judge",
         "note": "「这段话是否提到了出差？」",
         "replayed": true,
@@ -107,7 +107,7 @@
       },
       {
         "cost": 0.0,
-        "key": "6943e2b1726846e8d18a0546",
+        "key": "b234bd459ea81e28b1ee727a",
         "kind": "judge",
         "note": "「这段话是否提到了朋友？」",
         "replayed": true,

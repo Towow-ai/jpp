@@ -1,0 +1,8 @@
+// 元素：精确算法（do("graph:matching", …)）。六个 graph:* 动作全部纯函数、可逆、成本 0：
+// matching（带权最大匹配）、shortest_path（Dijkstra）、max_clique（Bron–Kerbosch）、
+// components（并查集）、set_cover、max_flow（Dinic）。数字不流：这里的边权 w 来自程序自己给的
+// 常量，不是判断读数；判断出来的图（读数决定「有没有这条边」）见「组合：判出来的图」一节。
+// set_cover、max_flow 的产物形状与 matching/shortest_path/max_clique/components 不同，
+// lib/compose/graph.jpp 的 on_graph 不接这两个，要用就直接 do。
+budget {calls: 4, cost: 0, depth: 8};
+content(do("graph:matching", [{edges: [{u: 0, v: 1, w: 3}, {u: 1, v: 2, w: 5}, {u: 0, v: 2, w: 1}], nodes: [0, 1, 2]}], 0))

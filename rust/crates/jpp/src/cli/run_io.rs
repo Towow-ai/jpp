@@ -127,6 +127,17 @@ pub fn run_checked(
     画像: Option<Resolved>,
     输入: jpp::EntryArgs,
 ) -> Result<(), String> {
+    // 步 18b（B55；主会话 2026-09-25 裁定）：有不可逆 `do` 的程序，首跑与续接都要 `--ledger-out`，
+    // 否则写前意向不落盘，续接会重做不可逆动作。执行前（任何效应之前）报错；只凭账本重放不要求。
+    if options.replay.is_none()
+        && options.ledger_out.is_none()
+        && let Some(名) = runner::irreversible_action_in(program)
+    {
+        // 依据：B55（20 v2 附录 B55 条）；主会话 2026-09-25 对步 18b 的裁定
+        return Err(format!(
+            "E-ledger-required: 程序里有不可逆动作 do「{名}」，要给 --ledger-out <账本文件>：不可逆动作执行前的写前意向要落盘（B55），否则中断后续接会重做它。只凭账本重放（--replay）不要求"
+        ));
+    }
     // 真机分支一定有画像：`profile_resolve::resolve` 解析不到时已报 `E-profile-missing`。
     let 真机画像 = match (&画像, uses_live_backend(options)) {
         (Some(r), true) => Some(r),
@@ -215,6 +226,27 @@ pub fn run_checked(
             None => "仅来自 --fixtures".into(),
         }
     );
+    // 生成器（步 15h-1，B149）：画像按 B73 同一口径解析，说清楚这一趟用了哪份生成器画像
+    let 生成器 = crate::profile_resolve::resolve_gen(options)?;
+    if let Some(g) = &生成器 {
+        eprintln!(
+            "生成器：{} {}；画像 {} (hash {})",
+            g.spec.name,
+            g.model,
+            g.path.display(),
+            g.profile.hash
+        );
+    }
+    let mut gen_port = 生成器
+        .as_ref()
+        .map(|g| (g.spec.build)(&g.model, &g.profile));
+    // 生成缓存（`--gen-cache`，步 15h-2，B151 过渡）：运行前读文件（不存在视为空）
+    let 生成缓存 = match &options.gen_cache {
+        Some(path) => Some(std::rc::Rc::new(std::cell::RefCell::new(load_gen_cache(
+            path,
+        )?))),
+        None => None,
+    };
     let mut calibrations = 目录记录;
     // 账本 v3（步 18a）：v3 经 `Ledger::decode` 读；v2 在内存里迁移后读（B124 Q3，文件不改写）；
     // v1 报 E-ledger-archived，末行半写截断并报告
@@ -252,28 +284,64 @@ pub fn run_checked(
     // 旧账本没有 `header` 时退回 `"fixed-0"`，与接线前逐字节相同。（步 15c 前这段写在 `ReplayClient` 上）
     let replay_model_id = jpp::Session::replay_model_id(&ledger);
     let mut evidence: Vec<(String, jpp::effects::Sample)> = vec![];
+    // 步 18b（B55）：`--ledger-out` 的账本逐行落盘——头在运行入口定稿时整份原子写出（续接写的是新文件：
+    // 新头、旧条目按新链重串），不可逆 `do` 的意向与结果即刻落盘，其余条目每层末落盘。不给就只在内存里。
+    let mut 文件 = options.ledger_out.as_ref().map(|path| {
+        let dir = match path.parent() {
+            Some(d) if !d.as_os_str().is_empty() => d.to_path_buf(),
+            _ => std::path::PathBuf::from("."),
+        };
+        let key = path
+            .file_name()
+            .map(|n| n.to_string_lossy().to_string())
+            .unwrap_or_default();
+        jpp::store::LedgerFile::new(
+            jpp::store::DirBlob::new(dir),
+            &key,
+            std::mem::take(&mut ledger),
+        )
+    });
+    let port: &mut dyn jpp::LedgerPort = match 文件.as_mut() {
+        Some(f) => f,
+        None => &mut ledger,
+    };
     let result = if options.replay.is_some() {
         let replay_ports = jpp_effects::ReplayPorts::ports(&replay_model_id);
         runner::execute(
             program,
             replay_ports,
             &calibrations,
-            &mut ledger,
+            port,
             true,
             &mut evidence,
             &输入,
         )
     } else {
-        runner::execute(
+        let mut ports = client.ports();
+        // 步 15h-1（B149）：给了 `--gen-model` 就把占位的 `gen` 实例换成生成器端口（非阻塞 submit/poll）
+        if let Some(g) = gen_port.as_mut() {
+            ports.replace(Box::new(g.as_mut()));
+        }
+        runner::execute_with(
             program,
-            client.ports(),
+            ports,
             &calibrations,
-            &mut ledger,
+            port,
             false,
             &mut evidence,
             &输入,
+            生成缓存.clone(),
         )
     };
+    // 生成缓存写回（步 15h-2）：本趟新生成的成功条目追加到文件
+    let 生成缓存报告 = match (&options.gen_cache, &生成缓存) {
+        (Some(path), Some(c)) => Some(save_gen_cache(path, &c.borrow())?),
+        _ => None,
+    };
+    // Preserve any completed effects even when execution ends in a runtime error.
+    if let (Some(f), Some(path)) = (文件, &options.ledger_out) {
+        f.finish().map_err(|e| format!("{}: {e}", path.display()))?;
+    }
     // **出料那一半**：把这一趟判出来的读数折进记录并落盘。
     // **只有这样那条环才闭得上**——`--calib` 是入料，J-03 决定了程序自己写不了线。
     //
@@ -307,10 +375,6 @@ pub fn run_checked(
             evidence.len()
         );
     }
-    // Preserve any completed effects even when execution ends in a runtime error.
-    if let Some(path) = &options.ledger_out {
-        fs::write(path, ledger.encode()).map_err(|e| format!("{}: {e}", path.display()))?;
-    }
     // **说清楚这一趟实际用了哪个后端**：replay 从不碰 client（哪怕 `--backend live`
     // 也构造了一个，只是没被 `runner::execute` 用到），真机与固定观察之外没有第三档。
     let (mode_label, backend_label): (&str, String) = if options.replay.is_some() {
@@ -341,6 +405,16 @@ pub fn run_checked(
     report["resumed"] = serde_json::json!(options.resume.is_some());
     report["mode"] = serde_json::json!(mode_label);
     report["backend"] = serde_json::json!(backend_label);
+    // 用了生成器才出现（步 15h-1）；生成器画像哈希今天只进这里与 stderr（账本头没有这一位，15h-1 Q2）
+    if let Some(g) = &生成器 {
+        report["gen_backend"] = serde_json::json!({
+            "name": g.spec.name, "model": g.model, "profile_hash": g.profile.hash,
+        });
+    }
+    // 用了 `--gen-cache` 才出现（步 15h-2）
+    if let Some(r) = 生成缓存报告 {
+        report["gen_cache"] = r;
+    }
     if let Some(r) = 真机画像.filter(|r| r.profile.price_per_input_token().is_none()) {
         mark_cost_unknown(&mut report, &r.path);
     }
@@ -379,6 +453,62 @@ pub fn run_checked(
         );
     }
     Ok(())
+}
+
+/// 读生成缓存文件（步 15h-2）：JSONL，每行 `{key, model, output, taint, prompt}`，后写的同键覆盖先写的；
+/// 文件不存在视为空。
+fn load_gen_cache(path: &Path) -> Result<jpp::interp::GenCache, String> {
+    let mut c = jpp::interp::GenCache::default();
+    let Ok(text) = fs::read_to_string(path) else {
+        return Ok(c);
+    };
+    for (i, line) in text
+        .lines()
+        .enumerate()
+        .filter(|(_, l)| !l.trim().is_empty())
+    {
+        let v: serde_json::Value = serde_json::from_str(line)
+            .map_err(|e| format!("{}:{}: 生成缓存行不是 JSON：{e}", path.display(), i + 1))?;
+        let (Some(key), Some(model)) = (v["key"].as_str(), v["model"].as_str()) else {
+            return Err(format!(
+                "{}:{}: 生成缓存行缺 key 或 model",
+                path.display(),
+                i + 1
+            ));
+        };
+        let taint = serde_json::from_value(v["taint"].clone()).ok();
+        c.entries.insert(
+            key.to_string(),
+            jpp::interp::GenCacheEntry {
+                model: model.to_string(),
+                output: v["output"].clone(),
+                taint,
+                prompt: v["prompt"].as_str().unwrap_or("").to_string(),
+            },
+        );
+    }
+    Ok(c)
+}
+
+/// 把本趟新生成的条目追加到生成缓存文件，返回报告里的 `gen_cache` 一节。
+fn save_gen_cache(path: &Path, c: &jpp::interp::GenCache) -> Result<serde_json::Value, String> {
+    use std::io::Write;
+    if !c.fresh.is_empty() {
+        let mut f = fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(path)
+            .map_err(|e| format!("{}: {e}", path.display()))?;
+        for (key, e) in &c.fresh {
+            let line = serde_json::json!({
+                "key": key, "model": e.model, "output": e.output, "taint": e.taint, "prompt": e.prompt,
+            });
+            writeln!(f, "{line}").map_err(|e| format!("{}: {e}", path.display()))?;
+        }
+    }
+    Ok(
+        serde_json::json!({"path": path.display().to_string(), "hits": c.hits, "stored": c.fresh.len()}),
+    )
 }
 
 #[cfg(test)]
@@ -475,6 +605,10 @@ mod tests {
             ),
             input: None,
             input_trusted: false,
+            release_on_declared: false,
+            gen_model: None,
+            gen_profile: None,
+            gen_cache: None,
         }
     }
 

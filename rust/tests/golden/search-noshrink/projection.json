@@ -1,0 +1,123 @@
+{
+  "asks": 0,
+  "calls": 7,
+  "effects": [
+    [
+      "gen",
+      "按下面的需求提出 3 个候选店名，每个候选是一个字符串；需求之后的上下文是上一轮留下的候选",
+      "9b3487b5ea2de0add76c8a8d",
+      false
+    ],
+    [
+      "gen",
+      "按下面的需求提出 3 个候选店名，每个候选是一个字符串；需求之后的上下文是上一轮留下的候选",
+      "e1262289075c1815892bd0d2",
+      false
+    ]
+  ],
+  "judge_registrations": 5,
+  "pending": [],
+  "returned_unsure": [
+    "unsure(band)"
+  ],
+  "status": "returned",
+  "usd": 0.0,
+  "value": {
+    "duplicates": 1,
+    "found_in": [
+      0
+    ],
+    "kept": [
+      {
+        "content": "暖巷咖啡",
+        "mat": "e28a26831d34e164fbba34b8",
+        "origin": [
+          "gen:9b3487b5ea2de0add76c8a8d"
+        ],
+        "taint": "Trusted"
+      }
+    ],
+    "measures": [
+      8,
+      4,
+      4
+    ],
+    "pending": [
+      {
+        "cause": "band",
+        "exit": {
+          "consumed": true,
+          "exit": "unsure(band)",
+          "id": 2,
+          "q": "bf77935372f7724b9117f8d3"
+        },
+        "index": 2,
+        "item": {
+          "content": "邻里豆",
+          "mat": "47f7334f53ef664a2ce9c328",
+          "origin": [
+            "gen:9b3487b5ea2de0add76c8a8d"
+          ],
+          "taint": "Trusted"
+        },
+        "key": "45ad9f8df1999fcd0424bb82",
+        "pos": 2,
+        "q": {
+          "calib": "search-fit",
+          "op": "noul",
+          "question": "bf77935372f7724b9117f8d3",
+          "text": "这个名字适合做一家社区咖啡馆的店名吗？"
+        },
+        "qi": 0,
+        "trail": [],
+        "via": [
+          "search#0"
+        ]
+      }
+    ],
+    "reason": "noshrink",
+    "rejected": [
+      {
+        "content": "街角慢时光咖啡馆",
+        "mat": "5993de3f04a1247d390d958a",
+        "origin": [
+          "gen:9b3487b5ea2de0add76c8a8d"
+        ],
+        "taint": "Trusted"
+      },
+      {
+        "content": "慢时光",
+        "mat": "d3c1043cfb6be48f73a4d655",
+        "origin": [
+          "gen:e1262289075c1815892bd0d2"
+        ],
+        "taint": "Trusted"
+      },
+      {
+        "content": "巷里",
+        "mat": "5315776fdeebb11e44cc34a1",
+        "origin": [
+          "gen:e1262289075c1815892bd0d2"
+        ],
+        "taint": "Trusted"
+      }
+    ],
+    "rounds": 2,
+    "undecided": [
+      {
+        "cause": "band",
+        "item": {
+          "content": "邻里豆",
+          "mat": "47f7334f53ef664a2ce9c328",
+          "origin": [
+            "gen:9b3487b5ea2de0add76c8a8d"
+          ],
+          "taint": "Trusted"
+        },
+        "via": [
+          "search#0"
+        ]
+      }
+    ]
+  }
+}

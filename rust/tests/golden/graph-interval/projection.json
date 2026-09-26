@@ -1,0 +1,276 @@
+{
+  "asks": 0,
+  "calls": 12,
+  "effects": [
+    [
+      "do",
+      "graph:matching",
+      "3356f4aaefd680bbc1cc0d86",
+      false
+    ],
+    [
+      "do",
+      "graph:matching",
+      "65a0ce1bcc9db25a731bc9a8",
+      false
+    ]
+  ],
+  "judge_registrations": 10,
+  "pending": [],
+  "returned_unsure": [
+    "unsure(band)"
+  ],
+  "status": "returned",
+  "usd": 0.0,
+  "value": {
+    "alpha_bound": 1.0,
+    "ask_first": [
+      [
+        "任务：做数据看板",
+        "小王：数据分析，常做报表"
+      ],
+      [
+        "任务：写单元测试",
+        "小陈：测试开发，熟悉单元测试框架"
+      ]
+    ],
+    "assigned": [
+      [
+        "任务：写登录页",
+        "小林：前端三年，做过登录与注册"
+      ],
+      [
+        "任务：设计数据库表",
+        "小周：后端，主写数据库迁移"
+      ],
+      [
+        "任务：写接口文档",
+        "小吴：技术写作，维护过接口文档"
+      ],
+      [
+        "任务：搭部署脚本",
+        "小郑：运维，写过部署流水线"
+      ]
+    ],
+    "complete": true,
+    "edges": {
+      "no": 2,
+      "open": 2,
+      "yes": 6
+    },
+    "if_all_yes": [
+      [
+        "任务：写登录页",
+        "小林：前端三年，做过登录与注册"
+      ],
+      [
+        "任务：设计数据库表",
+        "小周：后端，主写数据库迁移"
+      ],
+      [
+        "任务：写接口文档",
+        "小吴：技术写作，维护过接口文档"
+      ],
+      [
+        "任务：搭部署脚本",
+        "小郑：运维，写过部署流水线"
+      ],
+      [
+        "任务：做数据看板",
+        "小王：数据分析，常做报表"
+      ],
+      [
+        "任务：写单元测试",
+        "小陈：测试开发，熟悉单元测试框架"
+      ]
+    ],
+    "n_unknown": 6,
+    "pending": [
+      {
+        "cause": "band",
+        "edges": [
+          {
+            "at": [
+              8,
+              8
+            ],
+            "cause": "band",
+            "eid": 8,
+            "ends": [
+              4,
+              10
+            ],
+            "exit": {
+              "consumed": true,
+              "exit": "unsure(band)",
+              "id": 8,
+              "q": "d51f2ba37873ad7f7bdbbd0c"
+            },
+            "item": {
+              "a": "任务：做数据看板",
+              "b": "小王：数据分析，常做报表"
+            },
+            "key": "a5e21bf705831e65be99960a",
+            "left": "任务：做数据看板",
+            "pos": 8,
+            "q": {
+              "calib": "graph-can-do",
+              "op": "noul",
+              "question": "d51f2ba37873ad7f7bdbbd0c",
+              "text": "a 描述的这项任务，b 这个人能接下来吗？"
+            },
+            "qi": 0,
+            "right": "小王：数据分析，常做报表",
+            "trail": []
+          }
+        ],
+        "exit": {
+          "consumed": true,
+          "exit": "unsure(band)",
+          "id": 18,
+          "q": "compose"
+        },
+        "item": {
+          "a": "任务：做数据看板",
+          "b": "小王：数据分析，常做报表"
+        },
+        "members": [
+          4,
+          10
+        ],
+        "nodes": [
+          "任务：做数据看板",
+          "小王：数据分析，常做报表"
+        ],
+        "trail": []
+      },
+      {
+        "cause": "band",
+        "edges": [
+          {
+            "at": [
+              9,
+              9
+            ],
+            "cause": "band",
+            "eid": 9,
+            "ends": [
+              5,
+              11
+            ],
+            "exit": {
+              "consumed": true,
+              "exit": "unsure(band)",
+              "id": 9,
+              "q": "d51f2ba37873ad7f7bdbbd0c"
+            },
+            "item": {
+              "a": "任务：写单元测试",
+              "b": "小陈：测试开发，熟悉单元测试框架"
+            },
+            "key": "0a74fb426f425f693a0713d8",
+            "left": "任务：写单元测试",
+            "pos": 9,
+            "q": {
+              "calib": "graph-can-do",
+              "op": "noul",
+              "question": "d51f2ba37873ad7f7bdbbd0c",
+              "text": "a 描述的这项任务，b 这个人能接下来吗？"
+            },
+            "qi": 0,
+            "right": "小陈：测试开发，熟悉单元测试框架",
+            "trail": []
+          }
+        ],
+        "exit": {
+          "consumed": true,
+          "exit": "unsure(band)",
+          "id": 19,
+          "q": "compose"
+        },
+        "item": {
+          "a": "任务：写单元测试",
+          "b": "小陈：测试开发，熟悉单元测试框架"
+        },
+        "members": [
+          5,
+          11
+        ],
+        "nodes": [
+          "任务：写单元测试",
+          "小陈：测试开发，熟悉单元测试框架"
+        ],
+        "trail": []
+      },
+      {
+        "at": [
+          8,
+          8
+        ],
+        "cause": "band",
+        "eid": 8,
+        "ends": [
+          4,
+          10
+        ],
+        "exit": {
+          "consumed": true,
+          "exit": "unsure(band)",
+          "id": 8,
+          "q": "d51f2ba37873ad7f7bdbbd0c"
+        },
+        "item": {
+          "a": "任务：做数据看板",
+          "b": "小王：数据分析，常做报表"
+        },
+        "key": "a5e21bf705831e65be99960a",
+        "left": "任务：做数据看板",
+        "pos": 8,
+        "q": {
+          "calib": "graph-can-do",
+          "op": "noul",
+          "question": "d51f2ba37873ad7f7bdbbd0c",
+          "text": "a 描述的这项任务，b 这个人能接下来吗？"
+        },
+        "qi": 0,
+        "right": "小王：数据分析，常做报表",
+        "trail": []
+      },
+      {
+        "at": [
+          9,
+          9
+        ],
+        "cause": "band",
+        "eid": 9,
+        "ends": [
+          5,
+          11
+        ],
+        "exit": {
+          "consumed": true,
+          "exit": "unsure(band)",
+          "id": 9,
+          "q": "d51f2ba37873ad7f7bdbbd0c"
+        },
+        "item": {
+          "a": "任务：写单元测试",
+          "b": "小陈：测试开发，熟悉单元测试框架"
+        },
+        "key": "0a74fb426f425f693a0713d8",
+        "left": "任务：写单元测试",
+        "pos": 9,
+        "q": {
+          "calib": "graph-can-do",
+          "op": "noul",
+          "question": "d51f2ba37873ad7f7bdbbd0c",
+          "text": "a 描述的这项任务，b 这个人能接下来吗？"
+        },
+        "qi": 0,
+        "right": "小陈：测试开发，熟悉单元测试框架",
+        "trail": []
+      }
+    ],
+    "same": false
+  }
+}

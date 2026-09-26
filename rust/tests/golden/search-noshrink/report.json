@@ -1,0 +1,264 @@
+{
+  "backend": "fixed-0",
+  "cost": {
+    "asks": 0,
+    "calls": 7,
+    "replayed": 0,
+    "tokens": 0,
+    "usd": 0.0
+  },
+  "entry": [],
+  "exits": [
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 0,
+      "item": "f5986f6e33ec",
+      "key": "search-fit",
+      "pos": 0,
+      "releases": false,
+      "site": 6331
+    },
+    {
+      "exit": "ignore",
+      "grade": "Fixture",
+      "index": 1,
+      "item": "de09a4cad917",
+      "key": "search-fit",
+      "pos": 1,
+      "releases": false,
+      "site": 6331
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Fixture",
+      "index": 2,
+      "item": "b82a14938cdb",
+      "key": "search-fit",
+      "pos": 2,
+      "releases": false,
+      "site": 6331
+    },
+    {
+      "exit": "ignore",
+      "grade": "Fixture",
+      "index": 0,
+      "item": "86e8105836b8",
+      "key": "search-fit",
+      "pos": 0,
+      "releases": false,
+      "site": 6331
+    },
+    {
+      "exit": "ignore",
+      "grade": "Fixture",
+      "index": 1,
+      "item": "d13c3d0671c5",
+      "key": "search-fit",
+      "pos": 1,
+      "releases": false,
+      "site": 6331
+    }
+  ],
+  "fixture_description": "Synthetic fixed observations for search-noshrink.jpp (construction check only; not model evaluation). Round 0 yields one fitting name, one rejected and one in band (refined into round 1's context); round 1 re-proposes the round-0 good name (reused, not judged again) and two new names that are both rejected, so the accumulated good names do not grow and the search ends at noshrink. The calibration record is hand-written to exercise routing.",
+  "local_checks": [],
+  "mode": "fixed observations; no model API requests",
+  "pending": [],
+  "questions": [
+    {
+      "kind": "attr",
+      "q": "bf77935372f7724b9117f8d3"
+    }
+  ],
+  "replay": false,
+  "resumed": false,
+  "returned_unsure": [
+    "unsure(band)"
+  ],
+  "status": "returned",
+  "trace": {
+    "events": [
+      {
+        "cost": 0.0,
+        "key": "9b3487b5ea2de0add76c8a8d",
+        "kind": "gen",
+        "note": "按下面的需求提出 3 个候选店名，每个候选是一个字符串；需求之后的上下文是上一轮留下的候选",
+        "replayed": false,
+        "site": {
+          "end": 871,
+          "start": 702
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "8597be49ad69515715da6e3e",
+        "kind": "judge",
+        "note": "「这个名字适合做一家社区咖啡馆的店名吗？」",
+        "replayed": false,
+        "site": {
+          "end": 6365,
+          "start": 6331
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "3861238418b5172c56e89a0c",
+        "kind": "judge",
+        "note": "「这个名字适合做一家社区咖啡馆的店名吗？」",
+        "replayed": false,
+        "site": {
+          "end": 6365,
+          "start": 6331
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "45ad9f8df1999fcd0424bb82",
+        "kind": "judge",
+        "note": "「这个名字适合做一家社区咖啡馆的店名吗？」",
+        "replayed": false,
+        "site": {
+          "end": 6365,
+          "start": 6331
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "e1262289075c1815892bd0d2",
+        "kind": "gen",
+        "note": "按下面的需求提出 3 个候选店名，每个候选是一个字符串；需求之后的上下文是上一轮留下的候选",
+        "replayed": false,
+        "site": {
+          "end": 871,
+          "start": 702
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "cd8408c882ee9aa3ebfc2e61",
+        "kind": "judge",
+        "note": "「这个名字适合做一家社区咖啡馆的店名吗？」",
+        "replayed": false,
+        "site": {
+          "end": 6365,
+          "start": 6331
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "3173eff264f06a7cacc73cd1",
+        "kind": "judge",
+        "note": "「这个名字适合做一家社区咖啡馆的店名吗？」",
+        "replayed": false,
+        "site": {
+          "end": 6365,
+          "start": 6331
+        }
+      }
+    ],
+    "warnings": [
+      "W-window-untested: @6331 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
+      "W-fixture-line: @6331 键 search-fit 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-untyped-transfer: search 把 unsure(band) 装在返回值里交了出去，但返回类型没提 Exit，调用者从签名上看不出自己收到了一份未决。修法：把返回类型标为含 Exit（如 `-> Exit`、`-> Record<Exit>`）",
+      "returned_unsure: unsure(band)"
+    ]
+  },
+  "value": {
+    "duplicates": 1,
+    "found_in": [
+      0
+    ],
+    "kept": [
+      {
+        "content": "暖巷咖啡",
+        "mat": "e28a26831d34e164fbba34b8",
+        "origin": [
+          "gen:9b3487b5ea2de0add76c8a8d"
+        ],
+        "taint": "Trusted"
+      }
+    ],
+    "measures": [
+      8,
+      4,
+      4
+    ],
+    "pending": [
+      {
+        "cause": "band",
+        "exit": {
+          "consumed": true,
+          "exit": "unsure(band)",
+          "id": 2,
+          "q": "bf77935372f7724b9117f8d3"
+        },
+        "index": 2,
+        "item": {
+          "content": "邻里豆",
+          "mat": "47f7334f53ef664a2ce9c328",
+          "origin": [
+            "gen:9b3487b5ea2de0add76c8a8d"
+          ],
+          "taint": "Trusted"
+        },
+        "key": "45ad9f8df1999fcd0424bb82",
+        "pos": 2,
+        "q": {
+          "calib": "search-fit",
+          "op": "noul",
+          "question": "bf77935372f7724b9117f8d3",
+          "text": "这个名字适合做一家社区咖啡馆的店名吗？"
+        },
+        "qi": 0,
+        "trail": [],
+        "via": [
+          "search#0"
+        ]
+      }
+    ],
+    "reason": "noshrink",
+    "rejected": [
+      {
+        "content": "街角慢时光咖啡馆",
+        "mat": "5993de3f04a1247d390d958a",
+        "origin": [
+          "gen:9b3487b5ea2de0add76c8a8d"
+        ],
+        "taint": "Trusted"
+      },
+      {
+        "content": "慢时光",
+        "mat": "d3c1043cfb6be48f73a4d655",
+        "origin": [
+          "gen:e1262289075c1815892bd0d2"
+        ],
+        "taint": "Trusted"
+      },
+      {
+        "content": "巷里",
+        "mat": "5315776fdeebb11e44cc34a1",
+        "origin": [
+          "gen:e1262289075c1815892bd0d2"
+        ],
+        "taint": "Trusted"
+      }
+    ],
+    "rounds": 2,
+    "undecided": [
+      {
+        "cause": "band",
+        "item": {
+          "content": "邻里豆",
+          "mat": "47f7334f53ef664a2ce9c328",
+          "origin": [
+            "gen:9b3487b5ea2de0add76c8a8d"
+          ],
+          "taint": "Trusted"
+        },
+        "via": [
+          "search#0"
+        ]
+      }
+    ]
+  }
+}

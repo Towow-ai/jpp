@@ -1,0 +1,28 @@
+// 搭配再嵌套（步 25d，B148；意图汇编第 4、5 条）：判出来的图上分工，产物再作两种用途——
+// (1) 每一组分工（任务 + 接手的人）当材料，再判一道队级题；
+// (2) 每一组分工当节点，判「两组能否合并互相补位」，在第二张图上再匹配一次。
+// 两层都不手写批、预算或未决处理：每层一次刷新，两层的未决都交回调用者。
+import "../lib/compose/graph.jpp";
+budget {calls: 40, cost: 0.01, depth: 64};
+
+let tasks = ["任务：写登录页", "任务：设计数据库表", "任务：写接口文档", "任务：搭部署脚本", "任务：做数据看板", "任务：写单元测试"];
+let people = ["小林：前端三年，做过登录与注册", "小周：后端，主写数据库迁移", "小吴：技术写作，维护过接口文档", "小郑：运维，写过部署流水线", "小王：数据分析，常做报表", "小陈：测试开发，熟悉单元测试框架"];
+let cand = [[0, 0], [1, 1], [2, 2], [3, 3], [4, 0], [5, 1], [0, 4], [1, 5], [4, 4], [5, 5]];
+
+// 第一层：人与任务的图，只信已决边的分工
+let g = judged_bipartite(tasks, people, test("a 描述的这项任务，b 这个人能接下来吗？", "graph-can-do"), {prune: fn(l, r) { cand }});
+let t = interval(g, "matching", {});
+
+// 嵌套 (1)：分工产物的 item 就是判边时那一对材料，直接交给 sieve
+let ok = sieve(t.lo.value, test("这一组分工（a 是任务，b 是接手的人）能在一周内交付吗？", "graph-team"));
+
+// 嵌套 (2)：分工产物当节点，判两组能否合并，再在第二张图上匹配
+let g2 = judged_graph(t.lo.value, test("a 与 b 两组分工能合并成一个小组、互相补位吗？", "graph-merge"), {});
+let t2 = interval(g2, "matching", {});
+
+{deliverable: map(ok.value, fn(e) { e.nodes }),
+ not_in_a_week: map(ok.detail.ignore, fn(e) { e.nodes }),
+ groups: map(t2.lo.value, fn(p) { map(p.nodes, fn(team) { team.nodes }) }),
+ layer2_same: t2.same,
+ ask_first: map(t.differs, fn(e) { [e.left, e.right] }),
+ pending: concat(concat(ok.pending, g2.pending), concat(t.hi.pending, g.pending))}

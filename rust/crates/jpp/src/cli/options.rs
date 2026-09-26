@@ -1,9 +1,9 @@
 use std::path::PathBuf;
 
-pub const HELP: &str = "J++ native source tools\nUsage:\n  jpp parse <file.jpp> [--ast]\n  jpp check <file.jpp> [--json] [--input <file.json>] [--input-trusted] [--questions-out <file.json>]\n  jpp run <file.jpp> [--json] [--input <file.json>] [--input-trusted] [--fixtures <file.json>] [--output <report.json>]\n          [--ledger-out <ledger.json>] [--replay <ledger.json> | --resume <ledger.json>]
+pub const HELP: &str = "J++ native source tools\nUsage:\n  jpp parse <file.jpp> [--ast]\n  jpp check <file.jpp> [--json] [--input <file.json>] [--input-trusted] [--release-on-declared] [--questions-out <file.json>]\n  jpp run <file.jpp> [--json] [--input <file.json>] [--input-trusted] [--release-on-declared] [--fixtures <file.json>] [--output <report.json>]\n          [--ledger-out <ledger.json>] [--replay <ledger.json> | --resume <ledger.json>]
           [--profile <profile.json>] [--calib <calib-dir>] [--calib-out <calib-dir>]
-          [--backend fixed|live|stub] [--model <name>] [--profiles-dir <dir>]\n  jpp calib-import <labels.jsonl> --calib-out <calib-dir> [--calib <calib-dir>] [--profile <profile.json>]\n          [--alpha 0.1] [--conf-delta 0.1] [--spot-check-min 0.9] [--spot-check-conf 0.95] [--abstain-warn 0.1] [--seed 20260923]\n          [--extent-min-disagree 3] [--extent-same-dir 0.8] [--extent-same-tier 0.667] [--scope-quantiles 0.01,0.99] [--scope-margins 2,0.10] [--class-min-sources 2] [--alpha-trial 0.25]\n          [--certify fixed-sequence|split|sequential] [--step <n>] [--cost fp,fn]\n          [--batch 10] [--order random|two-ends] [--coverage-target <tau>] [--mix-weights 0.8,0.1,0.05,0.05] [--from-ledger <ledger>]\n  jpp calib-import --from-ledger <ledger.jsonl> --key <key> --list-out <list.jsonl> [--materials <texts.json>] [--report <report.json>] [--seed <n>]\n  jpp calib-import <labels.jsonl> --calib <calib-dir> --extend-scope <key> --calib-out <calib-dir> [--alpha-trial 0.25] [--scope-quantiles 0.01,0.99] [--scope-margins 2,0.10]
-  jpp calib-confirm <calib-dir> <key> --suspend|--keep\n  jpp ledger-migrate <v2-ledger> <v3-out>\n\nLeading relative imports load source libraries. --json makes diagnostics machine-readable, one JSON object each: {code, level, span {file, line, col, start, end}, message, fix, applicability manual|wiring|null, count}, plus explain for runtime codes E-rt-<name>; check --json prints one document {file, ok, errors, warnings, diagnostics} on stdout, run --json writes diagnostics as JSON lines (each starting with {) on stderr and leaves the report unchanged. Diagnostics with the same code, location and message are folded into one with a count (text output appends （同码同址 ×N）). --input binds the JSON file's value to the name input in the program (a host binding outside the program's outermost block; a program's own let input shadows it); its content is untrusted by default (every leaf, as for read_json), and the hash of the whole entry (name, canonical JSON and declared taint) goes into the ledger header as entry_hash, so a replay or resume must be given the same --input (a different one reports W-header: entry_hash). --input-trusted declares that file's content trusted (B108; requires --input, else a usage error); it only says the file comes from a source the host trusts, not that its content is correct, and it goes into entry_hash like any other declared taint, so replaying with a different --input-trusted state reports W-header: entry_hash. check accepts --input and --input-trusted only to know that input is bound and how it is declared. check --questions-out <file.json> writes the program's literal questions (test, select and measure whose question text, label and declarations are literals), grouped by calibration label, each with its zero-slot form hash, for migrating label-named calibration records (B116); it is written once the program lowers, even if the check then reports errors, and calls whose parts are not literals are listed as skipped with a reason. Material entries and purpose are given only through Session (the Rust API). Run defaults to fixed generation/judgment/response records; no model API requests are made. --backend live switches to the real JEV backend (JevClient::live), reading the API key only from ~/.typesafe-key (never logged or written to any report); it requires jpp to be built with `--features live` and is mutually exclusive with --fixtures. --backend stub is a deterministic stand-in judge (model stub-0) for checking that a program runs unchanged on a second judge: its readings come from a hash of the state and the question, it makes no requests, does not generate, and needs a profile like any backend (the repository keeps a stand-in profile at tests/profile_swap/stub-0.json; it is not a measurement). --model names the model for --backend live (default jev-1.13.0). Registered actions: {actions}. --profile loads a model profile (lines, deltas, windows, prices, class-assumption fields). A live run (first run or --resume) must have a profile (B73): --profile <file>, else --profiles-dir <dir>/<model>.json, else profiles/<model>.json next to the jpp executable (releases ship profiles/); if none is found the run stops with E-profile-missing listing the paths tried, and never falls back to code defaults. The profile hash goes into the ledger header, and the price comes only from the profile's cost field (no price: cost is reported as Unknown with W-cost-unknown). Replay makes no requests. A certificate records the delta it was certified with (B104): cut uses the stricter of that delta and the run-time delta when a profile is loaded, and the certificate's delta when none is, so a line is never widened by a delta mismatch; either way a mismatch reports W-delta-mismatch. To reproduce a live run byte for byte, replay with the same profile. A fixed-observation run without a profile still runs until step 15d and always prints that no profile is loaded and lines and deltas are code defaults. --calib loads calibration records from a directory of per-key JSON files. --calib-out folds this run's readings into those records and writes them back, which is the only way the calibration loop closes: J-03 forbids a program from writing a line itself. File paths use the working directory. Resume may perform unrecorded actions; replay rejects them. Replay restores the calibration records the ledger recorded as used when they are not supplied again. Ledgers are format v3 (the calibration records a run used are CalibUsed entries, the last one per key counts); a v2 ledger is migrated in memory when read (a note is printed, the file is not rewritten), and ledger-migrate rewrites it as v3. calib-import is the truth channel: it folds labelled readings (JSONL: key or form, item, p, label true|false|\"ambiguous\", source human|computed|model:<name>, optional spot_check review-batch id, optional generator, optional q and fill, optional kind or slot_shape one|pair with over_kind; conflicting kinds on one key are rejected with E-kind-conflict) into calibration records and certifies them two-sided. --certify picks the method (new imports only; existing records are left as they are). --cost fp,fn (B129) certifies a cost line instead: the labelled rows are split in half (B85 stratified alternating split, same as split; --seed picks where each segment starts), the line minimizes fp × false releases + fn × missed releases on the selection half, and the certificate checks that line against --alpha (then --alpha-trial) on the certification half only, not the rows used to pick it; it takes test rows only, is one-sided (below the line exits are unsure(band), not ignore), cannot be combined with --certify, --order, --step, --batch, --coverage-target, --mix-weights, --extend-scope or --list-out, and is refused on a key that already holds a certificate not made from a cost; cut(r, {cost: [fp, fn]}) uses exactly that certificate. Because certification only sees half the labelled rows, roughly twice as many are needed to reach the same sample-size floor as an unsplit line. fixed-sequence (default, B86) does not split the rows: candidate thresholds come from the readings alone (the upper side's j-th candidate is the lower edge of the n_needed + j*s highest readings, ties widened to the group edge, taking the group value and the midpoint to the next value; the lower side mirrors it; s = --step, default 5% of the rows, at least 1), they are tested from strictest to widest with the Clopper-Pearson bound, testing stops at the first failure, and the pair with the most decided rows is taken from the two passing prefixes; the family error per side stays at most --conf-delta, the same level as split certification, without spending half the rows. (Choosing the widest passing threshold on the same rows without this order is not proven; on nested threshold families its measured inflation is only about twofold, so most of what the split's discarded half bought was a guarantee with a proof, not protection from gross overfitting — the fixed order gives the proof for free.) The certificate records the method, the candidate rule version, s, delta, how many candidates each side generated and where it stopped, so a later load can rerun it from the labels. split (B85) is the older split-sample method, now with a stratified alternating split: in canonical order the negative rows and the positive rows each alternate between the selection half and the certification half, --seed only picks where each segment starts (per source for class rows); a pair is chosen on one half and certified once on the other. sequential (B87) lets you label in batches and import as you go (label, import, and stop when it is enough): rows arrive in --batch sized batches, every candidate threshold keeps a mixture e-process (alternatives 0, alpha/4, alpha/2, 3alpha/4 weighted by --mix-weights), a candidate is rejected once its e-value reaches 1/--conf-delta, which stays valid under any stopping time; by default it stops where labelling more could not widen the line (settled; the pair is never wider than fixed-sequence's, and a zero-error side needs 24 rows at alpha 0.1, 10 at 0.25), or at the narrowest legal pair whose coverage of the sampled readings reaches --coverage-target; if it has not stopped the gate reports how many rows are labelled, each side's e-value, the current and reachable coverage and roughly how many more zero-error rows are needed. The arrival order is random (a seeded permutation, --order random) unless the rows come from a to-label list. --from-ledger <ledger> --key <key> --list-out <list> writes that list (B88) from a first run's ledger: every reading of that key is the sampling frame, rows are grouped from both ends inward (group upper1, lower1, upper2, ..., rest; random within a group, seeded), and each row carries only item (the material's state hash), q (the question's hash: one material can be asked several questions, B107), group and, with --materials, the material text, with --report <report.json> (the run's report) the question's template and fill - never the reading or an exit, so the labeller cannot lean on the judge; a key asked with more than one question and no --report warns W-list-no-question. Importing labels with --from-ledger joins each row's reading back from the ledger by (item, q) (a row without q whose item has more than one reading under that key is rejected with E-list-ambiguous), and with --report takes the question kind from the report (B120), defaults to --certify sequential with the two-ends order, and requires the labelled rows to be a prefix of the list; with that order only the first group's candidates are judged on partial labels, a wider candidate is judged only once all of its rows are labelled. A sequential import must give all labelled rows of the key at once (import the cumulative file each time, without --calib). truth per item is taken in the order computed > human > review row > annotation row (B36; a review row is any row carrying spot_check, human or model:<name>; a review from the same source as that item's annotation or from the material generator is rejected); model-only truth is certified only when a same-key review batch reaches --spot-check-min, and the gate names model reviewers: the point estimate below it keeps the record pending; a point estimate at or above it whose one-sided --spot-check-conf lower bound is still below it certifies the line provisionally (gate \"临时上岗\", W-provisional at use) and reports how many more all-agreeing checks would confirm it. When review disagreements reach --extent-min-disagree and their direction agrees at --extent-same-dir or higher (or, with fill_tier on the rows, --extent-same-tier or more fall in one fill tier), the question's scope is judged undetermined (B36 5(c)): the record stays pending with the reason in the gate and no further review is requested; rewrite the question first. select and measure rows (B63) add op select|measure (or use a form with that op), p = the winning candidate's or level's probability, pick = the reading's argmax index, and label = the true candidate index (over order) or level index (scale order); they are certified one-sided on p_max (Pick/At only when p_max >= hi + delta; there is no low side). Two certification grades (B72): the key is first certified at --alpha (formal grade); only if that fails (certification refused or too few rows) is it certified again at --alpha-trial (default 0.25; a value not above --alpha disables it), and the certificate is marked trial. A trial line routes act/ignore like any line but reports W-trial-line and never releases an irreversible action; a trial import never overwrites a key that already holds a certified formal line. When model labels supply the truth (B89) the certificate records alpha_eff, the false-release bound relative to the reviewer: alpha when review rows cover every certified row in the decided region, alpha + (1 - a_lb) when the reviewed rows inside the decided region give the one-sided agreement lower bound a_lb, alpha + (1 - a_lb)/c for older records whose review batch was not drawn from that region (c = the share of certified rows in it); a line whose alpha_eff exceeds its alpha is graded trial (routes, never releases an irreversible action), and the record names its truth baseline (model:<reviewer> or human). To put model labels on a formal line, have the review cover the certification set. Review rows (rows with spot_check) must not carry p, pick, exit or reading - the reviewer may not see the judge's answer - and are rejected with E-review-leak; their reading is joined from the same item's annotation row. Sample size (fixed-sequence; each side's first candidate needs 22 zero-error decided rows at alpha 0.1 and 9 at alpha 0.25): a formal line (may release an irreversible do) needs about 60 labelled rows for a literal question form and about 60–80 for a semantic one — a form whose scope is undetermined should be rewritten before labelling; a trial line (routes only) needs about 32 rows, about 40 for a form whose readings are spread out. --certify split needs about 2–3 times as many. Measured offline: 地基/评估/2026-09-24-新题标注门槛-对照/results.md and 裁定复算/recompute.out.txt. When every certified row carries text (the judged material), the record stores a material fingerprint of the certification set (B68: character count, Chinese / Latin / digit / punctuation-and-space ratios, line count, mean line length, each as a --scope-quantiles interval widened by --scope-margins k,m: count-like quantities are divided/multiplied by k, ratios are widened by m and clipped to [0, 1]; the import prints how many certification rows fall outside their own range, which must be 0, else W-scope-self); at run time a line used on material outside that range still routes but reports W-calib-scope and cannot release an irreversible action. --extend-scope <key> (B91) extends that range to a new material style: label rows of the new style (p, label, text on every row) test the record's existing line pair once per side, without choosing a new line; each side needs as many zero-error decided rows as certification does (22 formal, 9 trial) and a binomial bound at most alpha, first at the record's alpha, else at --alpha-trial. If it passes, the batch's fingerprint is added to the record's scope.extensions; exits on material in an extension no longer count as out of scope, and a trial-level extension grades them Trial (W-scope-extension). A 10-row review never clears out-of-scope. Re-importing the key replaces the line and drops its extensions. A record without a fingerprint has an unknown scope (B104): its exits still route but never release an irreversible action (W-scope-unknown); when only some certified rows carry text, the fingerprint is built from those rows and the record notes how many (n_text). A certificate whose line was shifted by the certification bandwidth but that did not record it (an old split-sample certificate) likewise routes but never releases (W-delta-unknown) until it is re-imported or a later load reruns it. A row with class <label> (B34) goes to the class record of that calibration class instead of its own key; the sample's source is the row's form (its form hash), else the hash of its question text (a hand-written question), else its key — different fills of one form are one source (B75). A class record is certified only when the batch mixes at least --class-min-sources distinct sources and each source has at least the grade's zero-error row count (22 formal, 9 trial); under --certify split the halves are also stratified by source, and the record lists its sources (else it stays pending with the reason in the gate). At run time a question whose own key and form have no certified line borrows the class line of the key it was written with (W-class-line); a class line routes but does not release an irreversible action (B75). calib-confirm is the human confirmation of a suspension candidate (B25): a drift signal marks a certified line as a candidate (its exits still route but cannot release an irreversible action), --calib-out writes the candidate status, and --suspend or --keep settles it.";
+          [--backend fixed|live|stub] [--model <name>] [--profiles-dir <dir>]\n          [--gen-model <m>] [--gen-profile <file>] [--gen-cache <file.jsonl>]\n  jpp calib-import <labels.jsonl> --calib-out <calib-dir> [--calib <calib-dir>] [--profile <profile.json>]\n          [--alpha 0.1] [--conf-delta 0.1] [--spot-check-min 0.9] [--spot-check-conf 0.95] [--abstain-warn 0.1] [--seed 20260923]\n          [--extent-min-disagree 3] [--extent-same-dir 0.8] [--extent-same-tier 0.667] [--scope-quantiles 0.01,0.99] [--scope-margins 2,0.10] [--class-min-sources 2] [--alpha-trial 0.25]\n          [--certify fixed-sequence|split|sequential] [--step <n>] [--cost fp,fn]\n          [--batch 10] [--order random|two-ends] [--coverage-target <tau>] [--mix-weights 0.8,0.1,0.05,0.05] [--from-ledger <ledger>]\n  jpp calib-import --from-ledger <ledger.jsonl> --key <key> --list-out <list.jsonl> [--materials <texts.json>] [--report <report.json>] [--seed <n>]\n  jpp calib-import <labels.jsonl> --calib <calib-dir> --extend-scope <key> --calib-out <calib-dir> [--alpha-trial 0.25] [--scope-quantiles 0.01,0.99] [--scope-margins 2,0.10]
+  jpp calib-confirm <calib-dir> <key> --suspend|--keep\n  jpp ledger-migrate <v2-ledger> <v3-out>\n\nLeading relative imports load source libraries. --json makes diagnostics machine-readable, one JSON object each: {code, level, span {file, line, col, start, end}, message, fix, applicability manual|wiring|null, count}, plus explain for runtime codes E-rt-<name>; check --json prints one document {file, ok, errors, warnings, diagnostics} on stdout, run --json writes diagnostics as JSON lines (each starting with {) on stderr and leaves the report unchanged. Diagnostics with the same code, location and message are folded into one with a count (text output appends （同码同址 ×N）). --input binds the JSON file's value to the name input in the program (a host binding outside the program's outermost block; a program's own let input shadows it); its content is untrusted by default (every leaf, as for read_json), and the hash of the whole entry (name, canonical JSON and declared taint) goes into the ledger header as entry_hash, so a replay or resume must be given the same --input (a different one reports W-header: entry_hash). --input-trusted declares that file's content trusted (B108; requires --input, else a usage error); it only says the file comes from a source the host trusts, not that its content is correct, and it goes into entry_hash like any other declared taint, so replaying with a different --input-trusted state reports W-header: entry_hash. --release-on-declared (run and check; B128) is the host accepting author-declared lines, cut(r, {declare: {hi, lo?}}) with or without stat: their exits may then release irreversible do. It means \"I take responsibility for these lines\", not \"these lines are right\"; without it a declared-line exit routes but never releases an irreversible do, and check reports J-08 where every guard of such a do certainly comes from declared lines. It goes into entry_hash (only when given, so hashes without it are unchanged) and the report carries accept: {declared_lines: true}; replaying or resuming with a different state reports W-header: entry_hash. check accepts --input, --input-trusted and --release-on-declared only to know that input is bound, how it is declared and whether declared lines are accepted. check --questions-out <file.json> writes the program's literal questions (test, select and measure whose question text, label and declarations are literals), grouped by calibration label, each with its zero-slot form hash, for migrating label-named calibration records (B116); it is written once the program lowers, even if the check then reports errors, and calls whose parts are not literals are listed as skipped with a reason. Material entries and purpose are given only through Session (the Rust API). Run defaults to fixed generation/judgment/response records; no model API requests are made. --backend live switches to the real JEV backend (JevClient::live), reading the API key only from ~/.typesafe-key (never logged or written to any report); it requires jpp to be built with `--features live` and is mutually exclusive with --fixtures. --backend stub is a deterministic stand-in judge (model stub-0) for checking that a program runs unchanged on a second judge: its readings come from a hash of the state and the question, it makes no requests, does not generate, and needs a profile like any backend (the repository keeps a stand-in profile at tests/profile_swap/stub-0.json; it is not a measurement). --model names the model for --backend live (default jev-1.13.0). --gen-model <m> (with --backend live|stub, jpp built with --features live; not with --fixtures or --replay) replaces the placeholder gen port with the claude -p generator (claude -p --model <m>): each gen call runs one subprocess in a worker pool (submit returns at once, poll checks completion; pool size from the generator profile's gen.concurrency, default 4) and its reply must be a JSON array of exactly n items; a timeout, a non-zero exit, a malformed or an empty reply becomes a Fail value recorded in the ledger, and generated materials are untrusted unless the generator profile says gen.taint_out trusted. The generator profile (gen-claude-p.json) is found like the judge profile: --gen-profile <file>, else --profiles-dir <dir>, else profiles/ next to the executable; its hash is printed and reported as gen_backend. A gen call is registered and sent with its layer at the next refresh point (together with pending judgments; the generator runs while the program goes on); the result is waited for only where it is first read (the same inspection points as a lazy cut), so several independent gen calls run at once and judgments in the same layer overlap with generation; ledger entries are written per layer in registration order, never completion order, and a gen that never reaches a refresh point is not sent. --gen-cache <file.jsonl> (with --gen-model) reuses generations across runs: a gen call whose ledger key (site, prompt, context hashes, n, retry_seq) and generator model match a cached entry is not sent again (cost 0, counted as replayed, still written to this run's ledger); new successful generations are appended to the file, failures are not cached, and the report gains gen_cache {path, hits, stored}. The site-based key is transitional until step 19. Registered actions: {actions}. --profile loads a model profile (lines, deltas, windows, prices, class-assumption fields). A live run (first run or --resume) must have a profile (B73): --profile <file>, else --profiles-dir <dir>/<model>.json, else profiles/<model>.json next to the jpp executable (releases ship profiles/); if none is found the run stops with E-profile-missing listing the paths tried, and never falls back to code defaults. The profile hash goes into the ledger header, and the price comes only from the profile's cost field (no price: cost is reported as Unknown with W-cost-unknown). Replay makes no requests. A certificate records the delta it was certified with (B104): cut uses the stricter of that delta and the run-time delta when a profile is loaded, and the certificate's delta when none is, so a line is never widened by a delta mismatch; either way a mismatch reports W-delta-mismatch. To reproduce a live run byte for byte, replay with the same profile. A fixed-observation run without a profile still runs until step 15d and always prints that no profile is loaded and lines and deltas are code defaults. --calib loads calibration records from a directory of per-key JSON files. --calib-out folds this run's readings into those records and writes them back, which is the only way the calibration loop closes: J-03 forbids a program from writing a line itself. File paths use the working directory. Resume performs only actions that have no intent record; replay rejects unrecorded actions. Before an irreversible action runs, an intent record is written to the --ledger-out ledger and flushed to disk, and its result is flushed right after it returns; other entries are flushed at the end of each layer. If a run stops after the intent but before the result (for example the process is killed), --resume does not perform that action again: the program gets a failure value marked unknown_outcome (judged as unsure(fail)) and W-unknown-outcome, unless the profile declares the action idempotent. A run or resume of a program with an irreversible do (a do whose action name is not a literal counts) must give --ledger-out, otherwise it stops before any effect with E-ledger-required; replay does not need it. Replay restores the calibration records the ledger recorded as used when they are not supplied again. Ledgers are format v3 (the calibration records a run used are CalibUsed entries, the last one per key counts); a v2 ledger is migrated in memory when read (a note is printed, the file is not rewritten), and ledger-migrate rewrites it as v3. calib-import is the truth channel: it folds labelled readings (JSONL: key or form, item, p, label true|false|\"ambiguous\", source human|computed|model:<name>, optional spot_check review-batch id, optional generator, optional q and fill, optional kind or slot_shape one|pair with over_kind; conflicting kinds on one key are rejected with E-kind-conflict) into calibration records and certifies them two-sided. --certify picks the method (new imports only; existing records are left as they are). --cost fp,fn (B129) certifies a cost line instead: the labelled rows are split in half (B85 stratified alternating split, same as split; --seed picks where each segment starts), the line minimizes fp × false releases + fn × missed releases on the selection half, and the certificate checks that line against --alpha (then --alpha-trial) on the certification half only, not the rows used to pick it; it takes test rows only, is one-sided (below the line exits are unsure(band), not ignore), cannot be combined with --certify, --order, --step, --batch, --coverage-target, --mix-weights, --extend-scope or --list-out, and is refused on a key that already holds a certificate not made from a cost; cut(r, {cost: [fp, fn]}) uses exactly that certificate. Because certification only sees half the labelled rows, roughly twice as many are needed to reach the same sample-size floor as an unsplit line. fixed-sequence (default, B86) does not split the rows: candidate thresholds come from the readings alone (the upper side's j-th candidate is the lower edge of the n_needed + j*s highest readings, ties widened to the group edge, taking the group value and the midpoint to the next value; the lower side mirrors it; s = --step, default 5% of the rows, at least 1), they are tested from strictest to widest with the Clopper-Pearson bound, testing stops at the first failure, and the pair with the most decided rows is taken from the two passing prefixes; the family error per side stays at most --conf-delta, the same level as split certification, without spending half the rows. (Choosing the widest passing threshold on the same rows without this order is not proven; on nested threshold families its measured inflation is only about twofold, so most of what the split's discarded half bought was a guarantee with a proof, not protection from gross overfitting — the fixed order gives the proof for free.) The certificate records the method, the candidate rule version, s, delta, how many candidates each side generated and where it stopped, so a later load can rerun it from the labels. split (B85) is the older split-sample method, now with a stratified alternating split: in canonical order the negative rows and the positive rows each alternate between the selection half and the certification half, --seed only picks where each segment starts (per source for class rows); a pair is chosen on one half and certified once on the other. sequential (B87) lets you label in batches and import as you go (label, import, and stop when it is enough): rows arrive in --batch sized batches, every candidate threshold keeps a mixture e-process (alternatives 0, alpha/4, alpha/2, 3alpha/4 weighted by --mix-weights), a candidate is rejected once its e-value reaches 1/--conf-delta, which stays valid under any stopping time; by default it stops where labelling more could not widen the line (settled; the pair is never wider than fixed-sequence's, and a zero-error side needs 24 rows at alpha 0.1, 10 at 0.25), or at the narrowest legal pair whose coverage of the sampled readings reaches --coverage-target; if it has not stopped the gate reports how many rows are labelled, each side's e-value, the current and reachable coverage and roughly how many more zero-error rows are needed. The arrival order is random (a seeded permutation, --order random) unless the rows come from a to-label list. --from-ledger <ledger> --key <key> --list-out <list> writes that list (B88) from a first run's ledger: every reading of that key is the sampling frame, rows are grouped from both ends inward (group upper1, lower1, upper2, ..., rest; random within a group, seeded), and each row carries only item (the material's state hash), q (the question's hash: one material can be asked several questions, B107), group and, with --materials, the material text, with --report <report.json> (the run's report) the question's template and fill - never the reading or an exit, so the labeller cannot lean on the judge; a key asked with more than one question and no --report warns W-list-no-question. Importing labels with --from-ledger joins each row's reading back from the ledger by (item, q) (a row without q whose item has more than one reading under that key is rejected with E-list-ambiguous), and with --report takes the question kind from the report (B120), defaults to --certify sequential with the two-ends order, and requires the labelled rows to be a prefix of the list; with that order only the first group's candidates are judged on partial labels, a wider candidate is judged only once all of its rows are labelled. A sequential import must give all labelled rows of the key at once (import the cumulative file each time, without --calib). truth per item is taken in the order computed > human > review row > annotation row (B36; a review row is any row carrying spot_check, human or model:<name>; a review from the same source as that item's annotation or from the material generator is rejected); model-only truth is certified only when a same-key review batch reaches --spot-check-min, and the gate names model reviewers: the point estimate below it keeps the record pending; a point estimate at or above it whose one-sided --spot-check-conf lower bound is still below it certifies the line provisionally (gate \"临时上岗\", W-provisional at use) and reports how many more all-agreeing checks would confirm it. When review disagreements reach --extent-min-disagree and their direction agrees at --extent-same-dir or higher (or, with fill_tier on the rows, --extent-same-tier or more fall in one fill tier), the question's scope is judged undetermined (B36 5(c)): the record stays pending with the reason in the gate and no further review is requested; rewrite the question first. select and measure rows (B63) add op select|measure (or use a form with that op), p = the winning candidate's or level's probability, pick = the reading's argmax index, and label = the true candidate index (over order) or level index (scale order); they are certified one-sided on p_max (Pick/At only when p_max >= hi + delta; there is no low side). Two certification grades (B72): the key is first certified at --alpha (formal grade); only if that fails (certification refused or too few rows) is it certified again at --alpha-trial (default 0.25; a value not above --alpha disables it), and the certificate is marked trial. A trial line routes act/ignore like any line but reports W-trial-line and never releases an irreversible action; a trial import never overwrites a key that already holds a certified formal line. When model labels supply the truth (B89) the certificate records alpha_eff, the false-release bound relative to the reviewer: alpha when review rows cover every certified row in the decided region, alpha + (1 - a_lb) when the reviewed rows inside the decided region give the one-sided agreement lower bound a_lb, alpha + (1 - a_lb)/c for older records whose review batch was not drawn from that region (c = the share of certified rows in it); a line whose alpha_eff exceeds its alpha is graded trial (routes, never releases an irreversible action), and the record names its truth baseline (model:<reviewer> or human). To put model labels on a formal line, have the review cover the certification set. Review rows (rows with spot_check) must not carry p, pick, exit or reading - the reviewer may not see the judge's answer - and are rejected with E-review-leak; their reading is joined from the same item's annotation row. Sample size (fixed-sequence; each side's first candidate needs 22 zero-error decided rows at alpha 0.1 and 9 at alpha 0.25): a formal line (may release an irreversible do) needs about 60 labelled rows for a literal question form and about 60–80 for a semantic one — a form whose scope is undetermined should be rewritten before labelling; a trial line (routes only) needs about 32 rows, about 40 for a form whose readings are spread out. --certify split needs about 2–3 times as many. Measured offline: 地基/评估/2026-09-24-新题标注门槛-对照/results.md and 裁定复算/recompute.out.txt. When every certified row carries text (the judged material), the record stores a material fingerprint of the certification set (B68: character count, Chinese / Latin / digit / punctuation-and-space ratios, line count, mean line length, each as a --scope-quantiles interval widened by --scope-margins k,m: count-like quantities are divided/multiplied by k, ratios are widened by m and clipped to [0, 1]; the import prints how many certification rows fall outside their own range, which must be 0, else W-scope-self); at run time a line used on material outside that range still routes but reports W-calib-scope and cannot release an irreversible action. --extend-scope <key> (B91) extends that range to a new material style: label rows of the new style (p, label, text on every row) test the record's existing line pair once per side, without choosing a new line; each side needs as many zero-error decided rows as certification does (22 formal, 9 trial) and a binomial bound at most alpha, first at the record's alpha, else at --alpha-trial. If it passes, the batch's fingerprint is added to the record's scope.extensions; exits on material in an extension no longer count as out of scope, and a trial-level extension grades them Trial (W-scope-extension). A 10-row review never clears out-of-scope. Re-importing the key replaces the line and drops its extensions. A record without a fingerprint has an unknown scope (B104): its exits still route but never release an irreversible action (W-scope-unknown); when only some certified rows carry text, the fingerprint is built from those rows and the record notes how many (n_text). A certificate whose line was shifted by the certification bandwidth but that did not record it (an old split-sample certificate) likewise routes but never releases (W-delta-unknown) until it is re-imported or a later load reruns it. A row with class <label> (B34) goes to the class record of that calibration class instead of its own key; the sample's source is the row's form (its form hash), else the hash of its question text (a hand-written question), else its key — different fills of one form are one source (B75). A class record is certified only when the batch mixes at least --class-min-sources distinct sources and each source has at least the grade's zero-error row count (22 formal, 9 trial); under --certify split the halves are also stratified by source, and the record lists its sources (else it stays pending with the reason in the gate). At run time a question whose own key and form have no certified line borrows the class line of the key it was written with (W-class-line); a class line routes but does not release an irreversible action (B75). calib-confirm is the human confirmation of a suspension candidate (B25): a drift signal marks a certified line as a candidate (its exits still route but cannot release an irreversible action), --calib-out writes the candidate status, and --suspend or --keep settles it.";
 
 /// 帮助文本：[`HELP`] 模板里的 `{actions}` 填入动作表的清单（比赛块 C-1：动作清单与注册同源）。
 pub fn help() -> String {
@@ -24,6 +24,8 @@ pub enum Command {
         input: Option<PathBuf>,
         /// 宿主声明 `--input` 可信（步 14b-1，B108）：只在给了 `input` 时有意义
         input_trusted: bool,
+        /// 宿主接受作者声明线放行（步 20j-2，B128）：J-08 静态子面据此不把声明线出口当作不放行
+        release_on_declared: bool,
     },
     Run(RunOptions),
     CalibImport(ImportArgs),
@@ -373,6 +375,14 @@ pub struct RunOptions {
     pub input: Option<PathBuf>,
     /// 宿主声明 `--input` 可信（步 14b-1，B108）：只在 `input` 给了时有意义
     pub input_trusted: bool,
+    /// 宿主接受作者声明线放行不可逆动作（步 20j-2，B128；`--release-on-declared`）：进 `entry_hash`，报告 `accept`
+    pub release_on_declared: bool,
+    /// 生成器模型（步 15h-1，B149）：给了就把 `gen` 实例换成生成器端口（`claude -p --model <m>`）
+    pub gen_model: Option<String>,
+    /// 生成器画像文件（B149；没给时按 `--profiles-dir` 或可执行文件旁 `profiles/` 找）
+    pub gen_profile: Option<PathBuf>,
+    /// 生成缓存文件（步 15h-2，B151 过渡）：同账本键、同生成器模型的 `gen` 从这里取，不再调用
+    pub gen_cache: Option<PathBuf>,
 }
 
 /// 取出 `--json`（步 9a）：只有 `check` 与 `run` 收它，出现一次；其余参数原样交给 [`parse`]。
@@ -481,16 +491,32 @@ pub fn parse(args: &[String]) -> Result<Command, String> {
         };
     }
     if verb == "check" {
-        return match &args[2..] {
+        // 步 20j-2（B128）：`--release-on-declared` 可在任意位置，先取出，余下的按原有形状匹配
+        let 接受次数 = args[2..]
+            .iter()
+            .filter(|a| *a == "--release-on-declared")
+            .count();
+        if 接受次数 > 1 {
+            return Err("--release-on-declared was supplied twice".into());
+        }
+        let rest: Vec<String> = args[2..]
+            .iter()
+            .filter(|a| *a != "--release-on-declared")
+            .cloned()
+            .collect();
+        let release_on_declared = 接受次数 == 1;
+        return match rest.as_slice() {
             [] => Ok(Command::Check {
                 source: source.into(),
                 input: None,
                 input_trusted: false,
+                release_on_declared,
             }),
             [flag, path] if flag == "--input" && !path.starts_with("--") => Ok(Command::Check {
                 source: source.into(),
                 input: Some(path.into()),
                 input_trusted: false,
+                release_on_declared,
             }),
             [flag, path, trusted]
                 if flag == "--input" && !path.starts_with("--") && trusted == "--input-trusted" =>
@@ -499,13 +525,14 @@ pub fn parse(args: &[String]) -> Result<Command, String> {
                     source: source.into(),
                     input: Some(path.into()),
                     input_trusted: true,
+                    release_on_declared,
                 })
             }
             [trusted] if trusted == "--input-trusted" => {
                 Err("check --input-trusted requires --input <file.json>".into())
             }
             _ => Err(
-                "check accepts only a source file, --input <file.json> and --input-trusted".into(),
+                "check accepts only a source file, --input <file.json>, --input-trusted and --release-on-declared".into(),
             ),
         };
     }
@@ -524,6 +551,10 @@ pub fn parse(args: &[String]) -> Result<Command, String> {
         profiles_dir: None,
         input: None,
         input_trusted: false,
+        release_on_declared: false,
+        gen_model: None,
+        gen_profile: None,
+        gen_cache: None,
     };
     let mut backend_set = false;
     let mut i = 2;
@@ -568,11 +599,30 @@ pub fn parse(args: &[String]) -> Result<Command, String> {
                 options.model = Some(value.clone());
                 i += 2;
             }
+            "--gen-model" => {
+                if options.gen_model.is_some() {
+                    return Err("--gen-model was supplied twice".into());
+                }
+                let value = args
+                    .get(i + 1)
+                    .filter(|s| !s.starts_with("--"))
+                    .ok_or_else(|| "--gen-model requires a value (e.g. sonnet)".to_string())?;
+                options.gen_model = Some(value.clone());
+                i += 2;
+            }
             "--input-trusted" => {
                 if options.input_trusted {
                     return Err("--input-trusted was supplied twice".into());
                 }
                 options.input_trusted = true;
+                i += 1;
+            }
+            // 步 20j-2（B128）：宿主接受作者声明线放行；不要求 `--input`
+            "--release-on-declared" => {
+                if options.release_on_declared {
+                    return Err("--release-on-declared was supplied twice".into());
+                }
+                options.release_on_declared = true;
                 i += 1;
             }
             _ => {
@@ -587,6 +637,8 @@ pub fn parse(args: &[String]) -> Result<Command, String> {
                     "--calib-out" => &mut options.calib_out,
                     "--profiles-dir" => &mut options.profiles_dir,
                     "--input" => &mut options.input,
+                    "--gen-profile" => &mut options.gen_profile,
+                    "--gen-cache" => &mut options.gen_cache,
                     other => return Err(format!("unknown run option '{other}'")),
                 };
                 if target.is_some() {
@@ -638,7 +690,43 @@ pub fn parse(args: &[String]) -> Result<Command, String> {
             jpp::backends::names()
         ));
     }
+    check_gen(&options)?;
     Ok(Command::Run(options))
+}
+
+/// `--gen-model` / `--gen-profile` 的组合规则（步 15h-1，B149）：生成器端口只在注册后端的首跑与续接里
+/// 替换 `gen` 实例；夹具自带生成、重放不调用；启用开关与 `--backend live` 同在 feature `live` 下。
+fn check_gen(options: &RunOptions) -> Result<(), String> {
+    if options.gen_profile.is_some() && options.gen_model.is_none() {
+        return Err("--gen-profile requires --gen-model".into());
+    }
+    if options.gen_cache.is_some() && options.gen_model.is_none() {
+        return Err("--gen-cache requires --gen-model".into());
+    }
+    if options.gen_model.is_none() {
+        return Ok(());
+    }
+    if options.fixtures.is_some() {
+        return Err(
+            "--gen-model and --fixtures are mutually exclusive (fixtures supply generations)"
+                .into(),
+        );
+    }
+    if options.replay.is_some() {
+        return Err(
+            "--gen-model and --replay are mutually exclusive (replay makes no requests)".into(),
+        );
+    }
+    if options.backend == Backend::Fixed {
+        return Err(format!(
+            "--gen-model requires --backend {}",
+            jpp::backends::names()
+        ));
+    }
+    if !cfg!(feature = "live") {
+        return Err("--gen-model requires jpp built with --features live".into());
+    }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -743,6 +831,7 @@ mod tests {
                 source: "a.jpp".into(),
                 input: Some("m.json".into()),
                 input_trusted: false,
+                release_on_declared: false,
             }
         );
         for argv in [
@@ -752,6 +841,59 @@ mod tests {
             vec!["check", "a.jpp", "--fixtures", "f.json"],
         ] {
             assert!(parse(&args(&argv)).is_err(), "{argv:?}");
+        }
+    }
+
+    /// 步 15h-1 (h)：`--gen-model` 的组合规则。
+    #[test]
+    fn gen_model_组合规则() {
+        // 步 15h-1 (h)：夹具自带生成、重放不调用、固定观察没有注册后端；非 live 构建不收
+        let err = |xs: &[&str]| parse(&args(xs)).unwrap_err();
+        assert!(
+            err(&[
+                "run",
+                "a.jpp",
+                "--backend",
+                "live",
+                "--gen-model",
+                "sonnet",
+                "--fixtures",
+                "f.json"
+            ])
+            .contains("--fixtures")
+        );
+        assert!(
+            err(&[
+                "run",
+                "a.jpp",
+                "--backend",
+                "live",
+                "--gen-model",
+                "sonnet",
+                "--replay",
+                "l.json"
+            ])
+            .contains("--replay")
+        );
+        assert!(err(&["run", "a.jpp", "--gen-model", "sonnet"]).contains("--backend"));
+        assert!(err(&["run", "a.jpp", "--gen-profile", "g.json"]).contains("--gen-model"));
+        // 步 15h-2：--gen-cache 须配 --gen-model
+        assert!(err(&["run", "a.jpp", "--gen-cache", "c.jsonl"]).contains("--gen-model"));
+        let live = parse(&args(&[
+            "run",
+            "a.jpp",
+            "--backend",
+            "live",
+            "--gen-model",
+            "sonnet",
+        ]));
+        if cfg!(feature = "live") {
+            let Ok(Command::Run(run)) = live else {
+                panic!("live 构建应当接受 --gen-model")
+            };
+            assert_eq!(run.gen_model.as_deref(), Some("sonnet"));
+        } else {
+            assert!(live.unwrap_err().contains("--features live"));
         }
     }
 
@@ -782,6 +924,7 @@ mod tests {
                 source: "a.jpp".into(),
                 input: Some("m.json".into()),
                 input_trusted: true,
+                release_on_declared: false,
             }
         );
         for argv in [
@@ -794,6 +937,62 @@ mod tests {
                 "m.json",
                 "--input-trusted",
                 "--input-trusted",
+            ],
+        ] {
+            assert!(parse(&args(&argv)).is_err(), "{argv:?}");
+        }
+    }
+
+    /// 步 20j-2（B128）：`--release-on-declared` 在 `run`/`check` 都收、不要求 `--input`、位置不限，重复报错
+    #[test]
+    fn release_on_declared_is_accepted_by_run_and_check() {
+        let Command::Run(run) = parse(&args(&["run", "a.jpp", "--release-on-declared"])).unwrap()
+        else {
+            panic!("run")
+        };
+        assert!(run.release_on_declared && run.input.is_none());
+        let Command::Run(run) = parse(&args(&["run", "a.jpp"])).unwrap() else {
+            panic!("run")
+        };
+        assert!(!run.release_on_declared);
+        assert_eq!(
+            parse(&args(&["check", "a.jpp", "--release-on-declared"])).unwrap(),
+            Command::Check {
+                source: "a.jpp".into(),
+                input: None,
+                input_trusted: false,
+                release_on_declared: true,
+            }
+        );
+        assert_eq!(
+            parse(&args(&[
+                "check",
+                "a.jpp",
+                "--release-on-declared",
+                "--input",
+                "m.json",
+                "--input-trusted"
+            ]))
+            .unwrap(),
+            Command::Check {
+                source: "a.jpp".into(),
+                input: Some("m.json".into()),
+                input_trusted: true,
+                release_on_declared: true,
+            }
+        );
+        for argv in [
+            vec![
+                "run",
+                "a.jpp",
+                "--release-on-declared",
+                "--release-on-declared",
+            ],
+            vec![
+                "check",
+                "a.jpp",
+                "--release-on-declared",
+                "--release-on-declared",
             ],
         ] {
             assert!(parse(&args(&argv)).is_err(), "{argv:?}");

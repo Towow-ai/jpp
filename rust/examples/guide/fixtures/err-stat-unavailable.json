@@ -1,0 +1,8 @@
+{
+  "description": "触发 E-stat-unavailable：画像未声明 reports_confidence 时用 stat: confidence。",
+  "calibrations": [],
+  "observations": [
+    {"on": ["样例工单"], "over": ["前端", "后端"], "op": "select", "text": "这段工单最可能归哪个组处理？",
+     "calib": "ticket-owner", "answer": {"Choice": [0.6, 0.4]}}
+  ]
+}

@@ -537,6 +537,12 @@ pub fn agreement_lower(agree: u64, n: u64, conf: f64) -> f64 {
 /// 复核下界缺置信时的缺省（B19 修正：单侧 95%）
 pub const REVIEW_CONF_DEFAULT: f64 = 0.95;
 
+/// B161（步 25d）：联合界里按 1 计的分量取的值（无证书、夹具、类线、冷、范围外）；联合界本身也在这里封顶——
+/// 它是概率上界 P(结果错) ≤ min(1, Σ α_i)。
+pub const ALPHA_UNKNOWN: f64 = 1.0;
+/// B161：`ask` 出口计入联合界的 α——人答即真值（B31）。
+pub const ALPHA_HUMAN: f64 = 0.0;
+
 /// B89 并集界：复核批次落在已决区 A 内时 `α + (1 − a_lb(A))`；不是从 A 抽的（旧记录）时
 /// `α + (1 − a_lb) / c`，c 为认证集在 A 内的占比。`c = 0` 或没有复核时为 1（不放行）。
 pub fn alpha_eff(alpha: f64, a_lb: f64, c: Option<f64>) -> f64 {
@@ -616,4 +622,172 @@ pub fn decided_up(p: f64, hi: f64, delta: f64) -> bool {
 /// 读数落在下侧已决区：`p ≤ l`，`l = lo − δ`（按容差比较）。
 pub fn decided_down(p: f64, lo: f64, delta: f64) -> bool {
     p <= lo - delta + BOUNDARY_EPS
+}
+
+/// 作者声明线 `evidence.near_line` 的半宽（B128；`20` v2 §4.4 第 9 条「本趟该键读数落在线 ±0.2 内的条数与占比」）。
+/// 语言级的报告口径，不是判断器性质（读数抖动是画像的 δ，不在这里）；`stat` 线按该统计量自己的单位计（`expect`
+/// 为档位，步 20j-3）。原在 `jpp-runtime/src/bridge.rs`，基线刷新 2026-09-26 挪入常量表（`grep_constants.口径.md`）。
+pub const NEAR_LINE_WINDOW: f64 = 0.2;
+
+/// 作者声明线的 δ：按写的数切，线附近不留 ±δ 的带（B128「不平移 δ」）。认证线的 δ 只从校准记录取（步 15d-2），
+/// 声明线没有记录，这里是语言规定的 0，不是判断器性质。声明分支判序、`past_declared` 与 `evidence.errors_at_line`
+/// 共用它（原为三处裸 `0.0`，基线刷新 2026-09-26 收进常量表）。
+pub const DECLARED_DELTA: f64 = 0.0;
+
+/// 声明线开端（B165 (4)）：`s` 严格越过上线，`s > hi + ε`。闭端仍用 [`decided_up`]（认证共用，不改）。
+pub fn beyond_up(s: f64, hi: f64) -> bool {
+    s > hi + BOUNDARY_EPS
+}
+
+/// 声明线开端（B165 (4)）：`s` 严格越过下线，`s < lo − ε`。
+pub fn beyond_down(s: f64, lo: f64) -> bool {
+    s < lo - BOUNDARY_EPS
+}
+
+// ---------------------------------------------------------------- 读数的统计量（B153、B154、B167；步 20j-3）
+
+/// 线切在（或排序按）读数的哪个统计量上。`cut`、`order`、声明式拟合共用这一个枚举（B167 (1)）。
+#[derive(Clone, Debug, Default, PartialEq)]
+pub enum Stat {
+    /// `test` 的 p；K 元题的 p_max（缺省，现状）
+    #[default]
+    Max,
+    /// 胜出单元的下标（有序划分即档位）；`cut` 不在它上面划线，`order` 用
+    Argmax,
+    /// 有序划分的期望档位 Σ ℓ·p_ℓ（`measure` 专用）
+    Expect,
+    /// 声明的单元并集的概率和（K 元题专用）；下标去重升序
+    Mass(Vec<usize>),
+    /// 判断器随答案自报的置信度（B154；须画像 H9）
+    Confidence,
+}
+
+impl Stat {
+    /// 报告与告警里的名字
+    pub fn name(&self) -> &'static str {
+        match self {
+            Stat::Max => "max",
+            Stat::Argmax => "argmax",
+            Stat::Expect => "expect",
+            Stat::Mass(_) => "mass",
+            Stat::Confidence => "confidence",
+        }
+    }
+    /// 规范 JSON 形（声明记录、报告 `exits` 行）：`"expect"`、`{"mass": [0, 1]}`
+    pub fn to_json(&self) -> serde_json::Value {
+        match self {
+            Stat::Mass(cells) => serde_json::json!({ "mass": cells }),
+            s => serde_json::Value::String(s.name().into()),
+        }
+    }
+    /// 缺省统计量（`max`）不写进记录与报告：20j-1 的声明记录哈希因此不变
+    pub fn is_max(&self) -> bool {
+        matches!(self, Stat::Max)
+    }
+}
+
+/// [`stat_of`] 取不到数的两种原因：选项与读数不配（`E-cut-options`）、判断器没给这个数（`E-stat-unavailable`）。
+#[derive(Clone, Debug, PartialEq)]
+pub enum StatError {
+    Options(String),
+    Unavailable(String),
+}
+
+/// 读数的统计量——全仓只在这里算（B167 (1)）。`confidence` 是判断器随答案给的第二个输出，不在 `Answer` 里，
+/// 由调用者传入（与 `mode_share` 放在 `JudgeResult` 而不进 `Answer` 同理：`Answer` 加字段要改全仓每处 `match`）；
+/// 没有这个数时返回 `Unavailable`，不退回 p_max（B154 (3)）。
+/// 依据：B153 (1)、B154 (2)、B167 (1)（地基/附注/2026-09-26-批6裁定.md §一、§二、§十五）
+pub fn stat_of(
+    a: &crate::value::Answer,
+    s: &Stat,
+    confidence: Option<f64>,
+) -> Result<f64, StatError> {
+    use crate::value::Answer;
+    let 有单元 = |v: &[f64]| -> Result<(), StatError> {
+        if v.is_empty() {
+            return Err(StatError::Options("读数没有单元".into()));
+        }
+        Ok(())
+    };
+    match (s, a) {
+        (Stat::Max, Answer::Noul(p)) => Ok(*p),
+        (Stat::Max, Answer::Choice(v) | Answer::Score(v)) => {
+            有单元(v)?;
+            Ok(v.iter().copied().fold(f64::MIN, f64::max))
+        }
+        (Stat::Argmax, Answer::Choice(v) | Answer::Score(v)) => {
+            有单元(v)?;
+            Ok(crate::bridge::argmax(v).0 as f64)
+        }
+        (Stat::Expect, Answer::Score(v)) => {
+            有单元(v)?;
+            Ok(v.iter().enumerate().map(|(l, p)| l as f64 * p).sum())
+        }
+        (Stat::Mass(cells), Answer::Choice(v) | Answer::Score(v)) => {
+            if cells.is_empty() {
+                return Err(StatError::Options("mass 的单元不能为空".into()));
+            }
+            let mut 和 = 0.0;
+            for &c in cells {
+                let Some(p) = v.get(c) else {
+                    return Err(StatError::Options(format!(
+                        "mass 的单元 {c} 越界：这道题只有 {} 个单元（下标 0..{}）",
+                        v.len(),
+                        v.len()
+                    )));
+                };
+                和 += p;
+            }
+            Ok(和)
+        }
+        (Stat::Confidence, _) => confidence.ok_or_else(|| {
+            StatError::Unavailable(
+                "判断器没有随答案给出 confidence（画像 H9 reports_confidence 未测或为假，或账本未记）".into(),
+            )
+        }),
+        (Stat::Argmax | Stat::Mass(_), Answer::Noul(_)) => Err(StatError::Options(format!(
+            "{} 只用于 K 元题（select / measure）：test 读数只有 p 一个统计量",
+            s.name()
+        ))),
+        (Stat::Expect, _) => Err(StatError::Options(
+            "expect 只用于 measure（有序划分的期望档位）".into(),
+        )),
+    }
+}
+
+#[cfg(test)]
+mod stat_of_tests {
+    use super::*;
+    use crate::value::Answer;
+
+    #[test]
+    fn 统计量按定义取数() {
+        let c = Answer::Choice(vec![0.3, 0.25, 0.4, 0.05]);
+        let s = Answer::Score(vec![0.1, 0.2, 0.6, 0.1]);
+        assert_eq!(stat_of(&c, &Stat::Max, None), Ok(0.4));
+        assert_eq!(stat_of(&c, &Stat::Argmax, None), Ok(2.0));
+        assert!((stat_of(&c, &Stat::Mass(vec![0, 1]), None).unwrap() - 0.55).abs() < 1e-12);
+        assert!((stat_of(&s, &Stat::Expect, None).unwrap() - 1.7).abs() < 1e-12);
+        assert_eq!(stat_of(&Answer::Noul(0.8), &Stat::Max, None), Ok(0.8));
+        assert_eq!(
+            stat_of(&Answer::Noul(0.8), &Stat::Confidence, Some(0.55)),
+            Ok(0.55)
+        );
+        assert!(matches!(
+            stat_of(&Answer::Noul(0.8), &Stat::Confidence, None),
+            Err(StatError::Unavailable(_))
+        ));
+        assert!(matches!(
+            stat_of(&c, &Stat::Expect, None),
+            Err(StatError::Options(_))
+        ));
+        assert!(matches!(
+            stat_of(&c, &Stat::Mass(vec![4]), None),
+            Err(StatError::Options(_))
+        ));
+        assert!(matches!(
+            stat_of(&Answer::Noul(0.8), &Stat::Mass(vec![0]), None),
+            Err(StatError::Options(_))
+        ));
+    }
 }

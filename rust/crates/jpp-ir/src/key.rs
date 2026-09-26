@@ -84,7 +84,10 @@ impl Op {
     }
 }
 
-pub const RENDER_VERSION: &str = "r1";
+/// 渲染版本：判断键、缓存键与账本头的分量（B30），线上请求形状一变就升（B48 重认）。
+/// `r2`（B155，步 15i）：state JSON 不再含 `over`，候选只作该 `select` 题的 `criteria`（可带标签名），
+/// `test` 可带 `criteria: {true, false}`。只凭账本重放按账本头记的版本算键（`jpp-runtime` `Interp.render`）。
+pub const RENDER_VERSION: &str = "r2";
 
 /// 账本键。`site` 是**调用点**（`.jpp` 源码里的字节偏移），与 Python 的
 /// `foundation/jv/store.py:26` 同一组成分——那边的 `site` 是「第一个不在 jv 包内的栈帧，
@@ -375,6 +378,10 @@ pub enum LineGrade {
     Form,
     /// 题键，正式 α（B24）
     Certified,
+    /// 作者声明线（B128，步 20j-1）：`cut(r, {declare: {hi, lo?}})` 按作者写的数切，不进记录、不产证书。
+    /// 路由可用；放行不可逆 `do` 须宿主另作接受（`Exit::host_accepts_declared`，20j-2 置位）。
+    /// 与上面七档不在同一条优先序上：它不来自记录，只由声明分支给出。
+    Declared,
 }
 
 impl LineGrade {
@@ -388,6 +395,7 @@ impl LineGrade {
             LineGrade::Provisional => "Provisional",
             LineGrade::Form => "Form",
             LineGrade::Certified => "Certified",
+            LineGrade::Declared => "Declared",
         }
     }
     /// 等级这一项放不放行不可逆 `do`：只有主键记录（题键、题式键）经正式 α 认证才放行（B75 放行原则）。

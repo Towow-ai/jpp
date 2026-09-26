@@ -55,6 +55,7 @@ fn 桩端口<'a>(p: f64) -> Ports<'a> {
             cost: 0.0,
             mode_share: ms,
             perms: pm,
+            confidence: vec![],
         })
     }))
 }

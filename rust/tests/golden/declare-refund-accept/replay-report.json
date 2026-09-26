@@ -1,0 +1,123 @@
+{
+  "accept": {
+    "declared_lines": true
+  },
+  "backend": "fixed-0",
+  "cost": {
+    "asks": 0,
+    "calls": 0,
+    "replayed": 3,
+    "tokens": 0,
+    "usd": 0.0
+  },
+  "entry": [],
+  "exits": [
+    {
+      "declared": {
+        "hi": 0.7,
+        "lo": 0.3,
+        "site": 1042
+      },
+      "evidence": {
+        "certified": null,
+        "errors_at_line": null,
+        "labelled": 0,
+        "near_line": {
+          "count": 1,
+          "share": 0.5,
+          "window": 0.2
+        }
+      },
+      "exit": "ignore",
+      "grade": "Declared",
+      "item": "907b7e5467e7",
+      "key": "cs-refund",
+      "releases": true,
+      "site": 1042
+    },
+    {
+      "declared": {
+        "hi": 0.7,
+        "lo": 0.3,
+        "site": 1042
+      },
+      "evidence": {
+        "certified": null,
+        "errors_at_line": null,
+        "labelled": 0,
+        "near_line": {
+          "count": 1,
+          "share": 0.5,
+          "window": 0.2
+        }
+      },
+      "exit": "act",
+      "grade": "Declared",
+      "item": "f6f82d87b93e",
+      "key": "cs-refund",
+      "releases": true,
+      "site": 1042
+    }
+  ],
+  "fixture_description": "Author-declared line accepted by the host (step 20j-2, B128): the same program as declare-refund, run with --release-on-declared. The first conversation is a clear no (0.08, ignore); the second reads above the declared line (0.85 >= 0.7, act), so the irreversible write_json runs. Without the switch the same act exit would stop at J-08.",
+  "local_checks": [],
+  "mode": "replay; no model API requests",
+  "pending": [],
+  "questions": [
+    {
+      "kind": "attr",
+      "q": "7392b555d5b96a1bc4d09bf3"
+    }
+  ],
+  "replay": true,
+  "resumed": false,
+  "returned_unsure": [],
+  "status": "returned",
+  "trace": {
+    "events": [
+      {
+        "cost": 0.0,
+        "key": "9d4c4cd7bcd8e22cd6867bc2",
+        "kind": "judge",
+        "note": "「这段客服对话里，顾客是否明确提出要退款或退钱？」",
+        "replayed": true,
+        "site": {
+          "end": 1069,
+          "start": 1046
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "6c762632b19140b8ddf26fb7",
+        "kind": "judge",
+        "note": "「这段客服对话里，顾客是否明确提出要退款或退钱？」",
+        "replayed": true,
+        "site": {
+          "end": 1069,
+          "start": 1046
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "4a77f798df278d6cae38ec81",
+        "kind": "do",
+        "note": "write_json",
+        "replayed": true,
+        "site": {
+          "end": 986,
+          "start": 929
+        }
+      }
+    ],
+    "warnings": [
+      "W-window-untested: @1046 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
+      "W-declared-line: @1042 键 cs-refund 用作者声明线 hi=0.7 lo=0.3（B128）：同键标注 0 条，无标注可核；本趟线附近 ±0.2 的读数 1/2（0.5）；同键无认证线。出口按你写的数路由，不作错误率保证；宿主已接受作者线放行（--release-on-declared），不可逆动作的后果由宿主担责"
+    ]
+  },
+  "value": [
+    "不退",
+    {
+      "chat": "顾客：这个用着不太顺手，你们能帮我看看怎么处理吗？客服：好的，请问是哪方面的问题？"
+    }
+  ]
+}

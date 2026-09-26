@@ -7,6 +7,263 @@
     "tokens": 0,
     "usd": 0.0
   },
+  "duties": [
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[2].exists",
+        "$.streams[2].pending[0].exit",
+        "$.streams[2].pending[1].exit"
+      ],
+      "key": "05ddd7cac0f9b6c5a0b5befb"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[0].pending[0].exit"
+      ],
+      "key": "226df2ca2fb8930097a617f5"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[0].pending[0].exit"
+      ],
+      "key": "294a3ef18c28e46524398897"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[0].pending[0].exit"
+      ],
+      "key": "3feb23849cae878bd2f07cd0"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[2].exists",
+        "$.streams[2].pending[0].exit",
+        "$.streams[2].pending[1].exit"
+      ],
+      "key": "4198eabb494aab6bbd51f03b"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[1].pending[9].exit"
+      ],
+      "key": "4c0f714b1edd25f6022ba8ec"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[2].exists",
+        "$.streams[2].pending[0].exit",
+        "$.streams[2].pending[1].exit"
+      ],
+      "key": "53d6fd67c67cbd11af28138e"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[0].pending[0].exit"
+      ],
+      "key": "6a754aca582c279b11199ee0"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[1].pending[8].exit"
+      ],
+      "key": "6b55302cf400c0eb7dd4fe71"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[1].pending[7].exit"
+      ],
+      "key": "6b76fe1802383bac377149f4"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[0].pending[0].exit"
+      ],
+      "key": "6b98b377fec5d4737d9493bf"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[2].exists",
+        "$.streams[2].pending[0].exit",
+        "$.streams[2].pending[1].exit"
+      ],
+      "key": "6c22fb78ee5a8e707e4c9ab7"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[1].pending[4].exit"
+      ],
+      "key": "6fa357b50ab26e1636268ef6"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[2].exists",
+        "$.streams[2].pending[0].exit",
+        "$.streams[2].pending[1].exit"
+      ],
+      "key": "7486ea0e5b3124bdc3c52ff8"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[1].pending[6].exit"
+      ],
+      "key": "76ad7d18ca46c062e58963c1"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[0].pending[0].exit"
+      ],
+      "key": "7a87d3b9651463a5dad6b02d"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[0].pending[0].exit"
+      ],
+      "key": "8653484734df497c6db7ed30"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[2].exists",
+        "$.streams[2].pending[0].exit",
+        "$.streams[2].pending[1].exit"
+      ],
+      "key": "8802148e9da17b0631c0bfc1"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[0].pending[0].exit"
+      ],
+      "key": "8b9129c7dfaa2511ad44cb76"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[2].exists",
+        "$.streams[2].pending[0].exit",
+        "$.streams[2].pending[1].exit"
+      ],
+      "key": "9765bd61dfd93ac17c63d992"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[1].pending[3].exit"
+      ],
+      "key": "a9bfa458102588ba9b825c83"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[0].pending[0].exit"
+      ],
+      "key": "a9d04e75dabe76fd74084e1a"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[1].pending[1].exit"
+      ],
+      "key": "b8f0ecccb80846abca137c55"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[2].exists",
+        "$.streams[2].pending[0].exit",
+        "$.streams[2].pending[1].exit"
+      ],
+      "key": "c06c3f15e96a144a4e2830ef"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[2].exists",
+        "$.streams[2].pending[0].exit",
+        "$.streams[2].pending[1].exit"
+      ],
+      "key": "c68ebffdfb3ce9e1347d1f26"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[1].pending[0].exit"
+      ],
+      "key": "c6a8053c76951e817dcd327b"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[1].pending[5].exit"
+      ],
+      "key": "cad82a8111785d23d0715ac2"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[2].exists",
+        "$.streams[2].pending[0].exit",
+        "$.streams[2].pending[1].exit"
+      ],
+      "key": "d7768b1bee657a0f252807ef"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[1].pending[2].exit"
+      ],
+      "key": "e31d129a3b17c0fd707733bd"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[0].pending[0].exit"
+      ],
+      "key": "e5920df182733139cd54a015"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[2].exists",
+        "$.streams[2].pending[0].exit",
+        "$.streams[2].pending[1].exit"
+      ],
+      "key": "eb1220efba5dd439daf1e286"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[0].pending[0].exit"
+      ],
+      "key": "ee9cd0ac1d58873273b3f762"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.streams[2].exists",
+        "$.streams[2].pending[0].exit",
+        "$.streams[2].pending[1].exit"
+      ],
+      "key": "fc8d5f55ffc0cd19ae13fd85"
+    }
+  ],
   "entry": [],
   "exits": [
     {
@@ -425,7 +682,7 @@
     "events": [
       {
         "cost": 0.0,
-        "key": "ef3f1273567c5ada081108b1",
+        "key": "4f33924525896c3fb74224f8",
         "kind": "judge",
         "note": "「这段话的内容是否与「城市通勤」这个话题相关？」",
         "replayed": false,
@@ -436,7 +693,7 @@
       },
       {
         "cost": 0.0,
-        "key": "01940e95b43375f4bd653543",
+        "key": "c6a8053c76951e817dcd327b",
         "kind": "judge",
         "note": "「这段话的内容是否与「理财」这个话题相关？」",
         "replayed": false,
@@ -447,7 +704,7 @@
       },
       {
         "cost": 0.0,
-        "key": "4823d62ebfb87a2919e66932",
+        "key": "c06c3f15e96a144a4e2830ef",
         "kind": "judge",
         "note": "「这段话的内容是否与「职业焦虑」这个话题相关？」",
         "replayed": false,
@@ -458,7 +715,7 @@
       },
       {
         "cost": 0.0,
-        "key": "4deba4d261309bafbea06392",
+        "key": "8b9129c7dfaa2511ad44cb76",
         "kind": "judge",
         "note": "「这段话的内容是否与「城市通勤」这个话题相关？」",
         "replayed": false,
@@ -469,7 +726,7 @@
       },
       {
         "cost": 0.0,
-        "key": "54a72b7d94f108266a60a012",
+        "key": "eaf689d6e9c1b14f3176a518",
         "kind": "judge",
         "note": "「这段话的内容是否与「理财」这个话题相关？」",
         "replayed": false,
@@ -480,7 +737,7 @@
       },
       {
         "cost": 0.0,
-        "key": "c65da793ba0511f80b85f0d3",
+        "key": "6c22fb78ee5a8e707e4c9ab7",
         "kind": "judge",
         "note": "「这段话的内容是否与「职业焦虑」这个话题相关？」",
         "replayed": false,
@@ -491,7 +748,7 @@
       },
       {
         "cost": 0.0,
-        "key": "e8684787b225ba55fb39735e",
+        "key": "6a754aca582c279b11199ee0",
         "kind": "judge",
         "note": "「这段话的内容是否与「城市通勤」这个话题相关？」",
         "replayed": false,
@@ -502,7 +759,7 @@
       },
       {
         "cost": 0.0,
-        "key": "93550f409a233b3f5e93f02d",
+        "key": "b8f0ecccb80846abca137c55",
         "kind": "judge",
         "note": "「这段话的内容是否与「理财」这个话题相关？」",
         "replayed": false,
@@ -513,7 +770,7 @@
       },
       {
         "cost": 0.0,
-        "key": "7d3a0aecd164353920bc2a79",
+        "key": "8802148e9da17b0631c0bfc1",
         "kind": "judge",
         "note": "「这段话的内容是否与「职业焦虑」这个话题相关？」",
         "replayed": false,
@@ -524,7 +781,7 @@
       },
       {
         "cost": 0.0,
-        "key": "d8ecdb2b8892850c3f53b657",
+        "key": "7a87d3b9651463a5dad6b02d",
         "kind": "judge",
         "note": "「这段话的内容是否与「城市通勤」这个话题相关？」",
         "replayed": false,
@@ -535,7 +792,7 @@
       },
       {
         "cost": 0.0,
-        "key": "a32395f4f7124c07672f3bf6",
+        "key": "e31d129a3b17c0fd707733bd",
         "kind": "judge",
         "note": "「这段话的内容是否与「理财」这个话题相关？」",
         "replayed": false,
@@ -546,7 +803,7 @@
       },
       {
         "cost": 0.0,
-        "key": "0cc9ef669824440146dafa8f",
+        "key": "c68ebffdfb3ce9e1347d1f26",
         "kind": "judge",
         "note": "「这段话的内容是否与「职业焦虑」这个话题相关？」",
         "replayed": false,
@@ -557,7 +814,7 @@
       },
       {
         "cost": 0.0,
-        "key": "ed49be6e73f6548fd8c1b23f",
+        "key": "ee9cd0ac1d58873273b3f762",
         "kind": "judge",
         "note": "「这段话的内容是否与「城市通勤」这个话题相关？」",
         "replayed": false,
@@ -568,7 +825,7 @@
       },
       {
         "cost": 0.0,
-        "key": "f0f25e53c4deaa5af2dc0970",
+        "key": "a9bfa458102588ba9b825c83",
         "kind": "judge",
         "note": "「这段话的内容是否与「理财」这个话题相关？」",
         "replayed": false,
@@ -579,7 +836,7 @@
       },
       {
         "cost": 0.0,
-        "key": "186d21be7db27e8c1b1682eb",
+        "key": "eb1220efba5dd439daf1e286",
         "kind": "judge",
         "note": "「这段话的内容是否与「职业焦虑」这个话题相关？」",
         "replayed": false,
@@ -590,7 +847,7 @@
       },
       {
         "cost": 0.0,
-        "key": "4020d8378b76c9b042d53a70",
+        "key": "3feb23849cae878bd2f07cd0",
         "kind": "judge",
         "note": "「这段话的内容是否与「城市通勤」这个话题相关？」",
         "replayed": false,
@@ -601,7 +858,7 @@
       },
       {
         "cost": 0.0,
-        "key": "768d278bbff9086b5430d4bd",
+        "key": "6fa357b50ab26e1636268ef6",
         "kind": "judge",
         "note": "「这段话的内容是否与「理财」这个话题相关？」",
         "replayed": false,
@@ -612,7 +869,7 @@
       },
       {
         "cost": 0.0,
-        "key": "98d3cb22ce1dd7856b271f13",
+        "key": "fc8d5f55ffc0cd19ae13fd85",
         "kind": "judge",
         "note": "「这段话的内容是否与「职业焦虑」这个话题相关？」",
         "replayed": false,
@@ -623,7 +880,7 @@
       },
       {
         "cost": 0.0,
-        "key": "1811c40c107fcb3817d93f91",
+        "key": "6b98b377fec5d4737d9493bf",
         "kind": "judge",
         "note": "「这段话的内容是否与「城市通勤」这个话题相关？」",
         "replayed": false,
@@ -634,7 +891,7 @@
       },
       {
         "cost": 0.0,
-        "key": "0e21ccf219d9aa33e24b1235",
+        "key": "cad82a8111785d23d0715ac2",
         "kind": "judge",
         "note": "「这段话的内容是否与「理财」这个话题相关？」",
         "replayed": false,
@@ -645,7 +902,7 @@
       },
       {
         "cost": 0.0,
-        "key": "5d94cd19ba2c5d764dc7ee21",
+        "key": "7486ea0e5b3124bdc3c52ff8",
         "kind": "judge",
         "note": "「这段话的内容是否与「职业焦虑」这个话题相关？」",
         "replayed": false,
@@ -656,7 +913,7 @@
       },
       {
         "cost": 0.0,
-        "key": "55844393f7911b0b2fd11401",
+        "key": "a9d04e75dabe76fd74084e1a",
         "kind": "judge",
         "note": "「这段话的内容是否与「城市通勤」这个话题相关？」",
         "replayed": false,
@@ -667,7 +924,7 @@
       },
       {
         "cost": 0.0,
-        "key": "cef34a6788da3a4f88e17c3b",
+        "key": "76ad7d18ca46c062e58963c1",
         "kind": "judge",
         "note": "「这段话的内容是否与「理财」这个话题相关？」",
         "replayed": false,
@@ -678,7 +935,7 @@
       },
       {
         "cost": 0.0,
-        "key": "20da43668683611d9567cf1e",
+        "key": "4198eabb494aab6bbd51f03b",
         "kind": "judge",
         "note": "「这段话的内容是否与「职业焦虑」这个话题相关？」",
         "replayed": false,
@@ -689,7 +946,7 @@
       },
       {
         "cost": 0.0,
-        "key": "aa6d9696ca096eef59ef5f9d",
+        "key": "e5920df182733139cd54a015",
         "kind": "judge",
         "note": "「这段话的内容是否与「城市通勤」这个话题相关？」",
         "replayed": false,
@@ -700,7 +957,7 @@
       },
       {
         "cost": 0.0,
-        "key": "cc6c66dd0608169295a3f7ec",
+        "key": "6b76fe1802383bac377149f4",
         "kind": "judge",
         "note": "「这段话的内容是否与「理财」这个话题相关？」",
         "replayed": false,
@@ -711,7 +968,7 @@
       },
       {
         "cost": 0.0,
-        "key": "3e29e0c70f7877f587143ee5",
+        "key": "d7768b1bee657a0f252807ef",
         "kind": "judge",
         "note": "「这段话的内容是否与「职业焦虑」这个话题相关？」",
         "replayed": false,
@@ -722,7 +979,7 @@
       },
       {
         "cost": 0.0,
-        "key": "06065c433d157c42b9cbcbc1",
+        "key": "226df2ca2fb8930097a617f5",
         "kind": "judge",
         "note": "「这段话的内容是否与「城市通勤」这个话题相关？」",
         "replayed": false,
@@ -733,7 +990,7 @@
       },
       {
         "cost": 0.0,
-        "key": "5678a96440b97d7ef61c565f",
+        "key": "6b55302cf400c0eb7dd4fe71",
         "kind": "judge",
         "note": "「这段话的内容是否与「理财」这个话题相关？」",
         "replayed": false,
@@ -744,7 +1001,7 @@
       },
       {
         "cost": 0.0,
-        "key": "ab39ceaad6f23aa535d225ba",
+        "key": "05ddd7cac0f9b6c5a0b5befb",
         "kind": "judge",
         "note": "「这段话的内容是否与「职业焦虑」这个话题相关？」",
         "replayed": false,
@@ -755,7 +1012,7 @@
       },
       {
         "cost": 0.0,
-        "key": "d22b7ff6e6ca1696b9fa660f",
+        "key": "8653484734df497c6db7ed30",
         "kind": "judge",
         "note": "「这段话的内容是否与「城市通勤」这个话题相关？」",
         "replayed": false,
@@ -766,7 +1023,7 @@
       },
       {
         "cost": 0.0,
-        "key": "e73dd158d5db2f1d2da94595",
+        "key": "4c0f714b1edd25f6022ba8ec",
         "kind": "judge",
         "note": "「这段话的内容是否与「理财」这个话题相关？」",
         "replayed": false,
@@ -777,7 +1034,7 @@
       },
       {
         "cost": 0.0,
-        "key": "ec5a91bcd337c73d5278e995",
+        "key": "9765bd61dfd93ac17c63d992",
         "kind": "judge",
         "note": "「这段话的内容是否与「职业焦虑」这个话题相关？」",
         "replayed": false,
@@ -788,7 +1045,7 @@
       },
       {
         "cost": 0.0,
-        "key": "26d41dfb3ae88b388d5dc84c",
+        "key": "294a3ef18c28e46524398897",
         "kind": "judge",
         "note": "「这段话的内容是否与「城市通勤」这个话题相关？」",
         "replayed": false,
@@ -799,7 +1056,7 @@
       },
       {
         "cost": 0.0,
-        "key": "add8ac5dfc8bbbe1443ab5c8",
+        "key": "d02c88d7af13e466e2281368",
         "kind": "judge",
         "note": "「这段话的内容是否与「理财」这个话题相关？」",
         "replayed": false,
@@ -810,7 +1067,7 @@
       },
       {
         "cost": 0.0,
-        "key": "cb733fcbe7bd36eaed797ad3",
+        "key": "53d6fd67c67cbd11af28138e",
         "kind": "judge",
         "note": "「这段话的内容是否与「职业焦虑」这个话题相关？」",
         "replayed": false,
@@ -972,7 +1229,7 @@
             },
             "index": 0,
             "item": "早高峰的地铁挤得像沙丁鱼罐头，她每天六点半就得出门才能准时打卡。",
-            "key": "01940e95b43375f4bd653543",
+            "key": "c6a8053c76951e817dcd327b",
             "pos": 0,
             "q": {
               "calib": "form-topic",
@@ -996,7 +1253,7 @@
             },
             "index": 2,
             "item": "奶奶在阳台上种了几盆番茄和辣椒，今年结得特别多。",
-            "key": "93550f409a233b3f5e93f02d",
+            "key": "b8f0ecccb80846abca137c55",
             "pos": 2,
             "q": {
               "calib": "form-topic",
@@ -1020,7 +1277,7 @@
             },
             "index": 3,
             "item": "新来的实习生第一次做汇报，手心全是汗，讲完才松了口气。",
-            "key": "a32395f4f7124c07672f3bf6",
+            "key": "e31d129a3b17c0fd707733bd",
             "pos": 3,
             "q": {
               "calib": "form-topic",
@@ -1044,7 +1301,7 @@
             },
             "index": 4,
             "item": "周末她骑共享单车去江边，一路吹风，心情好了很多。",
-            "key": "f0f25e53c4deaa5af2dc0970",
+            "key": "a9bfa458102588ba9b825c83",
             "pos": 4,
             "q": {
               "calib": "form-topic",
@@ -1068,7 +1325,7 @@
             },
             "index": 5,
             "item": "这家店的咖啡豆是自己烘的，手冲一杯要等十分钟。",
-            "key": "768d278bbff9086b5430d4bd",
+            "key": "6fa357b50ab26e1636268ef6",
             "pos": 5,
             "q": {
               "calib": "form-topic",
@@ -1092,7 +1349,7 @@
             },
             "index": 6,
             "item": "孩子第一次独自坐公交去上学，爸爸悄悄跟在后面好几站。",
-            "key": "0e21ccf219d9aa33e24b1235",
+            "key": "cad82a8111785d23d0715ac2",
             "pos": 6,
             "q": {
               "calib": "form-topic",
@@ -1116,7 +1373,7 @@
             },
             "index": 7,
             "item": "他把旧手机、旧电池都送到了社区的回收点，没有随手扔掉。",
-            "key": "cef34a6788da3a4f88e17c3b",
+            "key": "76ad7d18ca46c062e58963c1",
             "pos": 7,
             "q": {
               "calib": "form-topic",
@@ -1140,7 +1397,7 @@
             },
             "index": 8,
             "item": "年底要考核了，组里每个人都在担心自己的绩效评级。",
-            "key": "cc6c66dd0608169295a3f7ec",
+            "key": "6b76fe1802383bac377149f4",
             "pos": 8,
             "q": {
               "calib": "form-topic",
@@ -1164,7 +1421,7 @@
             },
             "index": 9,
             "item": "她翻出一张二十年前的全家福，照片上的人一个个都年轻得认不出来。",
-            "key": "5678a96440b97d7ef61c565f",
+            "key": "6b55302cf400c0eb7dd4fe71",
             "pos": 9,
             "q": {
               "calib": "form-topic",
@@ -1188,7 +1445,7 @@
             },
             "index": 10,
             "item": "暴雨把路冲坏了，外卖小哥推着电动车在水里走了半个小时。",
-            "key": "e73dd158d5db2f1d2da94595",
+            "key": "4c0f714b1edd25f6022ba8ec",
             "pos": 10,
             "q": {
               "calib": "form-topic",

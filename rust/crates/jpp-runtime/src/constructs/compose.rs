@@ -6,9 +6,9 @@
 //! 在格上的推广：结果只在未决分量的一切解析下都相同时才已决（最坏元素已出现即最坏，否则任一分量
 //! 未决即未决；B51-R1）。
 //!
-//! 本步它是**内部构造**：只经 `caps.rs` 的入口 `调合成` 被 `tally`、`first_k` 调用；开放成 `.jpp` 名字在
-//! 步 25-8（`examples/composition.jpp` 自定义了 `compose`，开放会改该金样，见 `过程记录/工程-步25-2b.md`
-//! Q16）。合成出口的放行派生（全部分量放行之合取、谱系穿 `parts`）在步 25-9 落；此前合成出口按冷线记，
+//! 步 25-2b 时它是内部构造，只经 `caps.rs` 的入口 `调合成` 被 `tally`、`first_k` 调用；步 25d 起开放为 `.jpp`
+//! 名字 `compose(出口们, 规则)`（`b_compose`；`examples/composition.jpp` 的同名用户函数改名 `compose_rules`），
+//! 合成出口带联合界 `alpha_bound`、`n_unknown`（B161），读法内置 `cert` 也在本文件。合成出口的放行派生（全部分量放行之合取、谱系穿 `parts`）在步 25-9 落；此前合成出口按冷线记，
 //! 不作放行证据（步 25-1）。
 //!
 //! 依据：B131（地基/附注/2026-09-25-库层出口合成与待补批3裁定.md §一；12 §2.3 出口合成条）；B51-R1；B3
@@ -207,7 +207,211 @@ pub(crate) fn 合成种类(r: &规则, 分量: &[ExitKind]) -> Result<ExitKind, 
     }
 }
 
+/// 合成出口的联合界（B161）：`(min(1, Σ α_i), n_unknown)`。分量是合成出口的取其界与未知数；单个出口取 `alpha`，
+/// 没有（或分量不带出口）的按 1 计、未知数加一。`{first: k}` 只计读到的分量：凑够 k 个 Act 或读到挡路的未决为止。
+/// 这是联合界：任一规则下结果错只能因某个分量错，P(错) ≤ Σ α_i，不依赖分量独立。依据：B161
+pub(crate) fn 联合界(r: &规则, 分量: &[分量]) -> (f64, u32) {
+    let 读到 = match r {
+        规则::First(k) => {
+            let mut n = 0;
+            let mut 止 = 分量.len();
+            for (i, x) in 分量.iter().enumerate() {
+                match x.种类 {
+                    ExitKind::Act => {
+                        n += 1;
+                        if n == *k {
+                            止 = i + 1;
+                            break;
+                        }
+                    }
+                    ExitKind::Unsure(_) => {
+                        止 = i + 1;
+                        break;
+                    }
+                    _ => {}
+                }
+            }
+            止
+        }
+        _ => 分量.len(),
+    };
+    let (mut 和, mut 未知) = (0.0f64, 0u32);
+    for x in &分量[..读到] {
+        match x.出口.as_ref() {
+            Some(e) => match (e.bound.get(), e.alpha.get()) {
+                (Some((b, n)), _) => {
+                    和 += b;
+                    未知 += n;
+                }
+                (None, Some(a)) => 和 += a,
+                (None, None) => {
+                    和 += jpp_value::stat::ALPHA_UNKNOWN;
+                    未知 += 1;
+                }
+            },
+            None => {
+                和 += jpp_value::stat::ALPHA_UNKNOWN;
+                未知 += 1;
+            }
+        }
+    }
+    (和.min(jpp_value::stat::ALPHA_UNKNOWN), 未知)
+}
+
 impl<'a> Interp<'a> {
+    /// 读法内置 `cert(出口) → {grade, alpha, alpha_bound, n_unknown, line}`（B161，步 25d；B138 读法内置类）。
+    /// 单个出口：`alpha` 为计入联合界的 α 或 unit，界 = α 或 1，未知数 0 或 1；合成出口：`alpha` 为 unit，
+    /// 界与未知数取 `compose` 签发时写的联合界。`line` 同 `line_source`。依据：B161
+    pub(crate) fn b_cert(&mut self, name: &'static str, args: Vec<Value>, sp: Span) -> R<Value> {
+        if args.len() != 1 {
+            return err(
+                Some("E-rt-arity"),
+                format!("{name} 需要 1 个参数，收到 {}", args.len()),
+                sp,
+            );
+        }
+        let e = match &args[0] {
+            Value::Duty(e) | Value::Exit(e) => e.clone(),
+            other => {
+                return err(
+                    Some("E-rt-arg"),
+                    format!("cert 只收未决责任或出口，收到 {}", other.type_name()),
+                    sp,
+                );
+            }
+        };
+        let 数 = |x: f64| Value::Float(x, Taint::Trusted.into());
+        let 整 = |x: u32| Value::Int(x as i64, Taint::Trusted.into());
+        let (alpha, bound, unknown) = match (e.bound.get(), e.alpha.get()) {
+            (Some((b, n)), _) => (Value::Unit, b, n),
+            (None, Some(a)) => (数(a), a, 0),
+            (None, None) => (Value::Unit, jpp_value::stat::ALPHA_UNKNOWN, 1),
+        };
+        Ok(Value::record(vec![
+            (
+                "grade".into(),
+                Value::text(e.grade.get().map(|g| g.name()).unwrap_or("")),
+            ),
+            ("alpha".into(), alpha),
+            ("alpha_bound".into(), 数(bound)),
+            ("n_unknown".into(), 整(unknown)),
+            ("line".into(), Value::text(&e.line_source)),
+        ]))
+    }
+
+    /// `.jpp` 里的 `compose(出口们, 规则)`（步 25d 开放，B148；25-8a 的最小子集）：规则取 `"any"`、`"all"`、`"min"`、
+    /// `{first: k}`、`{sup: [候选下标…]}`；分量是出口或未决责任。合成出口的题类：any/all/first 是非题，sup 选择题，
+    /// min 打分题。结果未决时吸收全部未决分量（B131 (3)），已决时自身记已决。依据：B131、B148、B161
+    pub(crate) fn b_compose(
+        &mut self,
+        caps: &Caps,
+        name: &'static str,
+        args: Vec<Value>,
+        sp: Span,
+    ) -> R<Value> {
+        if args.len() != 2 {
+            return err(
+                Some("E-rt-arity"),
+                format!("{name} 需要 2 个参数（出口们, 规则），收到 {}", args.len()),
+                sp,
+            );
+        }
+        let Value::List(xs) = &args[0] else {
+            return err(
+                Some("E-rt-arg"),
+                format!(
+                    "compose 的第一个参数要是出口的列表，收到 {}",
+                    args[0].type_name()
+                ),
+                sp,
+            );
+        };
+        let mut 出口们: Vec<Rc<Exit>> = vec![];
+        for (i, x) in xs.iter().enumerate() {
+            match x {
+                Value::Exit(e) | Value::Duty(e) => 出口们.push(e.clone()),
+                other => {
+                    return err(
+                        Some("E-rt-arg"),
+                        format!(
+                            "compose 的分量要是出口或未决责任，第 {i} 个是 {}",
+                            other.type_name()
+                        ),
+                        sp,
+                    );
+                }
+            }
+        }
+        let 取整 = |v: &Value| match v {
+            Value::Int(k, _) if *k >= 0 => Some(*k as usize),
+            _ => None,
+        };
+        let (规则, op) = match &args[1] {
+            Value::Text(t, _) if t.as_ref() == "any" => (规则::Any, Op::Test),
+            Value::Text(t, _) if t.as_ref() == "all" => (规则::All, Op::Test),
+            Value::Text(t, _) if t.as_ref() == "min" => (规则::Min, Op::Measure),
+            r @ Value::Record(_) if r.get("first").is_some() => {
+                let Some(k) = r.get("first").as_ref().and_then(取整) else {
+                    return err(
+                        Some("E-rt-arg"),
+                        "compose 的规则 {first: k}：k 要是非负整数",
+                        sp,
+                    );
+                };
+                (规则::First(k), Op::Test)
+            }
+            r @ Value::Record(_) if r.get("sup").is_some() => {
+                let 格: Option<Vec<usize>> = match r.get("sup") {
+                    Some(Value::List(l)) => l.iter().map(取整).collect(),
+                    _ => None,
+                };
+                let Some(格) = 格 else {
+                    return err(
+                        Some("E-rt-arg"),
+                        "compose 的规则 {sup: 格}：格要是候选下标的列表",
+                        sp,
+                    );
+                };
+                (规则::Sup(格), Op::Select)
+            }
+            other => {
+                return err(
+                    Some("E-rt-arg"),
+                    format!(
+                        "compose 的规则只有 \"any\"、\"all\"、\"min\"、{{first: k}}、{{sup: 格}}（B131 封闭规则集），收到 {}",
+                        other.type_name()
+                    ),
+                    sp,
+                );
+            }
+        };
+        let 分量: Vec<分量> = 出口们
+            .iter()
+            .map(|e| 分量 {
+                种类: e.kind.clone(),
+                出口: Some(e.clone()),
+            })
+            .collect();
+        let 吸收: Vec<Rc<Exit>> = 出口们
+            .iter()
+            .filter(|e| e.is_unsure() && !e.consumed.get())
+            .cloned()
+            .collect();
+        self.合成(
+            caps,
+            合成请求 {
+                规则,
+                分量,
+                吸收: &吸收,
+                op,
+                题键: "compose",
+                已决标签: "compose:decided",
+                吸收标签: "compose",
+            },
+            sp,
+        )
+    }
+
     /// 合成构造的实现（只经 `caps.rs::调合成` 进来，令牌按 `compose` 的声明发放）。
     pub(crate) fn 合成(&mut self, caps: &Caps, 请求: 合成请求, sp: Span) -> R<Value> {
         let x =
@@ -219,6 +423,7 @@ impl<'a> Interp<'a> {
                 Err(m) => return err(Some("E-rt-arg"), m, sp),
             };
         if let Value::Exit(e) = &x {
+            e.bound.set(Some(联合界(&请求.规则, &请求.分量)));
             if e.is_unsure() {
                 // 分量的未决责任并入合成出口；合成出口自己进调用者的未决清单
                 for p in 请求.吸收 {

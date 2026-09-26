@@ -68,12 +68,28 @@ impl EntryMat {
     }
 }
 
-/// 宿主交给程序的目的与入口条目（`20` §2.3 `EntryArgs`，B105）
+/// 宿主对本趟的接受声明（B128，步 20j-2；`20` v2 §2.3 `HostAccept`）。缺省全假。
+/// `declared_lines`：宿主接受作者声明线放行不可逆动作（CLI `--release-on-declared`）——意思是「这些线由我担责」，
+/// 不是「这些线是对的」。
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct HostAccept {
+    pub declared_lines: bool,
+}
+
+impl HostAccept {
+    /// 任一接受位为真
+    pub fn any(&self) -> bool {
+        self.declared_lines
+    }
+}
+
+/// 宿主交给程序的目的与入口条目（`20` §2.3 `EntryArgs`，B105）；`accept` 为宿主接受声明（B128）
 #[derive(Clone, Debug, Default)]
 pub struct EntryArgs {
     pub purpose: Option<String>,
     pub values: Vec<EntryValue>,
     pub materials: Vec<EntryMat>,
+    pub accept: HostAccept,
 }
 
 fn taint_word(t: Taint) -> &'static str {
@@ -99,7 +115,10 @@ impl EntryArgs {
         }
     }
     pub fn is_empty(&self) -> bool {
-        self.purpose.is_none() && self.values.is_empty() && self.materials.is_empty()
+        self.purpose.is_none()
+            && self.values.is_empty()
+            && self.materials.is_empty()
+            && !self.accept.any()
     }
     /// 入口声明（B106）：`Session::compile` 把它写进 `Program.entry`。顺序：`purpose`、值条目、材料条目
     /// （与绑定顺序相同）。`purpose` 记作名为 `purpose` 的不可信值条目（B105-3；步 17b 随 B58 绑定），
@@ -127,11 +146,15 @@ impl EntryArgs {
                 taint: entry_taint(m.mat.taint),
             });
         }
-        EntryDecl { params }
+        EntryDecl {
+            params,
+            accept_declared: self.accept.declared_lines,
+        }
     }
     /// 账本头 `entry_hash`（B105-2）：`hash_of(["entry", purpose 或 "", 每条目按名字排序依次:
-    /// 种类、名字、canon(JSON) 或 Mat.hash、taint])`；无条目且无 `purpose` 为 `None`。一份算法。
-    /// 依据：B105（地基/附注/2026-09-25-B105-B106裁定.md §二）
+    /// 种类、名字、canon(JSON) 或 Mat.hash、taint])`；无条目、无 `purpose` 且无接受位为 `None`。一份算法。
+    /// 接受位（B128，步 20j-2）只在为真时追加 `["accept", "declared_lines", "true"]`：不带开关的哈希与改前逐字节相同。
+    /// 依据：B105（地基/附注/2026-09-25-B105-B106裁定.md §二）；B128（附注/2026-09-25-作者主权与策略表达裁定.md §一）
     pub fn hash(&self) -> Option<String> {
         if self.is_empty() {
             return None;
@@ -163,6 +186,9 @@ impl EntryArgs {
         let mut parts: Vec<&str> = vec!["entry", self.purpose.as_deref().unwrap_or("")];
         for (_, f) in &items {
             parts.extend(f.iter().map(|s| s.as_str()));
+        }
+        if self.accept.declared_lines {
+            parts.extend(["accept", "declared_lines", "true"]);
         }
         Some(hash_of(&parts))
     }
@@ -197,6 +223,34 @@ mod tests {
             ..Default::default()
         };
         assert!(only_purpose.hash().is_some());
+    }
+
+    /// 步 20j-2（B128）：接受位全假时哈希与改前相同（由改前的算法逐项重算对照）；为真时不同；只有接受位时为 `Some`
+    #[test]
+    fn 接受位只在为真时进哈希() {
+        let v = EntryArgs::value("input", json!({"x": 1}));
+        let 改前 = hash_of(&[
+            "entry",
+            "",
+            "value",
+            "input",
+            &canon(&json!({"x": 1})),
+            "untrusted",
+        ]);
+        assert_eq!(v.hash(), Some(改前));
+        let mut a = v.clone();
+        a.accept.declared_lines = true;
+        assert_ne!(v.hash(), a.hash());
+        let 只有接受 = EntryArgs {
+            accept: HostAccept {
+                declared_lines: true,
+            },
+            ..Default::default()
+        };
+        assert!(!只有接受.is_empty());
+        assert!(只有接受.hash().is_some());
+        assert!(只有接受.decl().accept_declared);
+        assert!(!EntryArgs::default().decl().accept_declared);
     }
 
     #[test]

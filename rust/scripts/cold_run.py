@@ -46,10 +46,11 @@ def groups() -> list:
     covered = set()
     for c in m["cases"]:
         covered.add(c["source"])
-        if c.get("expect") == "error" or c.get("resume_from") or not c.get("fixtures"):
+        if c.get("expect") == "error" or c.get("resume_from") or c.get("resume_ledger") or not c.get("fixtures"):
             continue
+        # 步 20j-2：清单项的 `args`（如 --release-on-declared）照带
         out.append({"name": "golden/" + c["name"], "cwd": None, "source": ROOT / c["source"],
-                    "fixtures": ROOT / c["fixtures"], "files": c.get("files", {})})
+                    "fixtures": ROOT / c["fixtures"], "files": c.get("files", {}), "args": c.get("args", [])})
     for src in sorted((ROOT / "examples").glob("*.jpp")):
         rel = str(src.relative_to(ROOT))
         fx = ROOT / "examples/fixtures" / (src.stem + ".json")
@@ -91,9 +92,12 @@ def run_one(g: dict) -> dict:
         cold = tmp / "cold-fixture.json"
         cold.write_text(json.dumps(fx, ensure_ascii=False), encoding="utf-8")
         rep = tmp / "report.json"
-        args = [str(JPP), "run", str(g["source"]), "--fixtures", str(cold), "--output", str(rep)]
+        # 步 18b：有不可逆 do 的程序要 --ledger-out（E-ledger-required）；账本写进临时目录，随它删掉
+        args = [str(JPP), "run", str(g["source"]), "--fixtures", str(cold), "--output", str(rep),
+                "--ledger-out", str(tmp / "ledger.jsonl")]
         if g.get("input"):
             args += ["--input", str(g["input"])]
+        args += g.get("args", [])
         p = subprocess.run(args, cwd=g["cwd"] or tmp, capture_output=True, text=True)
         err = "\n".join(x for x in p.stderr.splitlines() if not x.startswith("档案："))
         if p.returncode == 0:

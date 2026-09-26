@@ -1,0 +1,7 @@
+// 元素：向量检索（do("embed_topk", …)）。签名 embed_topk(texts, query, k)。子进程调离线的
+// sentence-transformers（默认模型 paraphrase-multilingual-MiniLM-L12-v2），需要本机已缓存该模型；
+// 比赛现场机器若没有联网下载过模型，这段只能 check、不能 run（guide_check.py 对本文件只做静态检查，
+// 不实际执行，原因见 GUIDE 正文）。语义相近但字面不重合的检索用它；字面重合的检索用 bm25_topk
+// （elem-retrieval-bm25.jpp），不需要模型、任何机器都能跑。
+budget {calls: 4, cost: 0, depth: 8};
+content(do("embed_topk", [["苹果和香蕉", "今天天气好", "苹果派配咖啡"], "水果甜点", 2], 0))

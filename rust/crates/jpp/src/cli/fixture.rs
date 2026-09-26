@@ -68,6 +68,13 @@ pub struct Observation {
     pub perms: Option<usize>,
     #[serde(default)]
     pub mode_share: Option<f64>,
+    /// 可选：判断器随这条答案报的自报置信度（B154，步 20j-3；`cut` 的 `stat: "confidence"` 读它）。缺省 = 没报，
+    /// 桥按 p_max 取夹具缺省；给了就进账本判断条目，重放照取。由 `scripts/fixture_from_ledger.py` 从真机账本写。
+    #[serde(default)]
+    pub confidence: Option<f64>,
+    /// 可选：是非题的答案标签 `{yes, no}`（B155，步 15i）。题带标签时观察键追加它；缺省与步 15i 前相同
+    #[serde(default)]
+    pub labels: Option<jpp::value::TestLabels>,
 }
 
 impl Observation {
@@ -92,12 +99,10 @@ impl Observation {
                 self.op, self.text
             ));
         }
-        Ok(Question::new(
-            op,
-            &self.text,
-            &self.calib,
-            self.scale.clone(),
-        ))
+        Ok(
+            Question::new(op, &self.text, &self.calib, self.scale.clone())
+                .with_labels(self.labels.clone()),
+        )
     }
 }
 
@@ -119,6 +124,15 @@ impl Fixture {
             );
             let question = o.checked_question()?;
             let key = client.observe(&state, &question, o.answer.clone());
+            if let Some(c) = o.confidence {
+                if !(0.0..=1.0).contains(&c) {
+                    return Err(format!(
+                        "fixture observation {:?}: confidence must be in [0, 1], got {c}",
+                        o.text
+                    ));
+                }
+                client.fix_confidence(&key, c);
+            }
             match (o.perms, o.mode_share) {
                 (Some(k), Some(s)) => client.fix_perms(&key, k, s),
                 (None, None) => {}

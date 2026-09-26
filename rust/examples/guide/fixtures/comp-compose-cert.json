@@ -1,0 +1,11 @@
+{
+  "description": "compose 与 cert 的最小示例。",
+  "calibrations": [
+    {"key": "cond-a", "hi": 0.7, "lo": 0.3, "n": 1, "status": "上岗", "delta": 0.05},
+    {"key": "cond-b", "hi": 0.7, "lo": 0.3, "n": 1, "status": "上岗", "delta": 0.05}
+  ],
+  "observations": [
+    {"on": ["材料 a 的内容"], "op": "test", "text": "材料 a 是否满足条件一？", "calib": "cond-a", "answer": {"Noul": 0.9}},
+    {"on": ["材料 b 的内容"], "op": "test", "text": "材料 b 是否满足条件二？", "calib": "cond-b", "answer": {"Noul": 0.85}}
+  ]
+}

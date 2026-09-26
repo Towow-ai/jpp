@@ -57,7 +57,7 @@
     "events": [
       {
         "cost": 0.0,
-        "key": "12bdb5232118a2e97f296c2f",
+        "key": "47b5ba029889b490006e1dfe",
         "kind": "judge",
         "note": "「这段话里说的胶带还剩多少？」",
         "replayed": false,
@@ -68,7 +68,7 @@
       },
       {
         "cost": 0.0,
-        "key": "0b5c39b2c12a086f12fdb9b8",
+        "key": "b4d3cab0b421c622ea0250d5",
         "kind": "judge",
         "note": "「这段话里说的胶带还剩多少？」",
         "replayed": false,
@@ -79,7 +79,7 @@
       },
       {
         "cost": 0.0,
-        "key": "4e24ed68749d6d70e8d9d4ab",
+        "key": "54eafa24b0e4e8ac806b552a",
         "kind": "judge",
         "note": "「这段话里说的胶带还剩多少？」",
         "replayed": false,
@@ -90,7 +90,7 @@
       },
       {
         "cost": 0.0,
-        "key": "0b5c39b2c12a086f12fdb9b8",
+        "key": "b4d3cab0b421c622ea0250d5",
         "kind": "judge",
         "note": "「这段话里说的胶带还剩多少？」",
         "replayed": true,
@@ -101,7 +101,7 @@
       },
       {
         "cost": 0.0,
-        "key": "4e24ed68749d6d70e8d9d4ab",
+        "key": "54eafa24b0e4e8ac806b552a",
         "kind": "judge",
         "note": "「这段话里说的胶带还剩多少？」",
         "replayed": true,

@@ -102,7 +102,7 @@
     "events": [
       {
         "cost": 0.0,
-        "key": "f64c2a27c70964a381b29441",
+        "key": "8da07e2076493624172ae701",
         "kind": "judge",
         "note": "「Candidate fits?」",
         "replayed": false,
@@ -113,7 +113,7 @@
       },
       {
         "cost": 0.0,
-        "key": "1ea1a44f3cfa664fe7d98cad",
+        "key": "cf0efe9ab566267992998256",
         "kind": "judge",
         "note": "「Candidate fits?」",
         "replayed": false,
@@ -124,7 +124,7 @@
       },
       {
         "cost": 0.0,
-        "key": "235c1f1d70b1931415b125ce",
+        "key": "b2b744d02fca54073ccfc2b5",
         "kind": "judge",
         "note": "「Candidate fits?」",
         "replayed": false,
@@ -135,7 +135,7 @@
       },
       {
         "cost": 0.0,
-        "key": "f2b97dba659770f974ad98db",
+        "key": "3ee877d2aabcf02ccf280d16",
         "kind": "judge",
         "note": "「Candidate fits?」",
         "replayed": false,
@@ -179,7 +179,7 @@
       },
       {
         "cost": 0.0,
-        "key": "db50bb288ba14ddfdc317871",
+        "key": "853ec91ae32eafa0f0086f93",
         "kind": "judge",
         "note": "「Candidate fits?」",
         "replayed": false,
@@ -212,7 +212,7 @@
       },
       {
         "cost": 0.0,
-        "key": "468595bb5fcc5c16918ddaf8",
+        "key": "011150256f8515b7a6d2184a",
         "kind": "judge",
         "note": "「Candidate fits?」",
         "replayed": false,
@@ -246,12 +246,12 @@
         ]
       },
       "evidence": [
-        "f64c2a27c70964a381b29441",
-        "1ea1a44f3cfa664fe7d98cad",
-        "235c1f1d70b1931415b125ce",
-        "f2b97dba659770f974ad98db",
-        "db50bb288ba14ddfdc317871",
-        "468595bb5fcc5c16918ddaf8"
+        "8da07e2076493624172ae701",
+        "cf0efe9ab566267992998256",
+        "b2b744d02fca54073ccfc2b5",
+        "3ee877d2aabcf02ccf280d16",
+        "853ec91ae32eafa0f0086f93",
+        "011150256f8515b7a6d2184a"
       ],
       "pending": []
     },
@@ -263,11 +263,11 @@
         ]
       },
       "evidence": [
-        "f64c2a27c70964a381b29441",
-        "1ea1a44f3cfa664fe7d98cad",
-        "235c1f1d70b1931415b125ce",
-        "f2b97dba659770f974ad98db",
-        "db50bb288ba14ddfdc317871"
+        "8da07e2076493624172ae701",
+        "cf0efe9ab566267992998256",
+        "b2b744d02fca54073ccfc2b5",
+        "3ee877d2aabcf02ccf280d16",
+        "853ec91ae32eafa0f0086f93"
       ],
       "pending": [
         "D"
@@ -282,10 +282,10 @@
         ]
       },
       "evidence": [
-        "f64c2a27c70964a381b29441",
-        "1ea1a44f3cfa664fe7d98cad",
-        "235c1f1d70b1931415b125ce",
-        "f2b97dba659770f974ad98db"
+        "8da07e2076493624172ae701",
+        "cf0efe9ab566267992998256",
+        "b2b744d02fca54073ccfc2b5",
+        "3ee877d2aabcf02ccf280d16"
       ],
       "pending": [
         "C",

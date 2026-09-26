@@ -1,0 +1,239 @@
+{
+  "backend": "fixed-0",
+  "cost": {
+    "asks": 0,
+    "calls": 3,
+    "replayed": 0,
+    "tokens": 0,
+    "usd": 0.0
+  },
+  "entry": [],
+  "exits": [
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "item": "6c76792326de",
+      "key": "env-snake",
+      "releases": false,
+      "site": 1090
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "item": "6c76792326de",
+      "key": "env-snake",
+      "releases": false,
+      "site": 1090
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "item": "6c76792326de",
+      "key": "env-snake",
+      "releases": false,
+      "site": 1090
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "item": "daa8ad8d3efa",
+      "key": "env-snake",
+      "releases": false,
+      "site": 1090
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "item": "daa8ad8d3efa",
+      "key": "env-snake",
+      "releases": false,
+      "site": 1090
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "item": "daa8ad8d3efa",
+      "key": "env-snake",
+      "releases": false,
+      "site": 1090
+    },
+    {
+      "exit": "ignore",
+      "grade": "Fixture",
+      "item": "dce003589c12",
+      "key": "env-snake",
+      "releases": false,
+      "site": 1090
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "item": "dce003589c12",
+      "key": "env-snake",
+      "releases": false,
+      "site": 1090
+    },
+    {
+      "exit": "ignore",
+      "grade": "Fixture",
+      "item": "dce003589c12",
+      "key": "env-snake",
+      "releases": false,
+      "site": 1090
+    }
+  ],
+  "fixture_description": "env-snake：3 轮固定观察，头 (0,0) 走向食物 (2,1)，第 3 轮吃到即 stop（步 7t）",
+  "local_checks": [],
+  "mode": "fixed observations; no model API requests",
+  "pending": [],
+  "questions": [
+    {
+      "kind": "attr",
+      "q": "82c8f14952ffd495e885a317"
+    },
+    {
+      "kind": "attr",
+      "q": "74cbdb1dde931a918a09d963"
+    },
+    {
+      "kind": "attr",
+      "q": "a9a6cb3beccee67721b35adc"
+    }
+  ],
+  "replay": false,
+  "resumed": false,
+  "returned_unsure": [],
+  "status": "returned",
+  "trace": {
+    "events": [
+      {
+        "cost": 0.0,
+        "key": "33bcd14995ece915424203bd",
+        "kind": "judge",
+        "note": "「食物在头部右边（x 更大）吗？」",
+        "replayed": false,
+        "site": {
+          "end": 1654,
+          "start": 1642
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "526a161ec4c2046d89ba6a1b",
+        "kind": "judge",
+        "note": "「食物在头部下边（y 更大）吗？」",
+        "replayed": false,
+        "site": {
+          "end": 1654,
+          "start": 1642
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "52d68097fcd4230e1c492740",
+        "kind": "judge",
+        "note": "「水平距离是否大于等于垂直距离？」",
+        "replayed": false,
+        "site": {
+          "end": 1654,
+          "start": 1642
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "ea310af2a2eb88e2e06afe5b",
+        "kind": "judge",
+        "note": "「食物在头部右边（x 更大）吗？」",
+        "replayed": false,
+        "site": {
+          "end": 1654,
+          "start": 1642
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "be0d270e01c4c5877269d464",
+        "kind": "judge",
+        "note": "「食物在头部下边（y 更大）吗？」",
+        "replayed": false,
+        "site": {
+          "end": 1654,
+          "start": 1642
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "888b9cf6a1e98932a1b45083",
+        "kind": "judge",
+        "note": "「水平距离是否大于等于垂直距离？」",
+        "replayed": false,
+        "site": {
+          "end": 1654,
+          "start": 1642
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "652faeb490d53af8917d7358",
+        "kind": "judge",
+        "note": "「食物在头部右边（x 更大）吗？」",
+        "replayed": false,
+        "site": {
+          "end": 1654,
+          "start": 1642
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "1eaecaad773f690cb7856a32",
+        "kind": "judge",
+        "note": "「食物在头部下边（y 更大）吗？」",
+        "replayed": false,
+        "site": {
+          "end": 1654,
+          "start": 1642
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "2cc372c22cd246478fe7d810",
+        "kind": "judge",
+        "note": "「水平距离是否大于等于垂直距离？」",
+        "replayed": false,
+        "site": {
+          "end": 1654,
+          "start": 1642
+        }
+      }
+    ],
+    "warnings": [
+      "W-window-untested: @1642 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
+      "W-fixture-line: @1090 键 env-snake 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-fixture-line: @1090 键 env-snake 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-fixture-line: @1090 键 env-snake 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-fixture-line: @1090 键 env-snake 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-fixture-line: @1090 键 env-snake 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-fixture-line: @1090 键 env-snake 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-fixture-line: @1090 键 env-snake 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线"
+    ]
+  },
+  "value": {
+    "alive": true,
+    "body_len": 2,
+    "food": {
+      "x": 0,
+      "y": 3
+    },
+    "head": {
+      "x": 2,
+      "y": 1
+    },
+    "measures": [
+      3,
+      2,
+      1
+    ],
+    "reason": "stop",
+    "rounds": 3
+  }
+}

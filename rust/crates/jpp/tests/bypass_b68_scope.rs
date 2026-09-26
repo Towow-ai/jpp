@@ -25,6 +25,7 @@ fn 桩端口(calls: &RefCell<u64>) -> Ports<'_> {
                 cost: 0.0,
                 mode_share: vec![],
                 perms: vec![],
+                confidence: vec![],
             })
         }))
         .with(FnPort::generate("m", |_p, _c, _n, _r| {

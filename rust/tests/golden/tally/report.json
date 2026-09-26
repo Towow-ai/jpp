@@ -7,6 +7,34 @@
     "tokens": 0,
     "usd": 0.0
   },
+  "duties": [
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.first1.exit",
+        "$.first2.exit",
+        "$.pending[0][1].exit",
+        "$.pending[1][1].exit",
+        "$.pending[1][2].exit",
+        "$.pending[2][1].exit",
+        "$.pending[2][2].exit"
+      ],
+      "key": "2bec4bd62f42160a76d6fa54"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.first1.exit",
+        "$.first2.exit",
+        "$.pending[0][0].exit",
+        "$.pending[1][0].exit",
+        "$.pending[1][2].exit",
+        "$.pending[2][0].exit",
+        "$.pending[2][2].exit"
+      ],
+      "key": "ea53757f011f868e81b933d2"
+    }
+  ],
   "entry": [],
   "exits": [
     {
@@ -83,7 +111,7 @@
     "events": [
       {
         "cost": 0.0,
-        "key": "faf2654baf428ca9589cdbbb",
+        "key": "ea53757f011f868e81b933d2",
         "kind": "judge",
         "note": "「这段话给出了具体价格或折扣吗？」",
         "replayed": false,
@@ -94,7 +122,7 @@
       },
       {
         "cost": 0.0,
-        "key": "81a1273b0086109e9d4200af",
+        "key": "60e6c422071c8dce1e68379e",
         "kind": "judge",
         "note": "「这段话给出了具体价格或折扣吗？」",
         "replayed": false,
@@ -105,7 +133,7 @@
       },
       {
         "cost": 0.0,
-        "key": "7c7f309b2064fd596c0a5efa",
+        "key": "374c9325021b71fbbd0386a7",
         "kind": "judge",
         "note": "「这段话给出了具体价格或折扣吗？」",
         "replayed": false,
@@ -116,7 +144,7 @@
       },
       {
         "cost": 0.0,
-        "key": "c26d338ec28d7406e049a606",
+        "key": "7ba0f0f5770083c7d363fbdb",
         "kind": "judge",
         "note": "「这段话给出了具体价格或折扣吗？」",
         "replayed": false,
@@ -127,7 +155,7 @@
       },
       {
         "cost": 0.0,
-        "key": "9f2117d3875cc5b971fc50e7",
+        "key": "2bec4bd62f42160a76d6fa54",
         "kind": "judge",
         "note": "「这段话给出了具体价格或折扣吗？」",
         "replayed": false,
@@ -193,7 +221,7 @@
           },
           "index": 0,
           "item": "这款耳机售价三百九十九元。",
-          "key": "faf2654baf428ca9589cdbbb",
+          "key": "ea53757f011f868e81b933d2",
           "pos": 0,
           "q": {
             "calib": "price",
@@ -214,7 +242,7 @@
           },
           "index": 4,
           "item": "价格还没公布，据说下个月发布。",
-          "key": "9f2117d3875cc5b971fc50e7",
+          "key": "2bec4bd62f42160a76d6fa54",
           "pos": 4,
           "q": {
             "calib": "price",
@@ -237,7 +265,7 @@
           },
           "index": 0,
           "item": "这款耳机售价三百九十九元。",
-          "key": "faf2654baf428ca9589cdbbb",
+          "key": "ea53757f011f868e81b933d2",
           "pos": 0,
           "q": {
             "calib": "price",
@@ -258,7 +286,7 @@
           },
           "index": 4,
           "item": "价格还没公布，据说下个月发布。",
-          "key": "9f2117d3875cc5b971fc50e7",
+          "key": "2bec4bd62f42160a76d6fa54",
           "pos": 4,
           "q": {
             "calib": "price",
@@ -290,7 +318,7 @@
           },
           "index": 0,
           "item": "这款耳机售价三百九十九元。",
-          "key": "faf2654baf428ca9589cdbbb",
+          "key": "ea53757f011f868e81b933d2",
           "pos": 0,
           "q": {
             "calib": "price",
@@ -311,7 +339,7 @@
           },
           "index": 4,
           "item": "价格还没公布，据说下个月发布。",
-          "key": "9f2117d3875cc5b971fc50e7",
+          "key": "2bec4bd62f42160a76d6fa54",
           "pos": 4,
           "q": {
             "calib": "price",

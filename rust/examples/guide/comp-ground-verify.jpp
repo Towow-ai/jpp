@@ -1,0 +1,23 @@
+// 搜索加接地的闭环（步 25e，B148）：生成器提 3 段 Python 代码，执行器 exec_py 把每段跑出来，候选与输出一起
+// 渲染成字面材料，JEV 判输出对不对，再让生成器看着上一轮的结果重提。第 1 轮三段都不对（一段落在带内），
+// refine 宽限一轮，带内那段（代码加输出）进第 2 轮上下文；第 2 轮有一段输出 385，凑够 width 1，stop。
+// 金样不在检查时执行代码：tests/golden/search-ground 从种子账本 tests/golden/search-ground-seed 续跑，
+// 种子是在有 sandbox-exec 的机器上真跑一次录下的（重录命令见 地基/过程记录/工程-步25e.md）。
+import "../../lib/compose/ground.jpp";
+import "../../lib/compose/search.jpp";
+budget {calls: 20, cost: 0.01, depth: 64};
+
+let brief = mat("写一段 Python 代码，打印 1 到 10 的平方和");
+let propose = fn(frontier, i) {
+    gen("按下面的需求提出 3 段 Python 代码，每段是一个字符串；需求之后的上下文是上一轮留下的候选（代码与输出）", concat([brief], frontier), 3, i)
+};
+let runner = ground("exec_py", fn(c) { [content(c), "", 5] },
+                    fn(c, out) { "代码：" + content(c) + "\n输出：" + content(out).stdout });
+let correct = test("这段代码的输出是否等于 1 到 10 的平方和（385）？", "ground-correct");
+
+let r = search([], propose, correct, unit, 3, {width: 1, unsure_to: "refine", ground: runner});
+{kept: map(r.value, fn(e) { e.item }), found_in: map(r.value, fn(e) { e.round }),
+ rejected: map(r.detail.ignore, fn(e) { e.item }),
+ undecided: map(r.pending, fn(p) { {item: p.item, cause: p.cause, via: p.via} }),
+ reason: r.detail.reason, rounds: r.detail.rounds, measures: r.detail.measures, duplicates: r.detail.duplicates,
+ pending: r.pending}

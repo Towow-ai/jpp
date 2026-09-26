@@ -1,0 +1,169 @@
+{
+  "backend": "fixed-0",
+  "cost": {
+    "asks": 0,
+    "calls": 4,
+    "replayed": 0,
+    "tokens": 0,
+    "usd": 0.0
+  },
+  "entry": [],
+  "exits": [
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 0,
+      "item": "f5986f6e33ec",
+      "key": "gen-choose-fit",
+      "pos": 0,
+      "releases": false,
+      "site": 875
+    },
+    {
+      "exit": "ignore",
+      "grade": "Fixture",
+      "index": 1,
+      "item": "de09a4cad917",
+      "key": "gen-choose-fit",
+      "pos": 1,
+      "releases": false,
+      "site": 875
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Fixture",
+      "index": 2,
+      "item": "b82a14938cdb",
+      "key": "gen-choose-fit",
+      "pos": 2,
+      "releases": false,
+      "site": 875
+    }
+  ],
+  "fixture_description": "Synthetic fixed observations for gen-choose.jpp (construction check only; not model evaluation). The generator output is fixed; the calibration record is hand-written to exercise routing. The third name is set to 0.5 on purpose to show a pending element.",
+  "local_checks": [],
+  "mode": "fixed observations; no model API requests",
+  "pending": [],
+  "questions": [
+    {
+      "kind": "attr",
+      "q": "bf77935372f7724b9117f8d3"
+    }
+  ],
+  "replay": false,
+  "resumed": false,
+  "returned_unsure": [
+    "unsure(band)"
+  ],
+  "status": "returned",
+  "trace": {
+    "events": [
+      {
+        "cost": 0.0,
+        "key": "5bb56f030919acd8679c5361",
+        "kind": "gen",
+        "note": "按下面的需求提出 3 个候选店名，每个候选是一个字符串",
+        "replayed": false,
+        "site": {
+          "end": 670,
+          "start": 573
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "525390d650768fd4b114c05b",
+        "kind": "judge",
+        "note": "「这个名字适合做一家社区咖啡馆的店名吗？」",
+        "replayed": false,
+        "site": {
+          "end": 893,
+          "start": 875
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "49ec29460bc17722cba7b552",
+        "kind": "judge",
+        "note": "「这个名字适合做一家社区咖啡馆的店名吗？」",
+        "replayed": false,
+        "site": {
+          "end": 893,
+          "start": 875
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "3a2f7b09336774c5ec957421",
+        "kind": "judge",
+        "note": "「这个名字适合做一家社区咖啡馆的店名吗？」",
+        "replayed": false,
+        "site": {
+          "end": 893,
+          "start": 875
+        }
+      }
+    ],
+    "warnings": [
+      "W-window-untested: @875 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
+      "W-fixture-line: @875 键 gen-choose-fit 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "returned_unsure: unsure(band)"
+    ]
+  },
+  "value": {
+    "chosen": [
+      {
+        "content": "暖巷咖啡",
+        "mat": "154d2a8ea902e6929ef7c5d4",
+        "origin": [
+          "gen:5bb56f030919acd8679c5361"
+        ],
+        "taint": "Trusted"
+      }
+    ],
+    "pending": [
+      {
+        "cause": "band",
+        "exit": {
+          "consumed": true,
+          "exit": "unsure(band)",
+          "id": 2,
+          "q": "bf77935372f7724b9117f8d3"
+        },
+        "index": 2,
+        "item": {
+          "content": "邻里豆",
+          "mat": "8a0a0812bcce40110aaaccd3",
+          "origin": [
+            "gen:5bb56f030919acd8679c5361"
+          ],
+          "taint": "Trusted"
+        },
+        "key": "3a2f7b09336774c5ec957421",
+        "pos": 2,
+        "q": {
+          "calib": "gen-choose-fit",
+          "op": "noul",
+          "question": "bf77935372f7724b9117f8d3",
+          "text": "这个名字适合做一家社区咖啡馆的店名吗？"
+        },
+        "qi": 0,
+        "trail": []
+      }
+    ],
+    "rejected": [
+      {
+        "content": "街角慢时光咖啡馆",
+        "mat": "58df18e8fb0fdbdc5677fee2",
+        "origin": [
+          "gen:5bb56f030919acd8679c5361"
+        ],
+        "taint": "Trusted"
+      }
+    ],
+    "taints": [
+      "trusted",
+      "trusted",
+      "trusted"
+    ]
+  }
+}

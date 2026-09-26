@@ -31,6 +31,8 @@ pub const CONSTRUCTS: &[&str] = &[
     "agg",
     "repeat",
     "order",
+    // 步 25-8a：元素记录构造开放（B133、B148）
+    "element",
 ];
 
 /// 带站点的高阶宿主内置（推测与向量化的触发点）。

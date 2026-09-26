@@ -1,0 +1,546 @@
+{
+  "backend": "fixed-0",
+  "cost": {
+    "asks": 0,
+    "calls": 0,
+    "replayed": 12,
+    "tokens": 0,
+    "usd": 0.0
+  },
+  "duties": [
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.pending[1].edges[0].exit",
+        "$.pending[1].exit",
+        "$.pending[3].exit"
+      ],
+      "key": "0a74fb426f425f693a0713d8"
+    },
+    {
+      "exit": "unsure(band)",
+      "holders": [
+        "$.pending[0].edges[0].exit",
+        "$.pending[0].exit",
+        "$.pending[2].exit"
+      ],
+      "key": "a5e21bf705831e65be99960a"
+    }
+  ],
+  "entry": [],
+  "exits": [
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 0,
+      "item": "542e4ed3102f",
+      "key": "graph-can-do",
+      "pos": 0,
+      "releases": false,
+      "site": 3703
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 1,
+      "item": "f1f937d0bede",
+      "key": "graph-can-do",
+      "pos": 1,
+      "releases": false,
+      "site": 3703
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 2,
+      "item": "e966179e03d4",
+      "key": "graph-can-do",
+      "pos": 2,
+      "releases": false,
+      "site": 3703
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 3,
+      "item": "8f2424c19328",
+      "key": "graph-can-do",
+      "pos": 3,
+      "releases": false,
+      "site": 3703
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 4,
+      "item": "cdf20ca85e20",
+      "key": "graph-can-do",
+      "pos": 4,
+      "releases": false,
+      "site": 3703
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 5,
+      "item": "908e8629f7b0",
+      "key": "graph-can-do",
+      "pos": 5,
+      "releases": false,
+      "site": 3703
+    },
+    {
+      "exit": "ignore",
+      "grade": "Fixture",
+      "index": 6,
+      "item": "6f96bafc2de9",
+      "key": "graph-can-do",
+      "pos": 6,
+      "releases": false,
+      "site": 3703
+    },
+    {
+      "exit": "ignore",
+      "grade": "Fixture",
+      "index": 7,
+      "item": "dbca71bd461e",
+      "key": "graph-can-do",
+      "pos": 7,
+      "releases": false,
+      "site": 3703
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Fixture",
+      "index": 8,
+      "item": "0eb7becbd331",
+      "key": "graph-can-do",
+      "pos": 8,
+      "releases": false,
+      "site": 3703
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Fixture",
+      "index": 9,
+      "item": "c399c7cc01c0",
+      "key": "graph-can-do",
+      "pos": 9,
+      "releases": false,
+      "site": 3703
+    }
+  ],
+  "fixture_description": "Synthetic fixed observations for graph-interval.jpp (step 25d, B148): 10 candidate edges, 2 in the band.",
+  "local_checks": [],
+  "mode": "replay; no model API requests",
+  "pending": [],
+  "questions": [
+    {
+      "kind": "attr",
+      "q": "d51f2ba37873ad7f7bdbbd0c"
+    }
+  ],
+  "replay": true,
+  "resumed": false,
+  "returned_unsure": [
+    "unsure(band)"
+  ],
+  "status": "returned",
+  "trace": {
+    "events": [
+      {
+        "cost": 0.0,
+        "key": "4d892904e6790268cc8856b2",
+        "kind": "judge",
+        "note": "「a 描述的这项任务，b 这个人能接下来吗？」",
+        "replayed": true,
+        "site": {
+          "end": 3810,
+          "start": 3703
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "6d340d9956199a8fc06bfcb5",
+        "kind": "judge",
+        "note": "「a 描述的这项任务，b 这个人能接下来吗？」",
+        "replayed": true,
+        "site": {
+          "end": 3810,
+          "start": 3703
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "77e431a8f59ffb9ab35dca3b",
+        "kind": "judge",
+        "note": "「a 描述的这项任务，b 这个人能接下来吗？」",
+        "replayed": true,
+        "site": {
+          "end": 3810,
+          "start": 3703
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "2234f1cda856342cc1b413cd",
+        "kind": "judge",
+        "note": "「a 描述的这项任务，b 这个人能接下来吗？」",
+        "replayed": true,
+        "site": {
+          "end": 3810,
+          "start": 3703
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "a5d7f2c6660d5d2d793f4dea",
+        "kind": "judge",
+        "note": "「a 描述的这项任务，b 这个人能接下来吗？」",
+        "replayed": true,
+        "site": {
+          "end": 3810,
+          "start": 3703
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "c5c511c3df8fa60386a3f15b",
+        "kind": "judge",
+        "note": "「a 描述的这项任务，b 这个人能接下来吗？」",
+        "replayed": true,
+        "site": {
+          "end": 3810,
+          "start": 3703
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "68c6ba639a96dbef660e3501",
+        "kind": "judge",
+        "note": "「a 描述的这项任务，b 这个人能接下来吗？」",
+        "replayed": true,
+        "site": {
+          "end": 3810,
+          "start": 3703
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "c8c0d4a08f2f0fff5d99cd64",
+        "kind": "judge",
+        "note": "「a 描述的这项任务，b 这个人能接下来吗？」",
+        "replayed": true,
+        "site": {
+          "end": 3810,
+          "start": 3703
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "a5e21bf705831e65be99960a",
+        "kind": "judge",
+        "note": "「a 描述的这项任务，b 这个人能接下来吗？」",
+        "replayed": true,
+        "site": {
+          "end": 3810,
+          "start": 3703
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "0a74fb426f425f693a0713d8",
+        "kind": "judge",
+        "note": "「a 描述的这项任务，b 这个人能接下来吗？」",
+        "replayed": true,
+        "site": {
+          "end": 3810,
+          "start": 3703
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "3356f4aaefd680bbc1cc0d86",
+        "kind": "do",
+        "note": "graph:matching",
+        "replayed": true,
+        "site": {
+          "end": 9016,
+          "start": 8938
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "65a0ce1bcc9db25a731bc9a8",
+        "kind": "do",
+        "note": "graph:matching",
+        "replayed": true,
+        "site": {
+          "end": 9016,
+          "start": 8938
+        }
+      }
+    ],
+    "warnings": [
+      "W-window-untested: @3703 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
+      "W-fixture-line: @3703 键 graph-can-do 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-fixture-line: @3703 键 graph-can-do 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-fixture-line: @3703 键 graph-can-do 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-fixture-line: @3703 键 graph-can-do 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-fixture-line: @3703 键 graph-can-do 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-fixture-line: @3703 键 graph-can-do 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "returned_unsure: unsure(band)"
+    ]
+  },
+  "value": {
+    "alpha_bound": 1.0,
+    "ask_first": [
+      [
+        "任务：做数据看板",
+        "小王：数据分析，常做报表"
+      ],
+      [
+        "任务：写单元测试",
+        "小陈：测试开发，熟悉单元测试框架"
+      ]
+    ],
+    "assigned": [
+      [
+        "任务：写登录页",
+        "小林：前端三年，做过登录与注册"
+      ],
+      [
+        "任务：设计数据库表",
+        "小周：后端，主写数据库迁移"
+      ],
+      [
+        "任务：写接口文档",
+        "小吴：技术写作，维护过接口文档"
+      ],
+      [
+        "任务：搭部署脚本",
+        "小郑：运维，写过部署流水线"
+      ]
+    ],
+    "complete": true,
+    "edges": {
+      "no": 2,
+      "open": 2,
+      "yes": 6
+    },
+    "if_all_yes": [
+      [
+        "任务：写登录页",
+        "小林：前端三年，做过登录与注册"
+      ],
+      [
+        "任务：设计数据库表",
+        "小周：后端，主写数据库迁移"
+      ],
+      [
+        "任务：写接口文档",
+        "小吴：技术写作，维护过接口文档"
+      ],
+      [
+        "任务：搭部署脚本",
+        "小郑：运维，写过部署流水线"
+      ],
+      [
+        "任务：做数据看板",
+        "小王：数据分析，常做报表"
+      ],
+      [
+        "任务：写单元测试",
+        "小陈：测试开发，熟悉单元测试框架"
+      ]
+    ],
+    "n_unknown": 6,
+    "pending": [
+      {
+        "cause": "band",
+        "edges": [
+          {
+            "at": [
+              8,
+              8
+            ],
+            "cause": "band",
+            "eid": 8,
+            "ends": [
+              4,
+              10
+            ],
+            "exit": {
+              "consumed": true,
+              "exit": "unsure(band)",
+              "id": 8,
+              "q": "d51f2ba37873ad7f7bdbbd0c"
+            },
+            "item": {
+              "a": "任务：做数据看板",
+              "b": "小王：数据分析，常做报表"
+            },
+            "key": "a5e21bf705831e65be99960a",
+            "left": "任务：做数据看板",
+            "pos": 8,
+            "q": {
+              "calib": "graph-can-do",
+              "op": "noul",
+              "question": "d51f2ba37873ad7f7bdbbd0c",
+              "text": "a 描述的这项任务，b 这个人能接下来吗？"
+            },
+            "qi": 0,
+            "right": "小王：数据分析，常做报表",
+            "trail": []
+          }
+        ],
+        "exit": {
+          "consumed": true,
+          "exit": "unsure(band)",
+          "id": 18,
+          "q": "compose"
+        },
+        "item": {
+          "a": "任务：做数据看板",
+          "b": "小王：数据分析，常做报表"
+        },
+        "members": [
+          4,
+          10
+        ],
+        "nodes": [
+          "任务：做数据看板",
+          "小王：数据分析，常做报表"
+        ],
+        "trail": []
+      },
+      {
+        "cause": "band",
+        "edges": [
+          {
+            "at": [
+              9,
+              9
+            ],
+            "cause": "band",
+            "eid": 9,
+            "ends": [
+              5,
+              11
+            ],
+            "exit": {
+              "consumed": true,
+              "exit": "unsure(band)",
+              "id": 9,
+              "q": "d51f2ba37873ad7f7bdbbd0c"
+            },
+            "item": {
+              "a": "任务：写单元测试",
+              "b": "小陈：测试开发，熟悉单元测试框架"
+            },
+            "key": "0a74fb426f425f693a0713d8",
+            "left": "任务：写单元测试",
+            "pos": 9,
+            "q": {
+              "calib": "graph-can-do",
+              "op": "noul",
+              "question": "d51f2ba37873ad7f7bdbbd0c",
+              "text": "a 描述的这项任务，b 这个人能接下来吗？"
+            },
+            "qi": 0,
+            "right": "小陈：测试开发，熟悉单元测试框架",
+            "trail": []
+          }
+        ],
+        "exit": {
+          "consumed": true,
+          "exit": "unsure(band)",
+          "id": 19,
+          "q": "compose"
+        },
+        "item": {
+          "a": "任务：写单元测试",
+          "b": "小陈：测试开发，熟悉单元测试框架"
+        },
+        "members": [
+          5,
+          11
+        ],
+        "nodes": [
+          "任务：写单元测试",
+          "小陈：测试开发，熟悉单元测试框架"
+        ],
+        "trail": []
+      },
+      {
+        "at": [
+          8,
+          8
+        ],
+        "cause": "band",
+        "eid": 8,
+        "ends": [
+          4,
+          10
+        ],
+        "exit": {
+          "consumed": true,
+          "exit": "unsure(band)",
+          "id": 8,
+          "q": "d51f2ba37873ad7f7bdbbd0c"
+        },
+        "item": {
+          "a": "任务：做数据看板",
+          "b": "小王：数据分析，常做报表"
+        },
+        "key": "a5e21bf705831e65be99960a",
+        "left": "任务：做数据看板",
+        "pos": 8,
+        "q": {
+          "calib": "graph-can-do",
+          "op": "noul",
+          "question": "d51f2ba37873ad7f7bdbbd0c",
+          "text": "a 描述的这项任务，b 这个人能接下来吗？"
+        },
+        "qi": 0,
+        "right": "小王：数据分析，常做报表",
+        "trail": []
+      },
+      {
+        "at": [
+          9,
+          9
+        ],
+        "cause": "band",
+        "eid": 9,
+        "ends": [
+          5,
+          11
+        ],
+        "exit": {
+          "consumed": true,
+          "exit": "unsure(band)",
+          "id": 9,
+          "q": "d51f2ba37873ad7f7bdbbd0c"
+        },
+        "item": {
+          "a": "任务：写单元测试",
+          "b": "小陈：测试开发，熟悉单元测试框架"
+        },
+        "key": "0a74fb426f425f693a0713d8",
+        "left": "任务：写单元测试",
+        "pos": 9,
+        "q": {
+          "calib": "graph-can-do",
+          "op": "noul",
+          "question": "d51f2ba37873ad7f7bdbbd0c",
+          "text": "a 描述的这项任务，b 这个人能接下来吗？"
+        },
+        "qi": 0,
+        "right": "小陈：测试开发，熟悉单元测试框架",
+        "trail": []
+      }
+    ],
+    "same": false
+  }
+}

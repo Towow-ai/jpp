@@ -33,11 +33,12 @@ pub use effects::{
     NoCallPorts, Ports, ReplayPorts, obs_key,
 };
 pub use interp::{
-    ActionRegistry, Cost, EntryArgs, EntryMat, EntryValue, Interp, Outcome, RtError, TaintOut,
+    ActionRegistry, Cost, EntryArgs, EntryMat, EntryValue, HostAccept, Interp, Outcome, RtError,
+    TaintOut,
 };
 pub use jpp_ir::ir;
 pub use jpp_ir::ir::{Block, Budget, Expr, Function, Parameter, Program, Span, Stmt, Type};
-pub use ledger::{Entry, Header, Ledger, Trace, TraceEvent};
+pub use ledger::{Durability, Entry, Header, Ledger, LedgerError, LedgerPort, Trace, TraceEvent};
 pub use value::{
     Answer, Env, Exit, ExitKind, Mat, Op, Pending, Question, Reading, State, Taint, Value,
 };
@@ -85,7 +86,7 @@ pub fn run(
     ports: Ports<'_>,
     calib: &CalibStore,
     actions: &ActionRegistry,
-    ledger: &mut Ledger,
+    ledger: &mut dyn LedgerPort,
 ) -> Result<Outcome, Error> {
     Session::new(ports, calib, actions).run(program, &EntryArgs::default(), ledger)
 }
@@ -98,7 +99,7 @@ pub fn run_replay(
     ports: Ports<'_>,
     calib: &CalibStore,
     actions: &ActionRegistry,
-    ledger: &mut Ledger,
+    ledger: &mut dyn LedgerPort,
 ) -> Result<Outcome, Error> {
     Session::new(ports, calib, actions).replay(program, &EntryArgs::default(), ledger)
 }
@@ -111,7 +112,7 @@ pub fn run_with_fits(
     calib: &CalibStore,
     actions: &ActionRegistry,
     fits: &effects::FitRegistry,
-    ledger: &mut Ledger,
+    ledger: &mut dyn LedgerPort,
 ) -> Result<Outcome, Error> {
     Session::new(ports, calib, actions)
         .with_fits(fits)
@@ -124,7 +125,7 @@ pub fn run_unchecked(
     ports: Ports<'_>,
     calib: &CalibStore,
     actions: &ActionRegistry,
-    ledger: &mut Ledger,
+    ledger: &mut dyn LedgerPort,
 ) -> Result<Outcome, RtError> {
     Session::new(ports, calib, actions).run_unchecked(program, ledger)
 }

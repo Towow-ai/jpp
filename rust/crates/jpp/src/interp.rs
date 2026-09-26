@@ -10,7 +10,7 @@ use std::ops::{Deref, DerefMut};
 
 use jpp_effects::Ports;
 use jpp_ir::ir::{Budget, Program};
-use jpp_ledger::Ledger;
+use jpp_ledger::LedgerPort;
 pub use jpp_plan::Passes;
 pub use jpp_runtime::*;
 
@@ -25,7 +25,7 @@ impl<'a> Interp<'a> {
     /// 不带 fit 表的入口（绝大多数程序不用 fit）。效应调用只经端口表（步 15b、15c）。
     pub fn new(
         ports: Ports<'a>,
-        ledger: &'a mut Ledger,
+        ledger: &'a mut dyn LedgerPort,
         calib: &'a dyn jpp_effects::views::CalibView,
         actions: &'a ActionRegistry,
         budget: Budget,
@@ -38,7 +38,7 @@ impl<'a> Interp<'a> {
 
     pub fn with_fits(
         ports: Ports<'a>,
-        ledger: &'a mut Ledger,
+        ledger: &'a mut dyn LedgerPort,
         calib: &'a dyn jpp_effects::views::CalibView,
         actions: &'a ActionRegistry,
         fits: Fits<'a>,
@@ -62,6 +62,17 @@ impl<'a> Interp<'a> {
     pub fn with_entry(self, entry: EntryArgs) -> Self {
         Interp {
             inner: self.inner.with_entry(entry),
+            passes: self.passes,
+        }
+    }
+
+    /// 生成缓存（步 15h-2）：见运行时同名方法
+    pub fn with_gen_cache(
+        self,
+        cache: std::rc::Rc<std::cell::RefCell<jpp_runtime::GenCache>>,
+    ) -> Self {
+        Interp {
+            inner: self.inner.with_gen_cache(cache),
             passes: self.passes,
         }
     }

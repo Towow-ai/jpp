@@ -1,0 +1,74 @@
+// 环境循环写法 (a)：纯函数环境（B159 (1)(a)），网格 + 蛇身 + step，进 iterate（步 7t）。
+// 环境是一个值（头、身、食物、是否存活、网格边长），step(env, action) -> env' 是纯 .jpp 函数；
+// 每轮先 judge 三道 test（食物在右边吗、在下边吗、水平距离≥垂直距离吗）决定动作，再纯地移动一步。
+// 撞墙或撞自己身体 -> 存活位置假、stop；吃到食物 -> 蛇身变长、经种子随机重新放食物、stop
+// （B158 的 rand_int：同 (seed, k) 恒同值，这里 k 取当前轮次 i，换轮次即换一次「随机」食物位置）；
+// 正常移动 -> 头前移一格、尾巴退一格。iterate 的度量是到食物的曼哈顿距离，严格下降；
+// 三条终止线（步数上限 / 度量不再下降 / 账本键重复）之外，step 自己 stop() 也算一种提前终止（B132）。
+budget {calls: 20, cost: 0, depth: 64};
+
+let grid = 5;
+
+fn render(env) {
+    "dx=" + text(env.food.x - env.head.x) + " dy=" + text(env.food.y - env.head.y)
+}
+
+fn cut_bool(r) {
+    handle(cut(r), {act: fn() { true }, ignore: fn() { false },
+                    unsure: fn(u) { consume(u, "drop"); false }})
+}
+
+// 每轮问三道题，按「先比水平垂直哪个更远、再比该方向的正负」两层决定一个动作
+fn decide(env) !{judge} {
+    let s = state(mat(render(env)));
+    let qs = [test("食物在头部右边（x 更大）吗？", "env-snake"),
+              test("食物在头部下边（y 更大）吗？", "env-snake"),
+              test("水平距离是否大于等于垂直距离？", "env-snake")];
+    let rs = judge(s, qs);
+    let right = cut_bool(rs[0]);
+    let down = cut_bool(rs[1]);
+    let horiz = cut_bool(rs[2]);
+    if horiz { if right { "right" } else { "left" } } else { if down { "down" } else { "up" } }
+}
+
+fn delta(a) {
+    if a == "right" { {dx: 1, dy: 0} }
+    else if a == "left" { {dx: -1, dy: 0} }
+    else if a == "down" { {dx: 0, dy: 1} }
+    else { {dx: 0, dy: -1} }
+}
+
+fn step(env, i) !{judge} {
+    if !env.alive { stop(env) } else {
+        let action = decide(env);
+        let d = delta(action);
+        let nx = env.head.x + d.dx;
+        let ny = env.head.y + d.dy;
+        let body_without_tail = slice(env.body, 0, len(env.body) - 1);
+        if nx < 0 || nx >= env.n || ny < 0 || ny >= env.n {
+            stop({head: env.head, body: env.body, food: env.food, alive: false, n: env.n})
+        } else if contains(body_without_tail, {x: nx, y: ny}) {
+            stop({head: env.head, body: env.body, food: env.food, alive: false, n: env.n})
+        } else if nx == env.food.x && ny == env.food.y {
+            // 吃到：蛇身变长（保留整条旧身体），种子随机重新放食物（B158，rand_int(seed, k, n)）
+            let fx = rand_int(9001, i, env.n);
+            let fy = rand_int(9002, i, env.n);
+            stop({head: {x: nx, y: ny}, body: concat([{x: nx, y: ny}], env.body),
+                  food: {x: fx, y: fy}, alive: true, n: env.n})
+        } else {
+            // 正常移动：头前移一格、尾巴退一格
+            {head: {x: nx, y: ny},
+             body: concat([{x: nx, y: ny}], slice(env.body, 0, len(env.body) - 1)),
+             food: env.food, alive: true, n: env.n}
+        }
+    }
+}
+
+fn dist(env) { abs(env.food.x - env.head.x) + abs(env.food.y - env.head.y) }
+
+let init = {head: {x: 0, y: 0}, body: [{x: 0, y: 0}], food: {x: 2, y: 1}, alive: true, n: grid};
+let result = iterate(100, init, step, dist);
+
+{reason: result.resume.reason, rounds: result.resume.rounds, measures: result.resume.measures,
+ head: result.value.head, food: result.value.food, alive: result.value.alive,
+ body_len: len(result.value.body)}

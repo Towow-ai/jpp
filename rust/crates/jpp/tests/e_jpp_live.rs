@@ -94,6 +94,7 @@ fn 桩(calls: &RefCell<usize>) -> Ports<'_> {
                 cost: 0.0,
                 mode_share: ms,
                 perms: pm,
+                confidence: vec![],
             })
         }))
         .with(FnPort::generate(M, |_p, _c, n, _r| {
@@ -103,6 +104,7 @@ fn 桩(calls: &RefCell<usize>) -> Ports<'_> {
                     .collect(),
                 tokens: 0,
                 cost: 0.0,
+                ..Default::default()
             })
         }))
         .with(FnPort::ask(M, |_s, _q| Ok(None)))

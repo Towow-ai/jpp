@@ -17,7 +17,8 @@ for name, src in [("folio", R / "probes/folio/folio.jpp"), ("winnow", R / "probe
                   ("topic-relevance", R / "examples/topic-relevance.jpp")]:
     rep = HERE / f"report-{name}-nofp.json"
     subprocess.run([str(JPP), "run", str(src), "--fixtures", str(HERE / f"fixture-{name}.json"), "--calib", str(nofp),
-                    "--output", str(rep)], capture_output=True, text=True,
+                    "--output", str(rep), "--ledger-out", str(HERE / f"ledger-{name}-nofp.jsonl")],
+                   capture_output=True, text=True,
                    cwd=src.parent if name != "topic-relevance" else R)
     a = json.load(open(HERE / f"report-{name}.json"))
     b = json.load(open(rep))

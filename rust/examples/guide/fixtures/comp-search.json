@@ -1,0 +1,15 @@
+{
+  "description": "Synthetic fixed observations for search-stop.jpp (construction check only; not model evaluation). One round of generation; two of the three names are judged fitting, which reaches width 2, so the search stops after round 0. The calibration record is hand-written to exercise routing.",
+  "calibrations": [
+    {"key": "search-fit", "hi": 0.75, "lo": 0.25, "n": 1, "status": "上岗", "delta": 0.05}
+  ],
+  "generations": [
+    {"prompt": "按下面的需求提出 3 个候选店名，每个候选是一个字符串；需求之后的上下文是上一轮留下的候选", "retry_seq": 0,
+     "output": ["暖巷咖啡", "街角慢时光咖啡馆", "邻里豆"]}
+  ],
+  "observations": [
+    {"on": ["暖巷咖啡"], "op": "test", "text": "这个名字适合做一家社区咖啡馆的店名吗？", "calib": "search-fit", "answer": {"Noul": 0.95}},
+    {"on": ["街角慢时光咖啡馆"], "op": "test", "text": "这个名字适合做一家社区咖啡馆的店名吗？", "calib": "search-fit", "answer": {"Noul": 0.04}},
+    {"on": ["邻里豆"], "op": "test", "text": "这个名字适合做一家社区咖啡馆的店名吗？", "calib": "search-fit", "answer": {"Noul": 0.9}}
+  ]
+}

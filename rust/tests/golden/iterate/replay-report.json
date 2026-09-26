@@ -336,7 +336,7 @@
     "events": [
       {
         "cost": 0.0,
-        "key": "a4dca382f5b05db8eaec1e99",
+        "key": "5602fd6c99387f30797a91fe",
         "kind": "judge",
         "note": "「这段话提到价格或优惠吗？」",
         "replayed": true,
@@ -347,7 +347,7 @@
       },
       {
         "cost": 0.0,
-        "key": "de26dd304a4203273793bae2",
+        "key": "537e3957dec45c109e6cb4e2",
         "kind": "judge",
         "note": "「这段话提到价格或优惠吗？」",
         "replayed": true,
@@ -358,7 +358,7 @@
       },
       {
         "cost": 0.0,
-        "key": "67bbc7b2271000bc8d9929fa",
+        "key": "f355e9ac975dbb17c9bf4154",
         "kind": "judge",
         "note": "「这段话提到价格或优惠吗？」",
         "replayed": true,
@@ -369,7 +369,7 @@
       },
       {
         "cost": 0.0,
-        "key": "00a0c8626380a43b257c4bb6",
+        "key": "8c6b444c02c2e4b097e9412b",
         "kind": "judge",
         "note": "「这段话提到价格或优惠吗？」",
         "replayed": true,
@@ -380,7 +380,7 @@
       },
       {
         "cost": 0.0,
-        "key": "a0e29f010161b2136a12f6c6",
+        "key": "bea144f638d125c2ce5b4e36",
         "kind": "judge",
         "note": "「这段话提到价格或优惠吗？」",
         "replayed": true,
@@ -391,7 +391,7 @@
       },
       {
         "cost": 0.0,
-        "key": "966d31579ba11cde9df0a05e",
+        "key": "1e1ab043697ad91ddc5abe06",
         "kind": "judge",
         "note": "「这段话提到价格或优惠吗？」",
         "replayed": true,
@@ -402,7 +402,7 @@
       },
       {
         "cost": 0.0,
-        "key": "54641f1859d18bd7d11c1612",
+        "key": "bce6d1b499549ef9927b7da9",
         "kind": "judge",
         "note": "「涉及的金额或优惠是否低于一百元？」",
         "replayed": true,
@@ -413,7 +413,7 @@
       },
       {
         "cost": 0.0,
-        "key": "3089735bc106225ca11bccb1",
+        "key": "504b02c97cd1fbcd12add7a2",
         "kind": "judge",
         "note": "「涉及的金额或优惠是否低于一百元？」",
         "replayed": true,
@@ -424,7 +424,7 @@
       },
       {
         "cost": 0.0,
-        "key": "7f89a0007c5c1a82fe1d1a98",
+        "key": "3c3afa6d36d33f9774d8db6b",
         "kind": "judge",
         "note": "「涉及的金额或优惠是否低于一百元？」",
         "replayed": true,
@@ -435,7 +435,7 @@
       },
       {
         "cost": 0.0,
-        "key": "9139675ca2c2b75f649eb6a2",
+        "key": "528e8dbee9536e5b761aa3d1",
         "kind": "judge",
         "note": "「涉及的金额或优惠是否低于一百元？」",
         "replayed": true,
@@ -446,7 +446,7 @@
       },
       {
         "cost": 0.0,
-        "key": "41a537b0a789251d3dcc9276",
+        "key": "9f0bc9003ce45500b6bd3b6b",
         "kind": "judge",
         "note": "「这段话提到现金支付吗？」",
         "replayed": true,
@@ -457,7 +457,7 @@
       },
       {
         "cost": 0.0,
-        "key": "6c145896a5310d68b71eb20d",
+        "key": "2adecf16d8ec42f18afda5f9",
         "kind": "judge",
         "note": "「这段话提到现金支付吗？」",
         "replayed": true,
@@ -468,7 +468,7 @@
       },
       {
         "cost": 0.0,
-        "key": "aa7dea3a0044b85b170d9e23",
+        "key": "437ac22c4e40d7bc3c477630",
         "kind": "judge",
         "note": "「这段话提到价格或优惠吗？」",
         "replayed": true,
@@ -479,7 +479,7 @@
       },
       {
         "cost": 0.0,
-        "key": "5c76a5a7bee1ef9221370d1d",
+        "key": "5c31ef230d699cd0e5bf1d47",
         "kind": "judge",
         "note": "「这段话提到价格或优惠吗？」",
         "replayed": true,
@@ -490,7 +490,7 @@
       },
       {
         "cost": 0.0,
-        "key": "97c97d659e690de416a078d0",
+        "key": "05c1a66fa7836b9d165a0578",
         "kind": "judge",
         "note": "「这段话提到价格或优惠吗？」",
         "replayed": true,
@@ -501,7 +501,7 @@
       },
       {
         "cost": 0.0,
-        "key": "dedb3807cf8cdeda19ec2261",
+        "key": "715df71503c218068afa6d3f",
         "kind": "judge",
         "note": "「这段话提到价格或优惠吗？」",
         "replayed": true,
@@ -512,7 +512,7 @@
       },
       {
         "cost": 0.0,
-        "key": "380b276746111be94af07686",
+        "key": "4af14d49290930256ebb10ab",
         "kind": "judge",
         "note": "「这段话提到价格或优惠吗？」",
         "replayed": true,
@@ -523,7 +523,7 @@
       },
       {
         "cost": 0.0,
-        "key": "8bf48948dffee94517e222fe",
+        "key": "87b0064c0ebe9856c566674e",
         "kind": "judge",
         "note": "「这段话提到价格或优惠吗？」",
         "replayed": true,
@@ -534,7 +534,7 @@
       },
       {
         "cost": 0.0,
-        "key": "a4f878671d3061eb0b145fc0",
+        "key": "3fd996a1cd2cd55bbc27883a",
         "kind": "judge",
         "note": "「涉及的金额或优惠是否低于一百元？」",
         "replayed": true,
@@ -545,7 +545,7 @@
       },
       {
         "cost": 0.0,
-        "key": "638dd7ad1ac57e265ec0d56e",
+        "key": "712f8d511e94181f68f082e8",
         "kind": "judge",
         "note": "「涉及的金额或优惠是否低于一百元？」",
         "replayed": true,
@@ -556,7 +556,7 @@
       },
       {
         "cost": 0.0,
-        "key": "3454c2f66f66600de15fff1f",
+        "key": "871383ecc810554013de6158",
         "kind": "judge",
         "note": "「涉及的金额或优惠是否低于一百元？」",
         "replayed": true,
@@ -567,7 +567,7 @@
       },
       {
         "cost": 0.0,
-        "key": "65776cce96e8352bbbee32a4",
+        "key": "6d053030a6b86f74e6a3c0a8",
         "kind": "judge",
         "note": "「涉及的金额或优惠是否低于一百元？」",
         "replayed": true,
@@ -578,7 +578,7 @@
       },
       {
         "cost": 0.0,
-        "key": "57d3df657c081fc4f0dc7a05",
+        "key": "23bbd39c3906f452c539762d",
         "kind": "judge",
         "note": "「这段话提到现金支付吗？」",
         "replayed": true,
@@ -589,7 +589,7 @@
       },
       {
         "cost": 0.0,
-        "key": "a44c4856a1afd20dd94071ed",
+        "key": "cfd75d6081cfd8d00bbe7ef8",
         "kind": "judge",
         "note": "「这段话提到现金支付吗？」",
         "replayed": true,
@@ -600,7 +600,7 @@
       },
       {
         "cost": 0.0,
-        "key": "a4dca382f5b05db8eaec1e99",
+        "key": "5602fd6c99387f30797a91fe",
         "kind": "judge",
         "note": "「这段话提到价格或优惠吗？」",
         "replayed": true,
@@ -611,7 +611,7 @@
       },
       {
         "cost": 0.0,
-        "key": "de26dd304a4203273793bae2",
+        "key": "537e3957dec45c109e6cb4e2",
         "kind": "judge",
         "note": "「这段话提到价格或优惠吗？」",
         "replayed": true,
@@ -622,7 +622,7 @@
       },
       {
         "cost": 0.0,
-        "key": "67bbc7b2271000bc8d9929fa",
+        "key": "f355e9ac975dbb17c9bf4154",
         "kind": "judge",
         "note": "「这段话提到价格或优惠吗？」",
         "replayed": true,
@@ -633,7 +633,7 @@
       },
       {
         "cost": 0.0,
-        "key": "00a0c8626380a43b257c4bb6",
+        "key": "8c6b444c02c2e4b097e9412b",
         "kind": "judge",
         "note": "「这段话提到价格或优惠吗？」",
         "replayed": true,
@@ -644,7 +644,7 @@
       },
       {
         "cost": 0.0,
-        "key": "a0e29f010161b2136a12f6c6",
+        "key": "bea144f638d125c2ce5b4e36",
         "kind": "judge",
         "note": "「这段话提到价格或优惠吗？」",
         "replayed": true,
@@ -655,7 +655,7 @@
       },
       {
         "cost": 0.0,
-        "key": "966d31579ba11cde9df0a05e",
+        "key": "1e1ab043697ad91ddc5abe06",
         "kind": "judge",
         "note": "「这段话提到价格或优惠吗？」",
         "replayed": true,

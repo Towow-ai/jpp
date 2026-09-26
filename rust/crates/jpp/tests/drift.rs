@@ -168,6 +168,7 @@ handle(cut(judge(state(mat("材料")), test("行吗", "k"))), {
                 cost: 0.0,
                 mode_share: vec![],
                 perms: vec![],
+                confidence: vec![],
             })
         }));
         run(&program, ports, c, &ActionRegistry::new(), &mut l)
@@ -258,6 +259,7 @@ fn 不经cut的消费方也要报漂移() {
                 cost: 0.0,
                 mode_share: vec![],
                 perms: vec![],
+                confidence: vec![],
             })
         }));
         run(&program, ports, c, &ActionRegistry::new(), &mut l)

@@ -1,0 +1,11 @@
+import "../../lib/compose/search.jpp";
+budget {calls: 8, cost: 0.01, depth: 64};
+
+let briefs = ["二手书店", "宠物美容店"];
+let propose = fn(topic) { fn(frontier, i) { gen("为「" + topic + "」起一个不超过四个字的名字，输出 1 个候选，字符串", frontier, 1, i) } };
+let fits = test("这个名字符合需求吗？", "map-search-fit");
+
+let plans = map(briefs, fn(b) { search([], propose(b), fits, unit, 1, {width: 1}) });
+{named: map(plans, fn(r) { map(r.value, fn(e) { e.item }) }),
+ reasons: map(plans, fn(r) { r.detail.reason }),
+ pending: concat(plans[0].pending, plans[1].pending)}

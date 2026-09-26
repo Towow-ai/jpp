@@ -89,6 +89,92 @@ fn handle_arms(_cx: &Cx, s: &CallSite) -> Vec<Diagnostic> {
     }
     // W-drop-then-return 静态半（B95，步 24a）：与上面 unsure 臂存在性检查同一个 handle 调用。
     out.extend(drop_then_return_static(s));
+    out.extend(stat_arms(s));
+    out
+}
+
+/// 按 `cut` 的字面选项取臂（B153 (1)，步 20j-3）。检查器没有按题型核臂的检查（题型要跨绑定追读数，交运行期
+/// `duty.rs::handle`）；写了 `stat` 的声明线不同——出口种类由选项定、与读数题型无关：`declare` 带 `cuts` 为 at 型
+/// （`at`、`unsure`），带 `hi` 为 test 型（`act`、`ignore`、`unsure`）。静态面只认直接嵌套
+/// `handle(cut(…, {stat: 字面量, declare: {hi… | cuts…}}), {臂})`：报这一族走不到的臂，以及没有 `otherwise` 时缺的
+/// 必需臂（`unsure` 由上面的检查管）。经 `let` 绑定、函数传递、`stat` 不是字面量的形状不报，运行期兜底（静态报出 ⊆
+/// 运行期拒绝）；没写 `stat` 的站点不看，现有程序不受影响。
+fn stat_arms(s: &CallSite) -> Vec<Diagnostic> {
+    let mut out = vec![];
+    let (Some(exit), Some(arms)) = (s.args.first(), s.args.get(1)) else {
+        return out;
+    };
+    let ExprKind::Call {
+        function,
+        arguments,
+    } = exit.kind()
+    else {
+        return out;
+    };
+    if !matches!(function.kind(), ExprKind::Name(n) if n == "cut") {
+        return out;
+    }
+    let Some(rec) = arguments.iter().skip(1).find_map(|a| match a.kind() {
+        ExprKind::Record(f) => Some(f),
+        _ => None,
+    }) else {
+        return out;
+    };
+    let Some((_, stat)) = rec.iter().find(|(k, _)| k == "stat") else {
+        return out;
+    };
+    let 名 = match stat.kind() {
+        ExprKind::Text(t) if t != "max" => format!("\"{t}\""),
+        ExprKind::Record(f) if f.iter().any(|(k, _)| k == "mass") => "{mass: …}".to_string(),
+        _ => return out,
+    };
+    let Some((_, d)) = rec.iter().find(|(k, _)| k == "declare") else {
+        return out;
+    };
+    let ExprKind::Record(df) = d.kind() else {
+        return out;
+    };
+    let (族, 臂们): (&str, &[&str]) = if df.iter().any(|(k, _)| k == "cuts") {
+        ("at", &["at", "unsure"])
+    } else if df.iter().any(|(k, _)| k == "hi") {
+        ("test", &["act", "ignore", "unsure"])
+    } else {
+        return out;
+    };
+    let ExprKind::Record(af) = arms.kind() else {
+        return out;
+    };
+    let has_other = af.iter().any(|(k, _)| k == "otherwise");
+    let 走不到: Vec<&str> = af
+        .iter()
+        .map(|(k, _)| k.as_str())
+        .filter(|k| matches!(*k, "act" | "ignore" | "pick" | "at") && !臂们.contains(k))
+        .collect();
+    let 缺: Vec<&str> = 臂们
+        .iter()
+        .copied()
+        .filter(|k| *k != "unsure" && !has_other && !af.iter().any(|(n, _)| n == k))
+        .collect();
+    if 走不到.is_empty() && 缺.is_empty() {
+        return out;
+    }
+    let mut 说 = vec![];
+    if !走不到.is_empty() {
+        说.push(format!("臂 {} 走不到", 走不到.join(", ")));
+    }
+    if !缺.is_empty() {
+        说.push(format!("缺臂 {}", 缺.join(", ")));
+    }
+    // 依据：B153 (1)（地基/附注/2026-09-26-批6裁定.md §一：出口种类由 cut 站点的字面选项静态可定，J-05 按选项取臂）
+    out.push(Diagnostic::error(
+        "J-05",
+        format!(
+            "handle 的臂与出口种类不合：cut 写了 stat: {名} 的声明线，出口是 {族} 型（{}），{}。修法：按出口种类写臂（{{hi, lo}} 出 act / ignore / unsure，cuts 出 at / unsure）",
+            臂们.join(" / "),
+            说.join("；")
+        ),
+        arms.span,
+    ));
     out
 }
 

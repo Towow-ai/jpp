@@ -1,0 +1,6 @@
+budget {calls: 4, cost: 0.01, depth: 8};
+let refund = test("是否要退款？", "j08-demo");
+handle(cut(judge(state(mat("对话记录")), refund), {declare: {hi: 0.7, lo: 0.3}}), {
+    act: fn() { content(do("write_json", ["out.json", {ok: true}], 0)) },
+    ignore: fn() { "不退" },
+    unsure: fn(u) { consume(u, "drop"); "转人工" }})

@@ -1,0 +1,15 @@
+{
+  "asks": 0,
+  "calls": 2,
+  "effects": [],
+  "judge_registrations": 2,
+  "pending": [],
+  "returned_unsure": [],
+  "status": "returned",
+  "usd": 0.0,
+  "value": {
+    "升级": "不升级",
+    "档": "中",
+    "端侧": "端侧"
+  }
+}

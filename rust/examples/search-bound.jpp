@@ -1,0 +1,21 @@
+// 搜索轮数用尽（步 25c，B148）：可行域之外再判一道目标题（是非题）。好候选按轮累积：第一轮 1 个、第二轮再加
+// 2 个，每轮都有进展，但 width = 4 在 2 轮内凑不够，iterate 以 bound 结束。第一轮有一个候选落在带内，它带着
+// via ["search#0"] 进 pending，交给调用者（这里原样返回）。value 是累积的好候选，found_in 是各自第一次判好的
+// 轮次，trail 上带着可行域出口。
+import "../lib/compose/search.jpp";
+budget {calls: 16, cost: 0.02, depth: 64};
+
+let brief = mat("为一家社区咖啡馆起名：温暖、好记、不超过四个汉字");
+let propose = fn(frontier, i) {
+    gen("按下面的需求提出 3 个候选店名，每个候选是一个字符串；需求之后的上下文是上一轮留下的候选", concat([brief], frontier), 3, i)
+};
+let fits = test("这个名字适合做一家社区咖啡馆的店名吗？", "search-fit");
+let memorable = test("这个名字读一遍就能记住吗？", "search-memo");
+
+let r = search([], propose, fits, memorable, 2, {width: 4});
+{kept: map(r.value, fn(e) { e.item }), found_in: map(r.value, fn(e) { e.round }), duplicates: r.detail.duplicates,
+ trail_kinds: map(r.value, fn(e) { map(e.trail, exit_kind) }),
+ rejected: map(r.detail.ignore, fn(e) { e.item }),
+ undecided: map(r.pending, fn(p) { {item: p.item, cause: p.cause, via: p.via} }),
+ reason: r.detail.reason, rounds: r.detail.rounds, measures: r.detail.measures,
+ pending: r.pending}

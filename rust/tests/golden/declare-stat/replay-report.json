@@ -1,0 +1,148 @@
+{
+  "backend": "fixed-0",
+  "cost": {
+    "asks": 0,
+    "calls": 0,
+    "replayed": 2,
+    "tokens": 0,
+    "usd": 0.0
+  },
+  "entry": [],
+  "exits": [
+    {
+      "declared": {
+        "hi": 2.0,
+        "lo": 2.0,
+        "site": 1137
+      },
+      "evidence": {
+        "certified": null,
+        "errors_at_line": null,
+        "labelled": 0,
+        "near_line": {
+          "count": 0,
+          "share": 0.0,
+          "window": 0.2
+        }
+      },
+      "exit": "ignore",
+      "grade": "Declared",
+      "item": "f10b4057f278",
+      "key": "ticket-impact",
+      "releases": false,
+      "site": 1137,
+      "stat": "expect"
+    },
+    {
+      "declared": {
+        "cuts": [
+          0.5,
+          1.5,
+          2.5
+        ],
+        "site": 1318
+      },
+      "evidence": {
+        "certified": null,
+        "errors_at_line": null,
+        "labelled": 0,
+        "near_line": {
+          "count": 2,
+          "share": 1.0,
+          "window": 0.2
+        }
+      },
+      "exit": "at(2)",
+      "grade": "Declared",
+      "item": "f10b4057f278",
+      "key": "ticket-impact",
+      "releases": false,
+      "site": 1318,
+      "stat": "expect"
+    },
+    {
+      "declared": {
+        "hi": 0.5,
+        "lo": 0.2,
+        "site": 1698
+      },
+      "evidence": {
+        "certified": null,
+        "errors_at_line": null,
+        "labelled": 0,
+        "near_line": {
+          "count": 1,
+          "share": 1.0,
+          "window": 0.2
+        }
+      },
+      "exit": "act",
+      "grade": "Declared",
+      "item": "a60d0bfce74d",
+      "key": "ticket-owner",
+      "releases": false,
+      "site": 1698,
+      "stat": {
+        "mass": [
+          0,
+          1
+        ]
+      }
+    }
+  ],
+  "fixture_description": "Fixed readings for the statistic-line golden (step 20j-3, B153): a four-level measure reading [0.1, 0.2, 0.6, 0.1] (expected level 1.7: below the declared 2.0 -> ignore; bucketed by cuts [0.5, 1.5, 2.5] -> at 2) and a four-candidate select reading [0.3, 0.25, 0.4, 0.05] (mass of candidates 0 and 1 is 0.55 >= 0.5 -> act).",
+  "local_checks": [],
+  "mode": "replay; no model API requests",
+  "pending": [],
+  "questions": [
+    {
+      "kind": "degree",
+      "q": "24eb243952eea27c566cdfe2"
+    },
+    {
+      "kind": "class",
+      "q": "0103f3241896fa570146ec8a"
+    }
+  ],
+  "replay": true,
+  "resumed": false,
+  "returned_unsure": [],
+  "status": "returned",
+  "trace": {
+    "events": [
+      {
+        "cost": 0.0,
+        "key": "aecd9d6b5294afeadad4781a",
+        "kind": "judge",
+        "note": "「这段工单描述的故障影响有多大？」",
+        "replayed": true,
+        "site": {
+          "end": 1115,
+          "start": 1002
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "f53295f75dc45bad2d1fd52b",
+        "kind": "judge",
+        "note": "「这段工单最可能归哪个组处理？」",
+        "replayed": true,
+        "site": {
+          "end": 1676,
+          "start": 1472
+        }
+      }
+    ],
+    "warnings": [
+      "W-window-untested: @1002 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
+      "W-window-untested: @1472 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
+      "W-declared-line: @1137 键 ticket-impact 用作者声明线 hi=2 lo=2 stat=\"expect\"（B128）：同键标注 0 条，标注在 p_max 上，对 stat=\"expect\" 无从核；本趟线附近 ±0.2 的读数 0/2（0）；同键无认证线。出口按你写的数路由，不作错误率保证；放行不可逆动作须宿主接受作者线（CLI：--release-on-declared）",
+      "W-declared-line: @1698 键 ticket-owner 用作者声明线 hi=0.5 lo=0.2 stat={\"mass\":[0,1]}（B128）：同键标注 0 条，标注在 p_max 上，对 stat={\"mass\":[0,1]} 无从核；本趟线附近 ±0.2 的读数 1/1（1）；同键无认证线。出口按你写的数路由，不作错误率保证；放行不可逆动作须宿主接受作者线（CLI：--release-on-declared）"
+    ]
+  },
+  "value": {
+    "升级": "不升级",
+    "档": "中",
+    "端侧": "端侧"
+  }
+}

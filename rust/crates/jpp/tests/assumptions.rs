@@ -201,6 +201,7 @@ fn run这条路上档案也到得了检查器() {
                 cost: 0.0,
                 mode_share: vec![],
                 perms: vec![],
+                confidence: vec![],
             })
         }));
         jpp::run(&program, ports, &store, &ActionRegistry::new(), &mut l)

@@ -1,0 +1,20 @@
+{
+  "description": "Synthetic fixed observations for search-ground.jpp (construction check only; not model evaluation). Generations are fixed; exec_py runs the code for real only when the seed ledger is recorded (tests/golden/search-ground-seed), and the golden resumes from that seed without executing anything. Round 0: outputs 285 and 302 are rejected, 'about 385' is in band and refined into round 1's context; round 1: 385 is accepted, 55 and 386 are rejected. The calibration record is hand-written to exercise routing.",
+  "calibrations": [
+    {"key": "ground-correct", "hi": 0.75, "lo": 0.25, "n": 1, "status": "上岗", "delta": 0.05}
+  ],
+  "generations": [
+    {"prompt": "按下面的需求提出 3 段 Python 代码，每段是一个字符串；需求之后的上下文是上一轮留下的候选（代码与输出）", "retry_seq": 0,
+     "output": ["print(sum(i * i for i in range(10)))", "print(sum(range(1, 11)) ** 2 // 10)", "print('大约', 385)"]},
+    {"prompt": "按下面的需求提出 3 段 Python 代码，每段是一个字符串；需求之后的上下文是上一轮留下的候选（代码与输出）", "retry_seq": 1,
+     "output": ["print(sum(i * i for i in range(1, 11)))", "print(sum(range(1, 11)))", "print(10 * 11 * 21 // 6 + 1)"]}
+  ],
+  "observations": [
+    {"on": ["代码：print(sum(i * i for i in range(10)))\n输出：285\n"], "op": "test", "text": "这段代码的输出是否等于 1 到 10 的平方和（385）？", "calib": "ground-correct", "answer": {"Noul": 0.05}},
+    {"on": ["代码：print(sum(range(1, 11)) ** 2 // 10)\n输出：302\n"], "op": "test", "text": "这段代码的输出是否等于 1 到 10 的平方和（385）？", "calib": "ground-correct", "answer": {"Noul": 0.05}},
+    {"on": ["代码：print('大约', 385)\n输出：大约 385\n"], "op": "test", "text": "这段代码的输出是否等于 1 到 10 的平方和（385）？", "calib": "ground-correct", "answer": {"Noul": 0.5}},
+    {"on": ["代码：print(sum(i * i for i in range(1, 11)))\n输出：385\n"], "op": "test", "text": "这段代码的输出是否等于 1 到 10 的平方和（385）？", "calib": "ground-correct", "answer": {"Noul": 0.95}},
+    {"on": ["代码：print(sum(range(1, 11)))\n输出：55\n"], "op": "test", "text": "这段代码的输出是否等于 1 到 10 的平方和（385）？", "calib": "ground-correct", "answer": {"Noul": 0.05}},
+    {"on": ["代码：print(10 * 11 * 21 // 6 + 1)\n输出：386\n"], "op": "test", "text": "这段代码的输出是否等于 1 到 10 的平方和（385）？", "calib": "ground-correct", "answer": {"Noul": 0.05}}
+  ]
+}

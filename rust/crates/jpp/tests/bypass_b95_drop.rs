@@ -26,6 +26,7 @@ fn 端口<'a>(calls: &'a RefCell<u64>) -> Ports<'a> {
             cost: 0.0,
             mode_share: vec![],
             perms: vec![],
+            confidence: vec![],
         })
     }))
 }

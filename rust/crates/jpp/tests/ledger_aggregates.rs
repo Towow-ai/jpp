@@ -38,6 +38,7 @@ fn 桩端口(坏: u64, calls: &Cell<u64>) -> Ports<'_> {
                     cost: 0.0,
                     mode_share: vec![],
                     perms: vec![],
+                    confidence: vec![],
                 })
             },
         ))

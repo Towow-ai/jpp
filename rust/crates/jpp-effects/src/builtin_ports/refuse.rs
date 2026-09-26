@@ -29,7 +29,8 @@ impl RefusePort {
 
 fn refusal(input: &CallInput) -> EffectError {
     match input {
-        CallInput::StateQuestions { questions, .. } => EffectError(format!(
+        CallInput::StateQuestions { questions, .. }
+        | CallInput::MaterialQuestions { questions, .. } => EffectError(format!(
             "重放中不应发调用（题 {}）",
             questions
                 .iter()

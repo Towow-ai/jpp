@@ -1,0 +1,58 @@
+{
+  "asks": 0,
+  "calls": 4,
+  "effects": [
+    [
+      "gen",
+      "按下面的需求提出 3 个候选店名，每个候选是一个字符串；需求之后的上下文是上一轮留下的候选",
+      "7ab14cd42504cf73a7cfc6b6",
+      false
+    ]
+  ],
+  "judge_registrations": 3,
+  "pending": [],
+  "returned_unsure": [],
+  "status": "returned",
+  "usd": 0.0,
+  "value": {
+    "duplicates": 0,
+    "found_in": [
+      0,
+      0
+    ],
+    "kept": [
+      {
+        "content": "暖巷咖啡",
+        "mat": "e28a26831d34e164fbba34b8",
+        "origin": [
+          "gen:7ab14cd42504cf73a7cfc6b6"
+        ],
+        "taint": "Trusted"
+      },
+      {
+        "content": "邻里豆",
+        "mat": "47f7334f53ef664a2ce9c328",
+        "origin": [
+          "gen:7ab14cd42504cf73a7cfc6b6"
+        ],
+        "taint": "Trusted"
+      }
+    ],
+    "measures": [
+      8
+    ],
+    "pending": [],
+    "reason": "stop",
+    "rejected": [
+      {
+        "content": "街角慢时光咖啡馆",
+        "mat": "5993de3f04a1247d390d958a",
+        "origin": [
+          "gen:7ab14cd42504cf73a7cfc6b6"
+        ],
+        "taint": "Trusted"
+      }
+    ],
+    "rounds": 1
+  }
+}

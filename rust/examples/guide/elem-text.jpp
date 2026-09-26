@@ -1,0 +1,10 @@
+// 元素：文本与数据内置（确定性，B157）。这些函数不记账、不是刷新点，taint 按输入并集算：
+// 纯确定性的切分、查找、解析直接在 .jpp 里写，不必再交给宿主或用 fold 逐字符拼。
+budget {calls: 0, cost: 0, depth: 8};
+let raw = "  订单号=A203, 金额=199.50, 状态=待发货 ";
+let trimmed = trim(raw);
+let parts = split(trimmed, ", ");
+let amount = parse_json("199.50");
+let has_ship = index_of(trimmed, "待发货") >= 0;
+let m = regex_find(trimmed, "订单号=[A-Z0-9]+");
+{trimmed: trimmed, parts: parts, amount: amount, has_ship: has_ship, matched: m, fingerprint: hash(trimmed)}

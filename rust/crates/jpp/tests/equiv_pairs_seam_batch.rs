@@ -28,6 +28,7 @@ fn 计数端口(调用: &RefCell<u64>) -> Ports<'_> {
                 cost: 0.0,
                 mode_share: vec![],
                 perms: vec![],
+                confidence: vec![],
             })
         }))
         .with(FnPort::generate("fixed-0", |_p, _c, _n, _r| {

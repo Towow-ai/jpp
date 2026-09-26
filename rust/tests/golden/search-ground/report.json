@@ -1,0 +1,424 @@
+{
+  "backend": "fixed-0",
+  "cost": {
+    "asks": 0,
+    "calls": 0,
+    "replayed": 20,
+    "tokens": 0,
+    "usd": 0.0
+  },
+  "entry": [],
+  "exits": [
+    {
+      "exit": "ignore",
+      "grade": "Fixture",
+      "index": 0,
+      "item": "310b3eabcbec",
+      "key": "ground-correct",
+      "pos": 0,
+      "releases": false,
+      "site": 11062
+    },
+    {
+      "exit": "ignore",
+      "grade": "Fixture",
+      "index": 1,
+      "item": "1419dbdb0bb9",
+      "key": "ground-correct",
+      "pos": 1,
+      "releases": false,
+      "site": 11062
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Fixture",
+      "index": 2,
+      "item": "4d5009ee1f46",
+      "key": "ground-correct",
+      "pos": 2,
+      "releases": false,
+      "site": 11062
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 0,
+      "item": "0b2285860786",
+      "key": "ground-correct",
+      "pos": 0,
+      "releases": false,
+      "site": 11062
+    },
+    {
+      "exit": "ignore",
+      "grade": "Fixture",
+      "index": 1,
+      "item": "cf1b9fb31fcf",
+      "key": "ground-correct",
+      "pos": 1,
+      "releases": false,
+      "site": 11062
+    },
+    {
+      "exit": "ignore",
+      "grade": "Fixture",
+      "index": 2,
+      "item": "4677d08ae2c4",
+      "key": "ground-correct",
+      "pos": 2,
+      "releases": false,
+      "site": 11062
+    }
+  ],
+  "fixture_description": "Synthetic fixed observations for search-ground.jpp (construction check only; not model evaluation). Generations are fixed; exec_py runs the code for real only when the seed ledger is recorded (tests/golden/search-ground-seed), and the golden resumes from that seed without executing anything. Round 0: outputs 285 and 302 are rejected, 'about 385' is in band and refined into round 1's context; round 1: 385 is accepted, 55 and 386 are rejected. The calibration record is hand-written to exercise routing.",
+  "local_checks": [],
+  "mode": "fixed observations; no model API requests",
+  "pending": [],
+  "questions": [
+    {
+      "kind": "attr",
+      "q": "91b07311b733ad9db5420e42"
+    }
+  ],
+  "replay": false,
+  "resumed": true,
+  "returned_unsure": [
+    "unsure(band)"
+  ],
+  "status": "returned",
+  "trace": {
+    "events": [
+      {
+        "cost": 0.0,
+        "key": "4f07dc26c987e9fbb1ed5dd9",
+        "kind": "gen",
+        "note": "按下面的需求提出 3 段 Python 代码，每段是一个字符串；需求之后的上下文是上一轮留下的候选（代码与输出）",
+        "replayed": true,
+        "site": {
+          "end": 1100,
+          "start": 914
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "cac4fe73a441ec0476d51b90",
+        "kind": "do",
+        "note": "exec_py",
+        "replayed": true,
+        "site": {
+          "end": 3649,
+          "start": 3621
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "59fb571b6eb25396ced3e185",
+        "kind": "transform",
+        "note": "",
+        "replayed": true,
+        "site": {
+          "end": 3731,
+          "start": 3690
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "e2c6fe6a5ff1d32b5c35ca39",
+        "kind": "do",
+        "note": "exec_py",
+        "replayed": true,
+        "site": {
+          "end": 3649,
+          "start": 3621
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "f9feb0ac374412c4396b006c",
+        "kind": "transform",
+        "note": "",
+        "replayed": true,
+        "site": {
+          "end": 3731,
+          "start": 3690
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "2ed400935481e78fd6d581ba",
+        "kind": "do",
+        "note": "exec_py",
+        "replayed": true,
+        "site": {
+          "end": 3649,
+          "start": 3621
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "ae12fed44655e0c01b92ecfa",
+        "kind": "transform",
+        "note": "",
+        "replayed": true,
+        "site": {
+          "end": 3731,
+          "start": 3690
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "1d9888294ba9fcd750760f2f",
+        "kind": "judge",
+        "note": "「这段代码的输出是否等于 1 到 10 的平方和（385）？」",
+        "replayed": true,
+        "site": {
+          "end": 11096,
+          "start": 11062
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "8395785b8526f7f8f41505a3",
+        "kind": "judge",
+        "note": "「这段代码的输出是否等于 1 到 10 的平方和（385）？」",
+        "replayed": true,
+        "site": {
+          "end": 11096,
+          "start": 11062
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "2e77656070c975133a439abe",
+        "kind": "judge",
+        "note": "「这段代码的输出是否等于 1 到 10 的平方和（385）？」",
+        "replayed": true,
+        "site": {
+          "end": 11096,
+          "start": 11062
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "d0f0879f5b9300f008eaf6f1",
+        "kind": "gen",
+        "note": "按下面的需求提出 3 段 Python 代码，每段是一个字符串；需求之后的上下文是上一轮留下的候选（代码与输出）",
+        "replayed": true,
+        "site": {
+          "end": 1100,
+          "start": 914
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "0bd9faba1f843239ae7f1237",
+        "kind": "do",
+        "note": "exec_py",
+        "replayed": true,
+        "site": {
+          "end": 3649,
+          "start": 3621
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "f5e113f01dd112f484972f5b",
+        "kind": "transform",
+        "note": "",
+        "replayed": true,
+        "site": {
+          "end": 3731,
+          "start": 3690
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "ca4a4d8bc60fac49633cb04a",
+        "kind": "do",
+        "note": "exec_py",
+        "replayed": true,
+        "site": {
+          "end": 3649,
+          "start": 3621
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "678cf27e8487a5904122beec",
+        "kind": "transform",
+        "note": "",
+        "replayed": true,
+        "site": {
+          "end": 3731,
+          "start": 3690
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "a93bd15d7a5305fb9893caf7",
+        "kind": "do",
+        "note": "exec_py",
+        "replayed": true,
+        "site": {
+          "end": 3649,
+          "start": 3621
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "4affbb8a22e72a2a622ee94b",
+        "kind": "transform",
+        "note": "",
+        "replayed": true,
+        "site": {
+          "end": 3731,
+          "start": 3690
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "77842ddb917ef48b35955d4d",
+        "kind": "judge",
+        "note": "「这段代码的输出是否等于 1 到 10 的平方和（385）？」",
+        "replayed": true,
+        "site": {
+          "end": 11096,
+          "start": 11062
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "057443a510222a5b95069988",
+        "kind": "judge",
+        "note": "「这段代码的输出是否等于 1 到 10 的平方和（385）？」",
+        "replayed": true,
+        "site": {
+          "end": 11096,
+          "start": 11062
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "14ba59b3bce1c16b871ec1f3",
+        "kind": "judge",
+        "note": "「这段代码的输出是否等于 1 到 10 的平方和（385）？」",
+        "replayed": true,
+        "site": {
+          "end": 11096,
+          "start": 11062
+        }
+      }
+    ],
+    "warnings": [
+      "W-window-untested: @11062 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
+      "W-fixture-line: @11062 键 ground-correct 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-untyped-transfer: search 把 unsure(band) 装在返回值里交了出去，但返回类型没提 Exit，调用者从签名上看不出自己收到了一份未决。修法：把返回类型标为含 Exit（如 `-> Exit`、`-> Record<Exit>`）",
+      "returned_unsure: unsure(band)"
+    ]
+  },
+  "value": {
+    "duplicates": 0,
+    "found_in": [
+      1
+    ],
+    "kept": [
+      {
+        "content": "代码：print(sum(i * i for i in range(1, 11)))\n输出：385\n",
+        "mat": "32df080287acec7aee7c90fd",
+        "origin": [
+          "transform:f5e113f01dd112f484972f5b"
+        ],
+        "taint": "Untrusted"
+      }
+    ],
+    "measures": [
+      4,
+      3
+    ],
+    "pending": [
+      {
+        "cause": "band",
+        "exit": {
+          "consumed": true,
+          "exit": "unsure(band)",
+          "id": 2,
+          "q": "91b07311b733ad9db5420e42"
+        },
+        "index": 2,
+        "item": {
+          "content": "代码：print('大约', 385)\n输出：大约 385\n",
+          "mat": "1864059016d916ee9e44a2fe",
+          "origin": [
+            "transform:ae12fed44655e0c01b92ecfa"
+          ],
+          "taint": "Untrusted"
+        },
+        "key": "2e77656070c975133a439abe",
+        "pos": 2,
+        "q": {
+          "calib": "ground-correct",
+          "op": "noul",
+          "question": "91b07311b733ad9db5420e42",
+          "text": "这段代码的输出是否等于 1 到 10 的平方和（385）？"
+        },
+        "qi": 0,
+        "trail": [],
+        "via": [
+          "search#0"
+        ]
+      }
+    ],
+    "reason": "stop",
+    "rejected": [
+      {
+        "content": "代码：print(sum(i * i for i in range(10)))\n输出：285\n",
+        "mat": "7658d6ca337b7702b01a6770",
+        "origin": [
+          "transform:59fb571b6eb25396ced3e185"
+        ],
+        "taint": "Untrusted"
+      },
+      {
+        "content": "代码：print(sum(range(1, 11)) ** 2 // 10)\n输出：302\n",
+        "mat": "83318eb500f2691b363e49d6",
+        "origin": [
+          "transform:f9feb0ac374412c4396b006c"
+        ],
+        "taint": "Untrusted"
+      },
+      {
+        "content": "代码：print(sum(range(1, 11)))\n输出：55\n",
+        "mat": "a9c2366cd62f961644c12cca",
+        "origin": [
+          "transform:678cf27e8487a5904122beec"
+        ],
+        "taint": "Untrusted"
+      },
+      {
+        "content": "代码：print(10 * 11 * 21 // 6 + 1)\n输出：386\n",
+        "mat": "eb9674b851a5351574f1e989",
+        "origin": [
+          "transform:4affbb8a22e72a2a622ee94b"
+        ],
+        "taint": "Untrusted"
+      }
+    ],
+    "rounds": 2,
+    "undecided": [
+      {
+        "cause": "band",
+        "item": {
+          "content": "代码：print('大约', 385)\n输出：大约 385\n",
+          "mat": "1864059016d916ee9e44a2fe",
+          "origin": [
+            "transform:ae12fed44655e0c01b92ecfa"
+          ],
+          "taint": "Untrusted"
+        },
+        "via": [
+          "search#0"
+        ]
+      }
+    ]
+  }
+}

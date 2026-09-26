@@ -1,0 +1,10 @@
+// 元素：一次判断（judge + cut + handle）。这是 J++ 里最小的搭配单元：一道题问在一份材料上，
+// 读数经 cut 按线切成三值出口，handle 把三个出口分派到三段代码。这里的线是夹具里手写的测试线
+// （真实项目里线必须经 calib-import 从带真值样本认证，J-03 禁止程序自己写数）。
+budget {calls: 4, cost: 0.01, depth: 8};
+let overdue = test("这条工单是否已经超过约定的响应时限？", "ticket-overdue");
+let r = judge(state(mat("工单 #391：约定 4 小时响应，已过去 9 小时，客户尚未收到回复。")), overdue);
+handle(cut(r), {
+    act: fn() { "超时：升级" },
+    ignore: fn() { "未超时" },
+    unsure: fn(u) { consume(u, "drop"); "线附近，转人工" }})

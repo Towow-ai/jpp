@@ -1,0 +1,19 @@
+// 搜索停滞（步 25c，B148）：unsure_to 为 "refine"，第一轮落在带内的候选并进下一轮前沿，生成器在上下文里
+// 看得到它；它的出口照样进 pending。第二轮生成器重提了第一轮的好候选「暖巷咖啡」（不再判，按原出口计，计入
+// duplicates），另外两个新候选都被拒：累积的好候选没有变多，iterate 以 noshrink 结束。value 是累积的好候选，
+// found_in 是各自第一次判好的轮次。
+import "../lib/compose/search.jpp";
+budget {calls: 12, cost: 0.02, depth: 64};
+
+let brief = mat("为一家社区咖啡馆起名：温暖、好记、不超过四个汉字");
+let propose = fn(frontier, i) {
+    gen("按下面的需求提出 3 个候选店名，每个候选是一个字符串；需求之后的上下文是上一轮留下的候选", concat([brief], frontier), 3, i)
+};
+let fits = test("这个名字适合做一家社区咖啡馆的店名吗？", "search-fit");
+
+let r = search([], propose, fits, unit, 3, {width: 2, unsure_to: "refine"});
+{kept: map(r.value, fn(e) { e.item }), found_in: map(r.value, fn(e) { e.round }), duplicates: r.detail.duplicates,
+ rejected: map(r.detail.ignore, fn(e) { e.item }),
+ undecided: map(r.pending, fn(p) { {item: p.item, cause: p.cause, via: p.via} }),
+ reason: r.detail.reason, rounds: r.detail.rounds, measures: r.detail.measures,
+ pending: r.pending}

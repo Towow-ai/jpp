@@ -119,6 +119,9 @@ pub struct ClassAssumptions {
     pub questions_free: Field<bool>,
     pub multi_object_crosstalk: Field<bool>,
     pub assertion_susceptible: Field<bool>,
+    /// H9（B154，步 20j-3）：判断器随答案给出与最大概率不同的自报置信度。未测按假（B39 守卫侧）：
+    /// `cut` 的 `stat: "confidence"` 在检查期报 `E-stat-unavailable`。
+    pub reports_confidence: Field<bool>,
     pub position_bias: Field<Json>,
     /// B12 候选：错误相关性（重跑分歧率）
     pub error_correlation: Field<f64>,
@@ -237,6 +240,7 @@ pub fn profile_schema() -> Json {
         "questions_free",
         "multi_object_crosstalk",
         "assertion_susceptible",
+        "reports_confidence",
     ];
     const 候选: &[&str] = &[
         "error_correlation",
@@ -395,6 +399,13 @@ impl Profile {
     pub fn multi_object_crosstalk(&self) -> Tri {
         self.assumptions()
             .map(|a| a.multi_object_crosstalk.tri())
+            .unwrap_or_default()
+    }
+    /// **H9 的档案字段**（`12` §1.2，B154，步 20j-3）：判断器是否随答案给出自报置信度。未测按假
+    /// （B39 守卫侧）：用 `stat: "confidence"` 的 `cut` 在检查期报 `E-stat-unavailable`，不静默退回 p_max。
+    pub fn reports_confidence(&self) -> Tri {
+        self.assumptions()
+            .map(|a| a.reports_confidence.tri())
             .unwrap_or_default()
     }
     /// 判断调用的 p95 时延（秒），B32 静态时延估计用；未测为 `None`
@@ -558,6 +569,7 @@ impl Profile {
             questions_free: b("questions_free"),
             multi_object_crosstalk: b("multi_object_crosstalk"),
             assertion_susceptible: b("assertion_susceptible"),
+            reports_confidence: b("reports_confidence"),
             position_bias: raw("position_bias"),
             error_correlation: Field::from_opt(
                 j.get("error_correlation").and_then(|v| v.as_f64()),
@@ -716,6 +728,8 @@ pub fn behavior_hash(j: &Json) -> String {
         "cost",
         "select_sums_to_one",
         "fixed_output_types",
+        // H9（B154）：决定 `stat: "confidence"` 能不能用
+        "reports_confidence",
         // 宿主传输策略（超时改变执行：挂起的请求变成 absent）
         "transport",
     ];

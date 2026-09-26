@@ -234,6 +234,7 @@ fn 参考值在jpp那侧也比不了大小() {
                     cost: 0.0,
                     mode_share: vec![],
                     perms: vec![],
+                    confidence: vec![],
                 })
             }))
             .with(FnPort::generate("m", |_p, _c: &[Json], _n, _r| {

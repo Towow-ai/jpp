@@ -29,6 +29,7 @@ fn 时好时坏(坏: u64, 睡: u64, calls: &RefCell<u64>) -> Ports<'_> {
                 cost: 0.0,
                 mode_share: vec![],
                 perms: vec![],
+                confidence: vec![],
             })
         }))
         .with(FnPort::generate("fixed-0", |_p, _c, _n, _r| {
@@ -299,6 +300,7 @@ fn absent_replay_stops_where_first_run_stopped() {
                     cost: 0.0,
                     mode_share: vec![],
                     perms: vec![],
+                    confidence: vec![],
                 })
             }))
             .with(FnPort::generate("fixed-0", |_p, _c, _n, _r| {

@@ -72,6 +72,7 @@ fn cert_view(c: &Cert, alpha_eff: f64) -> jpp_effects::views::CertView {
         delta: c.selection.as_ref().and_then(|s| s.delta),
         delta_shifted: c.selection.is_some(),
         alpha_eff,
+        label_fp: c.label_fp.clone(),
     }
 }
 
@@ -143,6 +144,7 @@ impl CalibStore {
             truth_gate: r.truth.as_ref().map(|t| t.gate.clone()),
             certs: r.certs.values().map(cv).collect(),
             selected: r.选中的证书().map(cv),
+            lower: r.lower.as_ref().map(cv),
             rerun_independent: r.rerun_independent,
             scope: r.scope.as_ref().and_then(|s| s.fingerprint.clone()),
             scope_n_text: r.scope.as_ref().and_then(|s| s.n_text),
@@ -201,6 +203,18 @@ impl jpp_effects::views::CalibView for CalibStore {
             class: (!key.starts_with("fit:") && !key.starts_with('\u{1f}'))
                 .then(|| link(CalibStore::class_key(key))),
         }
+    }
+    fn labelled(&self, key: &str) -> Vec<(f64, bool)> {
+        // 样本的 `label` 已是「对错位」：test 是标签本身，K 元划分是 argmax 等于真值（`truth.rs::correct`，B63）
+        self.records
+            .get(key)
+            .map(|r| {
+                r.samples
+                    .iter()
+                    .filter_map(|s| Some((s.p?, s.label? == 1)))
+                    .collect()
+            })
+            .unwrap_or_default()
     }
 }
 

@@ -25,6 +25,7 @@ fn 端口<'a>(见: &'a RefCell<Vec<String>>) -> Ports<'a> {
             cost: 0.0,
             mode_share: vec![],
             perms: vec![],
+            confidence: vec![],
         })
     }))
 }

@@ -1,0 +1,10 @@
+{
+  "description": "最小判断元素：一次 test + cut + handle。",
+  "calibrations": [
+    {"key": "ticket-overdue", "hi": 0.7, "lo": 0.3, "n": 1, "status": "上岗", "delta": 0.05}
+  ],
+  "observations": [
+    {"on": ["工单 #391：约定 4 小时响应，已过去 9 小时，客户尚未收到回复。"], "op": "test",
+     "text": "这条工单是否已经超过约定的响应时限？", "calib": "ticket-overdue", "answer": {"Noul": 0.93}}
+  ]
+}

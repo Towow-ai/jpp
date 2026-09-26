@@ -1,0 +1,94 @@
+// 搜索（B148，步 25c）：提出 → 接地 → 判 → 再提出，JEV 与生成器的搭配。
+//
+// search(seed, propose, feasible, objective, rounds, opts) -> 契约值
+//   seed      第一轮前沿（材料列表）
+//   propose   fn(前沿: [Mat], 轮次: Int) -> [Mat]，通常包 gen；返回 Fail 时这一轮零候选、记一条 Unsure(fail)。
+//             失败后前沿不变，重提时要换 gen 的 retry_seq（传轮次即可），否则同键重放同一个 Fail
+//   feasible  是非题：候选在可行域里吗
+//   objective 是非题（候选够好吗）或 unit（只按可行域筛）
+//   rounds    轮数上限（iterate 的 bound；写字面量，静态检查在调用点核，B111）
+//   opts      {width: Int, unsure_to?: "carry" | "refine" | fn([未决元素], 题) -> [未决元素], ground?: fn(Mat) -> Mat}
+//             ground 要返回材料（mat）；返回记录会被 sieve 当成元素
+//
+// 好候选按轮累积（主会话 2026-09-26，Q10）：pool 是至今判好的元素（按材料哈希去重、按第一次判好的先后排，
+// 每个元素的 round 是它第一次判好的轮次）。每轮：候选去重 → ground（给了才接）→ sieve(可行域) →
+// sieve(目标，给了才判) → 新判好的追加进 pool → 下一轮前沿 = pool 的前 width 个的材料。判过的候选
+// （按材料哈希，生成的候选即内容哈希）再次提出时不再判、不花钱，按原出口计（好的已在 pool，被拒与未决的
+// 已在 ignored 与 pending），计入 duplicates；本轮内的重复同样处理。被拒的进 ignored，未决的按 unsure_to
+// 处置、不静默丢，并进 pending 时 via 记 "search#<轮次>"：
+//   carry  未决元素经 carry 并进 pending（缺省）；
+//   refine 同 carry，另把未决的材料并进下一轮前沿，让生成器据此提更好的候选（出口照样进 pending，
+//          不因细化销账；生成器原样重提它时按重复处理，所以每份材料至多判一次）；第一个没失败的轮次
+//          结束时 pool 仍为空，不算停滞，至少给细化一轮机会；
+//   函数   未决逐个交给它（可行域的配可行域题，目标的配目标题），它返回的元素并进 pending。
+//          交人用 lib/compose/ask.jpp 的 ask_human（程序的 budget 要写 escalate: N；没人答时挂起）。
+// 终止走 iterate 的线：pool 凑够 width 个即 stop；一轮没有新的好候选（只有重提的旧候选也算）即 noshrink；
+// 轮数用尽即 bound。失败的轮次与 refine 的第一轮空 pool 不算停滞：
+// 停滞度 = max(width − len(pool), 0) × (rounds + 1) − fails − grace，减掉的数跨不过一档。
+// 返回契约值：value 是 pool 的前 width 个（好候选之间没有高下，按判好的先后取；打分排序等 15k、B167），
+// 每个元素带 round，出口是 trail 上全部出口的 compose(…, "all")，误差界用 cert(出口) 读；
+// detail 带 ignore、rounds、reason、measures、fails、duplicates。
+import "../outcome.jpp";
+import "carry.jpp";
+
+fn search(seed, propose, feasible, objective, rounds, opts) {
+    let width = opts.width;
+    let how = if has(opts, "unsure_to") { opts.unsure_to } else { "carry" };
+    let grounded = fn(cands) { if has(opts, "ground") { map(cands, opts.ground) } else { cands } };
+    // 去重：判过的与本轮前面出现过的不再判；返回 {seen, fresh, dups}
+    let dedupe = fn(acc, raw) {
+        fold(raw, {seen: acc.seen, fresh: [], dups: 0}, fn(st, m) {
+            if contains(st.seen, m.hash) { with(st, "dups", st.dups + 1) } else {
+                {seen: append(st.seen, m.hash), fresh: append(st.fresh, m), dups: st.dups}
+            }
+        })
+    };
+    // 本轮未决的去向；返回 {extra: 并进下一轮前沿的材料, pending}
+    let settle = fn(acc, from_ok, from_obj, i) {
+        let label = "search#" + text(i);
+        if how == "carry" || how == "refine" {
+            let now = concat(from_ok, from_obj);
+            {extra: if how == "refine" { map(now, fn(p) { p.item }) } else { [] },
+             pending: carry(acc.pending, now, label)}
+        } else {
+            {extra: [],
+             pending: carry(acc.pending, concat(how(from_ok, feasible), how(from_obj, objective)), label)}
+        }
+    };
+    let front = fn(pool) { slice(pool, 0, min(width, len(pool))) };
+    let step = fn(acc, i) {
+        let raw = propose(acc.frontier, i);
+        if is_fail(raw) {
+            // 失败的一轮 = 零候选 + 一条 Unsure(fail) 上传（主会话 2026-09-26）；前沿与 pool 不变
+            let lost = {item: raw, exit: unsure("fail"), cause: "fail", round: i, trail: []};
+            with(with(acc, "pending", carry(acc.pending, [lost], "search#" + text(i))), "fails", acc.fails + 1)
+        } else {
+            let d = dedupe(acc, raw);
+            let ok = sieve(grounded(d.fresh), feasible);
+            let has_obj = objective != unit;
+            let by_obj = if has_obj { sieve(accepted(ok), objective) } else { ok };
+            let fresh_good = map(accepted(by_obj), fn(e) { with(e, "round", i) });
+            let pool = concat(acc.pool, fresh_good);
+            let dropped = if has_obj { concat(ignored(ok), ignored(by_obj)) } else { ignored(ok) };
+            let s = settle(acc, ok.pending, if has_obj { by_obj.pending } else { [] }, i);
+            // refine 的第一个没失败的轮次结束时 pool 仍为空：不算停滞（主会话 2026-09-26，Q4）
+            let grace = if how == "refine" && acc.judged == 0 && len(pool) == 0 { 1 } else { acc.grace };
+            let next = {frontier: concat(map(front(pool), fn(e) { e.item }), s.extra), pool: pool,
+                        ignored: concat(acc.ignored, dropped), pending: s.pending,
+                        fails: acc.fails, grace: grace, judged: acc.judged + 1,
+                        seen: d.seen, dups: acc.dups + d.dups};
+            if len(pool) >= width { stop(next) } else { next }
+        }
+    };
+    let stall = fn(acc) { max(width - len(acc.pool), 0) * (rounds + 1) - acc.fails - acc.grace };
+    let r = iterate(rounds,
+                    {frontier: seed, pool: [], ignored: [], pending: [],
+                     fails: 0, grace: 0, judged: 0, seen: [], dups: 0},
+                    step, stall);
+    let last = r.value;
+    // 元素出口 = trail 上全部出口的 compose(…, "all")（B148；25d 开放 compose）；未决元素保留自己的出口
+    let value = map(front(last.pool), fn(e) { with(e, "exit", compose(append(e.trail, e.exit), "all")) });
+    outcome({value: value, pending: last.pending, evidence: r.evidence, resume: r.resume,
+             detail: {ignore: last.ignored, rounds: r.resume.rounds, reason: r.resume.reason,
+                      measures: r.resume.measures, fails: last.fails, duplicates: last.dups}})
+}

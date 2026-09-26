@@ -45,9 +45,17 @@ impl<'a> Interp<'a> {
         let evidence = evidence_of(args.get(2), sp)?;
         let (presupposition, request) = question_decl_of(args.get(2), op, sp)?;
         let permute = permute_of(args.get(2), op, sp)?;
-        Ok(caps
-            .issue_question()
-            .question(op, t, c, evidence, presupposition, request, permute))
+        let labels = labels_of(args.get(2), op, sp)?;
+        Ok(caps.issue_question().question(
+            op,
+            t,
+            c,
+            evidence,
+            presupposition,
+            request,
+            permute,
+            labels,
+        ))
     }
     #[allow(unused_variables)]
     pub(crate) fn b_measure(
@@ -211,7 +219,10 @@ impl<'a> Interp<'a> {
                 );
             }
         };
-        Ok(caps.issue_question().finish_form(f, permute, over_kind))
+        let labels = labels_of(Some(&args[2]), op, sp)?;
+        Ok(caps
+            .issue_question()
+            .finish_form(f, permute, over_kind, labels))
     }
     #[allow(unused_variables)]
     pub(crate) fn b_fill(

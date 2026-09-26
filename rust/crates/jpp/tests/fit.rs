@@ -29,6 +29,7 @@ fn 定值端口(p: f64) -> Ports<'static> {
                 cost: 0.0,
                 perms: vec![],
                 mode_share: vec![],
+                confidence: vec![],
             })
         }))
         .with(FnPort::generate("fixed-0", |_p, _c, _n, _r| {
@@ -59,6 +60,7 @@ fn 多态端口<'a>(ps: &'a [f64], 下一个: &'a RefCell<usize>) -> Ports<'a> {
                 cost: 0.0,
                 perms: vec![],
                 mode_share: vec![],
+                confidence: vec![],
             })
         }))
         .with(FnPort::generate("fixed-0", |_p, _c, _n, _r| {
@@ -80,6 +82,7 @@ fn choice端口(probs: Vec<f64>, mode_share: Option<f64>) -> Ports<'static> {
                 cost: 0.0,
                 mode_share: qs.iter().map(|_| mode_share).collect(),
                 perms: qs.iter().map(|_| 2).collect(),
+                confidence: vec![],
             })
         }))
         .with(FnPort::generate("fixed-0", |_p, _c, _n, _r| {

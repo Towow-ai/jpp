@@ -55,6 +55,17 @@ fn execute(command: Command, questions_out: Option<std::path::PathBuf>) -> Resul
         Command::Check { input_trusted, .. } => *input_trusted,
         _ => false,
     };
+    // 步 20j-2（B128）：宿主接受作者声明线放行，与入口声明同路进 `Program.entry`（J-08 静态子面读它）
+    let 接受 = jpp::HostAccept {
+        declared_lines: match &command {
+            Command::Run(r) => r.release_on_declared,
+            Command::Check {
+                release_on_declared,
+                ..
+            } => *release_on_declared,
+            _ => false,
+        },
+    };
     let 入口声明 = if 给了输入 {
         let taint = if 输入可信 {
             jpp::Taint::Trusted
@@ -63,11 +74,16 @@ fn execute(command: Command, questions_out: Option<std::path::PathBuf>) -> Resul
         };
         jpp::EntryArgs {
             values: vec![jpp::EntryValue::new("input", serde_json::Value::Null).with_taint(taint)],
+            accept: 接受,
             ..Default::default()
         }
         .decl()
     } else {
-        jpp::ir::EntryDecl::default()
+        jpp::EntryArgs {
+            accept: 接受,
+            ..Default::default()
+        }
+        .decl()
     };
     // 降级诊断与检查诊断走同一渲染层（步 9a）：同码同址折叠，`--json` 时出机读格式
     let program = match jpp::Session::compile(parsed, &入口声明) {
@@ -118,6 +134,10 @@ fn execute(command: Command, questions_out: Option<std::path::PathBuf>) -> Resul
     .map(|p| run_io::read_host_input(p, 输入可信))
     .transpose()?
     .unwrap_or_default();
+    let 输入 = jpp::EntryArgs {
+        accept: 接受,
+        ..输入
+    };
     // 步 24c（B108 已知限制收口）：`check` 与 `run` 共用这一次预检查，都带上 CLI 唯一注册的
     // 三个内置动作（与用户输入无关，随时能给）——J-08 静态子面从此能对 `record_check` 这类可逆
     // 动作不报、对 `write_json` 这类不可逆动作在检查期就报 error，不必等 `Session::go` 内部

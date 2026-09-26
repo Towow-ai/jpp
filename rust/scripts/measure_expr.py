@@ -361,7 +361,9 @@ def run_jpp_report(project: str):
     cwd = (base / j["run_dir"]).resolve()
     src = os.path.relpath((base / j["source"]).resolve(), cwd)
     fx = os.path.relpath((base / j["fixture"]).resolve(), cwd)
-    args = [str(JPP), "run", src, "--fixtures", fx, "--output", str(out)]
+    # 步 18b：有不可逆 do 的程序要 --ledger-out（E-ledger-required）；账本用完即删
+    led = ROOT / "target" / f"_measure_{project}.ledger.jsonl"
+    args = [str(JPP), "run", src, "--fixtures", fx, "--output", str(out), "--ledger-out", str(led)]
     if j.get("input"):   # 步 14b-0：材料经 --input 交给程序（路径相对项目目录）
         args += ["--input", os.path.relpath((base / j["input"]).resolve(), cwd)]
     p = subprocess.run(args, cwd=cwd, capture_output=True, text=True)
@@ -369,6 +371,7 @@ def run_jpp_report(project: str):
         raise SystemExit(f"[measure_expr] jpp run 失败（{project}）：{p.stderr[-800:]}")
     d = json.loads(out.read_text(encoding="utf-8"))
     out.unlink()
+    led.unlink(missing_ok=True)
     return PROJECTIONS[m["project"]["projection"]](d["value"]), d.get("cost", {}).get("calls")
 
 
@@ -442,7 +445,10 @@ def run_jpp_impl(project: str, impl: dict, fixture=None, calib=None):
     cwd = (base / impl.get("run_dir", os.path.relpath(src.parent, base))).resolve()
     fx = (base / (fixture or m["jpp"]["fixture"])).resolve()
     out = ROOT / "target" / f"_measure_{project}_{src.stem}.json"
-    args = [str(JPP), "run", os.path.relpath(src, cwd), "--fixtures", str(fx), "--output", str(out)]
+    # 步 18b：有不可逆 do 的程序要 --ledger-out（E-ledger-required）
+    led = ROOT / "target" / f"_measure_{project}_{src.stem}.ledger.jsonl"
+    args = [str(JPP), "run", os.path.relpath(src, cwd), "--fixtures", str(fx), "--output", str(out),
+            "--ledger-out", str(led)]
     if calib:
         args += ["--calib", str(calib)]
     if impl.get("input"):   # 步 14b-0：材料经 --input 交给程序（路径相对项目目录）
@@ -452,6 +458,7 @@ def run_jpp_impl(project: str, impl: dict, fixture=None, calib=None):
         return None, None, p.stderr[-800:]
     d = json.loads(out.read_text(encoding="utf-8"))
     out.unlink()
+    led.unlink(missing_ok=True)
     pj = impl.get("projection")
     return (PROJECTIONS[pj](d["value"]) if pj else d["value"]), d.get("cost", {}).get("calls"), ""
 

@@ -1,0 +1,857 @@
+{
+  "key": "cs-refund",
+  "hi": 0.46,
+  "lo": 0.09,
+  "n": 80,
+  "status": "上岗",
+  "delta": null,
+  "unsure_rate": 0.025,
+  "unsure_rate_delta": 0.05,
+  "set_id": "",
+  "label_set_id": "truth:labels.jsonl",
+  "label_locator": "",
+  "label_fp": "",
+  "label_source": "全体",
+  "certs": {
+    "α=0.25\u001fδ=0.1\u001ff42eafe635fbcc2c\u001f02b7b3636e946b2d\u001ffp=85e9cba268a035ae\u001fsel(split,20260923,39,41)": {
+      "alpha": 0.25,
+      "conf_delta": 0.1,
+      "hi": 0.46,
+      "n_accepted": 22,
+      "n_errors": 0,
+      "ucb": 0.09937197978872148,
+      "cluster_unit": "条",
+      "resample": [
+        0,
+        "两侧联合选线（拆分样本）：选线半上取两区上界各 ≤ α 且已决最多的一对，认证半上对该对各检验一次"
+      ],
+      "cost": null,
+      "bounded_side": "上侧：界定 p ≥ hi + δ 一侧的假放行",
+      "label_source": "全体",
+      "label_fp": "85e9cba268a035ae",
+      "selection": {
+        "method": "split",
+        "seed": 20260923,
+        "n_select": 39,
+        "n_certify": 41,
+        "candidates": 23
+      },
+      "grade": "trial"
+    }
+  },
+  "samples": [
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.98,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.98,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.98,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.98,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.99,
+      "label": 1,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.03,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.03,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.03,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.03,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.04,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.03,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.03,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.03,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.03,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.04,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.03,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.03,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.03,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.03,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.03,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    },
+    {
+      "p": 0.02,
+      "label": 0,
+      "perms": 0,
+      "mode_share": null,
+      "mode": "Unspecified",
+      "phys": "noul",
+      "cluster": null
+    }
+  ],
+  "truth": {
+    "sources": {
+      "computed": 80
+    },
+    "ambiguous": 0,
+    "abstain_rate": 0.0,
+    "spot_check": null,
+    "spot_check_min": 0.9,
+    "gate": "试用上岗（α=0.25）：正式 α=0.1 未过：待核：选线半样本不足（正例 18、负例 21，零错误也需每侧 ≥ 22；选线半 39 条、认证半 41 条）",
+    "batch": "labels.jsonl"
+  },
+  "lower": {
+    "alpha": 0.25,
+    "conf_delta": 0.1,
+    "hi": 0.09,
+    "n_accepted": 19,
+    "n_errors": 0,
+    "ucb": 0.11413320958991735,
+    "cluster_unit": "条",
+    "resample": [
+      0,
+      "两侧联合选线（拆分样本）：选线半上取两区上界各 ≤ α 且已决最多的一对，认证半上对该对各检验一次"
+    ],
+    "cost": null,
+    "bounded_side": "下侧：界定 p ≤ lo − δ 一侧的漏放行；hi 字段此处存的是 lo",
+    "label_source": "全体",
+    "label_fp": "85e9cba268a035ae",
+    "selection": {
+      "method": "split",
+      "seed": 20260923,
+      "n_select": 39,
+      "n_certify": 41,
+      "candidates": 23
+    },
+    "grade": "trial"
+  },
+  "scope": {
+    "batches": [
+      "labels.jsonl"
+    ],
+    "sources": {
+      "computed": 80
+    },
+    "note": "认证集来源与材料指纹范围（B68）",
+    "fingerprint": {
+      "quantiles": [
+        0.01,
+        0.99
+      ],
+      "n": 80,
+      "ranges": [
+        [
+          "字符数",
+          24.5,
+          132.0
+        ],
+        [
+          "中文比例",
+          0.7000000000000001,
+          0.959375
+        ],
+        [
+          "拉丁字母比例",
+          0.0,
+          0.1
+        ],
+        [
+          "数字比例",
+          0.0,
+          0.1
+        ],
+        [
+          "标点空白比例",
+          0.040624999999999994,
+          0.30000000000000004
+        ],
+        [
+          "行数",
+          0.5,
+          2.0
+        ],
+        [
+          "平均行长",
+          24.5,
+          132.0
+        ]
+      ],
+      "margins": {
+        "k": 2.0,
+        "m": 0.1
+      }
+    }
+  }
+}

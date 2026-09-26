@@ -119,76 +119,133 @@ impl JevClient {
         )
     }
 
-    fn request_body_permuted(
-        model: &str,
-        state: &State,
-        questions: &[&Question],
-        perm: &[usize],
-    ) -> Json {
-        let mut body = JevClient::request_body(model, state, questions);
-        // 按 perm 重排 select 的候选表：键仍是 c0..cK，值换成置换后的候选原文
-        if let Some(qs) = body.get_mut("questions").and_then(|q| q.as_object_mut()) {
-            for (i, q) in questions.iter().enumerate() {
-                if q.op != Op::Select {
-                    continue;
-                }
-                let crit: serde_json::Map<String, Json> = perm
-                    .iter()
-                    .enumerate()
-                    .filter_map(|(发出位, 原下标)| {
-                        state
-                            .over
-                            .get(*原下标)
-                            .map(|m| (format!("c{发出位}"), m.content.clone()))
-                    })
-                    .collect();
-                if let Some(o) = qs.get_mut(&format!("q{i}")).and_then(|x| x.as_object_mut()) {
-                    o.insert("criteria".into(), Json::Object(crit));
-                }
-            }
-        }
-        body
+    /// 一道 `select` 的候选标签（B155，步 15i）：规则在 [`State::over_labels`]（渲染 `r2` 的一部分）。
+    pub fn candidate_labels(state: &State) -> Option<Vec<(String, Json)>> {
+        state.over_labels()
     }
 
-    pub fn request_body(model: &str, state: &State, questions: &[&Question]) -> Json {
+    /// 一道题这一遍发出的 `criteria` 与「发出键 → 原候选下标」（B155）。`逆序` 只对 `c{k}` 键的 `select`
+    /// 起作用：标签键的对象按键名排序发出，顺序换不了（见 [`JevClient::可置换`]）。
+    fn criteria(
+        state: &State, q: &Question, 逆序: bool
+    ) -> (Option<Json>, HashMap<String, usize>) {
+        match q.op {
+            Op::Select => {
+                if let Some(ls) = JevClient::candidate_labels(state) {
+                    let 键表 = ls
+                        .iter()
+                        .enumerate()
+                        .map(|(k, (l, _))| (l.clone(), k))
+                        .collect();
+                    let crit: serde_json::Map<String, Json> = ls.into_iter().collect();
+                    return (Some(Json::Object(crit)), 键表);
+                }
+                let n = state.over.len();
+                let 序: Vec<usize> = if 逆序 {
+                    (0..n).rev().collect()
+                } else {
+                    (0..n).collect()
+                };
+                let mut crit = serde_json::Map::new();
+                let mut 键表 = HashMap::new();
+                // 键仍是 c0..cK（按发出位），值是该位上的候选原文
+                for (发出位, 原下标) in 序.into_iter().enumerate() {
+                    let k = format!("c{发出位}");
+                    crit.insert(k.clone(), state.over[原下标].content.clone());
+                    键表.insert(k, 原下标);
+                }
+                (Some(Json::Object(crit)), 键表)
+            }
+            Op::Measure => (Some(json!(q.scale)), HashMap::new()),
+            // B155：是非题带答案标签时发 `criteria: {"true": yes, "false": no}`，不带不发（B155 前的形状）
+            Op::Test => (
+                q.labels
+                    .as_ref()
+                    .map(|l| json!({"true": l.yes, "false": l.no})),
+                HashMap::new(),
+            ),
+        }
+    }
+
+    /// 一遍的请求体（B155）：`state` 只发材料（`wire_json`，一次调用里各题材料相同，取第一道的）；
+    /// 题按原题号 `q{i}` 发，每道 `select` 的候选随题走。返回请求体与各题的键表（与 `遍.题` 对齐）。
+    fn body_of(
+        model: &str,
+        items: &[(&State, &Question)],
+        遍: &一遍,
+    ) -> (Json, Vec<HashMap<String, usize>>) {
         let mut qs = serde_json::Map::new();
-        for (i, q) in questions.iter().enumerate() {
-            let qid = format!("q{i}");
+        let mut 键表 = vec![];
+        for &i in &遍.题 {
+            let (state, q) = items[i];
             let mut o = serde_json::Map::new();
             o.insert("type".into(), json!(q.op.phys()));
             o.insert("instructions".into(), json!(q.text));
-            match q.op {
-                Op::Select => {
-                    let crit: serde_json::Map<String, Json> = state
-                        .over
-                        .iter()
-                        .enumerate()
-                        .map(|(k, m)| (format!("c{k}"), m.content.clone()))
-                        .collect();
-                    o.insert("criteria".into(), Json::Object(crit));
-                }
-                Op::Measure => {
-                    o.insert("criteria".into(), json!(q.scale));
-                }
-                Op::Test => {}
+            let (crit, 表) = JevClient::criteria(state, q, 遍.逆序);
+            if let Some(c) = crit {
+                o.insert("criteria".into(), c);
             }
-            qs.insert(qid, Json::Object(o));
+            qs.insert(format!("q{i}"), Json::Object(o));
+            键表.push(表);
         }
-        json!({"state": state.to_json(), "model": model, "questions": Json::Object(qs)})
+        let state = items
+            .first()
+            .map(|(s, _)| s.wire_json())
+            .unwrap_or_else(|| json!({}));
+        (
+            json!({"state": state, "model": model, "questions": Json::Object(qs)}),
+            键表,
+        )
     }
 
-    /// 返回体校验：键不合即错，不静默变 Unsure（与 Python `validate_answers` 同纪律）。
+    /// 单状态的请求体（原序一遍、全部题）。B155 起 `state` 不含 `over`，候选只在 `select` 的 `criteria`。
+    pub fn request_body(model: &str, state: &State, questions: &[&Question]) -> Json {
+        let items: Vec<(&State, &Question)> = questions.iter().map(|q| (state, *q)).collect();
+        JevClient::request_body_items(model, &items)
+    }
+
+    /// 逐题带状态的请求体（原序一遍、全部题；B155：同材料上候选集不同的题一次调用）。
+    pub fn request_body_items(model: &str, items: &[(&State, &Question)]) -> Json {
+        let 遍 = 一遍 {
+            题: (0..items.len()).collect(),
+            逆序: false,
+        };
+        JevClient::body_of(model, items, &遍).0
+    }
+
+    /// 返回体校验（原序一遍、全部题）：键不合即错，不静默变 Unsure（与 Python `validate_answers` 同纪律）。
     pub fn parse_answers(
         resp: &Json,
         state: &State,
         questions: &[&Question],
     ) -> Result<Vec<Answer>, EffectError> {
+        let items: Vec<(&State, &Question)> = questions.iter().map(|q| (state, *q)).collect();
+        let 遍 = 一遍 {
+            题: (0..items.len()).collect(),
+            逆序: false,
+        };
+        let 键表: Vec<HashMap<String, usize>> = items
+            .iter()
+            .map(|(s, q)| JevClient::criteria(s, q, false).1)
+            .collect();
+        JevClient::parse_pass(resp, &items, &遍, &键表).map(|(a, _)| a)
+    }
+
+    /// 一遍的返回体：校验、按这一遍**实际发出的键表**映回原候选下标（B155：不剥 `c` 前缀，标签名
+    /// `c1` 不会被当成下标 1），连同 input token 一起返回。答案与 `遍.题` 对齐。
+    fn parse_pass(
+        resp: &Json,
+        items: &[(&State, &Question)],
+        遍: &一遍,
+        键表: &[HashMap<String, usize>],
+    ) -> Result<(Vec<Answer>, u64), EffectError> {
         let answers = resp
             .get("answers")
             .and_then(|a| a.as_object())
             .ok_or_else(|| EffectError("返回体缺 answers".into()))?;
         let mut out = vec![];
-        for (i, q) in questions.iter().enumerate() {
+        for (j, &i) in 遍.题.iter().enumerate() {
+            let (state, q) = items[i];
             let a = answers
                 .get(&format!("q{i}"))
                 .ok_or_else(|| EffectError(format!("Jev 没有回答 q{i}")))?;
@@ -210,13 +267,9 @@ impl JevClient {
                         .ok_or_else(|| EffectError(format!("choice 题 q{i} 缺 probabilities")))?;
                     let mut v = vec![0.0; state.over.len()];
                     for (k, p) in probs {
-                        let idx: usize = k
-                            .trim_start_matches('c')
-                            .parse()
-                            .map_err(|_| EffectError(format!("choice 键 {k} 不是候选键")))?;
-                        if idx >= v.len() {
-                            return Err(EffectError(format!("choice 键 {k} 越界")));
-                        }
+                        let idx = *键表[j].get(k).ok_or_else(|| {
+                            EffectError(format!("choice 题 q{i} 的键 {k} 不是这次发出的候选键"))
+                        })?;
                         v[idx] = p.as_f64().unwrap_or(0.0);
                     }
                     out.push(Answer::Choice(v));
@@ -240,8 +293,20 @@ impl JevClient {
                 }
             }
         }
-        Ok(out)
+        let tokens = resp
+            .get("usage")
+            .and_then(|u| u.get("input_tokens"))
+            .and_then(|t| t.as_u64())
+            .unwrap_or(0);
+        Ok((out, tokens))
     }
+}
+
+/// 一次判断里的一遍请求（B155 起置换按题）：发哪些题（原题号）、`c{k}` 候选是否逆序。
+#[derive(Clone, Debug)]
+struct 一遍 {
+    题: Vec<usize>,
+    逆序: bool,
 }
 
 /// 单次请求：可跨线程调用，给 [`timed`] 包超时用。
@@ -284,11 +349,21 @@ impl JevClient {
     pub fn model_id(&self) -> String {
         self.model.clone()
     }
-    /// 一状态多题一次问完（P5）；`select` 按 `permute` 发正逆两序。
+    /// 一状态多题一次问完（P5），经 [`JevClient::judge_items`]。
     pub fn judge(
         &mut self,
         state: &State,
         questions: &[&Question],
+    ) -> Result<JudgeResult, EffectError> {
+        let items: Vec<(&State, &Question)> = questions.iter().map(|q| (state, *q)).collect();
+        self.judge_items(&items)
+    }
+
+    /// 一次判断，逐题带状态（B155，步 15i：同材料上候选集不同的题一次调用）；声明了置换的 `select`
+    /// 另发一遍逆序。
+    pub fn judge_items(
+        &mut self,
+        items: &[(&State, &Question)],
     ) -> Result<JudgeResult, EffectError> {
         // `select` 要发**两个置换**（候选正序与逆序），按众数占比算 `mode_share`
         // ——`12`:151「`Pick` 要求置换众数一致」的**数据来源**。与 Python 同口径：
@@ -306,118 +381,110 @@ impl JevClient {
         // 而作者不知道自己买了什么。**兜底往拒绝那边倒**——「不给强出口」是拒绝。
         // 步 15f（B64）起，作者在 select 题或题式上声明 `{permute: true}` 即开；宿主字段 `permute`
         // 仍可整体打开（测试用）。依据：B64（地基/附注/2026-09-24-探针首轮裁定.md，I-1(b)）
-        let perms = self.perms_for(state, questions);
-        let mut 每次答案: Vec<Vec<Answer>> = vec![];
+        // B155（步 15i）起置换按题：只有可置换的 `select` 进第二遍，其余题的读数与它们单发时相同（I2）。
+        let 各遍 = self.passes(items);
+        let mut 每遍答案: Vec<Vec<Answer>> = vec![];
         let mut tokens = 0u64;
-        for perm in &perms {
-            let body = JevClient::request_body_permuted(&self.model, state, questions, perm);
+        for 遍 in &各遍 {
+            let (body, 键表) = JevClient::body_of(&self.model, items, 遍);
             let resp = (self.transport)(&body)?;
-            let (answers, t) = JevClient::parse_perm(&resp, state, questions, perm)?;
+            let (answers, t) = JevClient::parse_pass(&resp, items, 遍, &键表)?;
             tokens += t;
-            每次答案.push(answers);
+            每遍答案.push(answers);
             self.n_calls += 1;
         }
-        Ok(self.merge(state, questions, 每次答案, tokens, perms.len()))
+        Ok(self.merge(items, &各遍, 每遍答案, tokens))
     }
 
-    /// 一次判断要发的置换（步 15e 从 `judge` 拆出，语句不变）：`select` 且开了置换时正逆两序，否则原序一份。
-    fn perms_for(&self, state: &State, questions: &[&Question]) -> Vec<Vec<usize>> {
-        let 要置换 = questions
+    /// 这道题可置换（B155 起按题）：要求了置换（宿主字段 `permute` 或题上声明，B64）、候选多于一个、
+    /// 且候选用 `c{k}` 键。标签键的对象按键名排序发出，正逆两序是同一份请求，测出的众数占比恒为 1——
+    /// 那是假的 `Pick`（放行方向），所以标签键的 `select` 不置换：`mode_share` 为空，出口按 J-15 走
+    /// `untested`。依据：B155、B64
+    fn 可置换(&self, state: &State, q: &Question) -> bool {
+        q.op == Op::Select
+            && (self.permute || q.permute)
+            && state.over.len() > 1
+            && JevClient::candidate_labels(state).is_none()
+    }
+
+    /// 一次判断要发的遍（步 15e 拆出；B155 起置换按题）：第一遍原序发全部题；有可置换的 `select` 时
+    /// 第二遍逆序只发这些题，题号沿用第一遍。
+    fn passes(&self, items: &[(&State, &Question)]) -> Vec<一遍> {
+        let mut v = vec![一遍 {
+            题: (0..items.len()).collect(),
+            逆序: false,
+        }];
+        let 置换题: Vec<usize> = items
             .iter()
-            .any(|q| q.op == Op::Select && (self.permute || q.permute))
-            && state.over.len() > 1;
-        if 要置换 {
-            let 正 = (0..state.over.len()).collect::<Vec<_>>();
-            let mut 逆 = 正.clone();
-            逆.reverse();
-            vec![正, 逆]
-        } else {
-            vec![(0..state.over.len()).collect()]
+            .enumerate()
+            .filter(|(_, (s, q))| self.可置换(s, q))
+            .map(|(i, _)| i)
+            .collect();
+        if !置换题.is_empty() {
+            v.push(一遍 {
+                题: 置换题,
+                逆序: true,
+            });
         }
+        v
     }
 
-    /// 一个置换的返回体：校验、按这次发出的顺序还原候选下标，连同 input token 一起返回（步 15e 拆出）。
-    fn parse_perm(
-        resp: &Json,
-        state: &State,
-        questions: &[&Question],
-        perm: &[usize],
-    ) -> Result<(Vec<Answer>, u64), EffectError> {
-        let mut answers = JevClient::parse_answers(resp, state, questions)?;
-        // 返回的概率按**这次发出去的顺序**索引，要还原回原始候选下标
-        for a in &mut answers {
-            if let Answer::Choice(v) = a {
-                let mut 还原 = vec![0.0; v.len()];
-                for (发出位, 原下标) in perm.iter().enumerate() {
-                    if 发出位 < v.len() && *原下标 < 还原.len() {
-                        还原[*原下标] = v[发出位];
-                    }
-                }
-                *v = 还原;
-            }
-        }
-        let tokens = resp
-            .get("usage")
-            .and_then(|u| u.get("input_tokens"))
-            .and_then(|t| t.as_u64())
-            .unwrap_or(0);
-        Ok((answers, tokens))
-    }
-
-    /// 各置换的答案合成一次判断的结果（步 15e 拆出，语句不变）。
+    /// 各遍的答案合成一次判断的结果（步 15e 拆出；B155 起按题）：进了两遍的 `select` 取众数占比、
+    /// 概率取各遍均值（与 Python `p_ = sum(...) / len(probs_all)` 同）；其余题取第一遍答案，
+    /// `mode_share` 为空（没测过置换是 `None` 不是 0）。
     fn merge(
         &self,
-        state: &State,
-        questions: &[&Question],
-        每次答案: Vec<Vec<Answer>>,
+        items: &[(&State, &Question)],
+        各遍: &[一遍],
+        每遍答案: Vec<Vec<Answer>>,
         tokens: u64,
-        perms_used: usize,
     ) -> JudgeResult {
-        // 逐题合并：select 取众数（并记占比），其余取第一次
+        let n = items.len();
+        let mut 各题: Vec<Vec<Answer>> = vec![vec![]; n];
+        for (遍, 答) in 各遍.iter().zip(每遍答案) {
+            for (&i, a) in 遍.题.iter().zip(答) {
+                各题[i].push(a);
+            }
+        }
         let mut answers = vec![];
         let mut mode_share = vec![];
-        for (i, q) in questions.iter().enumerate() {
-            if q.op == Op::Select && 每次答案.len() > 1 {
-                let picks: Vec<usize> = 每次答案
+        let mut perms = vec![];
+        for (i, 答) in 各题.into_iter().enumerate() {
+            let (state, q) = items[i];
+            let 次 = 答.len();
+            if q.op == Op::Select && 次 > 1 {
+                let vs: Vec<&Vec<f64>> = 答
                     .iter()
-                    .filter_map(|一次| 一次.get(i))
-                    .filter_map(|a| {
-                        if let Answer::Choice(v) = a {
-                            Some(argmax_index(v))
-                        } else {
-                            None
-                        }
+                    .filter_map(|a| match a {
+                        Answer::Choice(v) => Some(v),
+                        _ => None,
                     })
                     .collect();
                 let mut 票 = HashMap::new();
-                for k in &picks {
-                    *票.entry(*k).or_insert(0usize) += 1;
+                for v in &vs {
+                    *票.entry(argmax_index(v)).or_insert(0usize) += 1;
                 }
-                let (众数, 次数) = 票.into_iter().max_by_key(|(_, n)| *n).unwrap_or((0, 0));
-                // 概率取各次的均值（与 Python `p_ = sum(...) / len(probs_all)` 同）
+                let 众数次数 = 票.values().copied().max().unwrap_or(0);
                 let mut 均值 = vec![0.0; state.over.len()];
-                let mut n = 0.0;
-                for 一次 in &每次答案 {
-                    if let Some(Answer::Choice(v)) = 一次.get(i) {
-                        for (k, x) in v.iter().enumerate() {
-                            if k < 均值.len() {
-                                均值[k] += x;
-                            }
+                for v in &vs {
+                    for (k, x) in v.iter().enumerate() {
+                        if k < 均值.len() {
+                            均值[k] += x;
                         }
-                        n += 1.0;
                     }
                 }
-                if n > 0.0 {
-                    均值.iter_mut().for_each(|x| *x /= n);
+                if !vs.is_empty() {
+                    let m = vs.len() as f64;
+                    均值.iter_mut().for_each(|x| *x /= m);
                 }
-                let _ = 众数;
                 answers.push(Answer::Choice(均值));
-                mode_share.push(Some(次数 as f64 / picks.len().max(1) as f64));
+                mode_share.push(Some(众数次数 as f64 / vs.len().max(1) as f64));
             } else {
-                answers.push(每次答案[0][i].clone());
-                // 非 select：没有「置换」这回事，是 None 不是 0
+                answers.push(答.into_iter().next().expect("第一遍发全部题"));
+                // 没进第二遍：没有「置换」这回事，是 None 不是 0
                 mode_share.push(None);
             }
+            perms.push(次);
         }
         JudgeResult {
             answers,
@@ -427,7 +494,9 @@ impl JevClient {
                 .map(|p| tokens as f64 * p)
                 .unwrap_or_default(),
             mode_share,
-            perms: questions.iter().map(|_| perms_used).collect(),
+            perms,
+            // 真机返回体里的自报置信度本版不读（B154 的读取随 18a 追加项；此处与 main 相同为空）
+            confidence: vec![],
         }
     }
     /// 已发出的请求数（置换算两次）
@@ -467,25 +536,23 @@ impl JevPort {
     fn submit_concurrent(&mut self, calls: Vec<EffectCall>, shared: Attempt) -> Vec<Ticket> {
         let client = &self.client;
         let mut 请求体: Vec<Json> = vec![];
-        // 每个调用：状态、题组、置换表、它的第一份请求体在 `请求体` 里的位置
+        // 每个调用：逐题材料、各遍、各遍的键表、它的第一份请求体在 `请求体` 里的位置
         let mut 各调用: Vec<Result<待合并, EffectError>> = vec![];
         for c in calls {
-            match c.input {
-                CallInput::StateQuestions { state, questions } => {
-                    let qs: Vec<&Question> = questions.iter().collect();
-                    let perms = client.perms_for(&state, &qs);
+            match 判断输入::from(c.input) {
+                Ok(输入) => {
+                    let items = 输入.items();
+                    let 各遍 = client.passes(&items);
                     let 起 = 请求体.len();
-                    for perm in &perms {
-                        请求体.push(JevClient::request_body_permuted(
-                            &client.model,
-                            &state,
-                            &qs,
-                            perm,
-                        ));
+                    let mut 键表 = vec![];
+                    for 遍 in &各遍 {
+                        let (b, 表) = JevClient::body_of(&client.model, &items, 遍);
+                        请求体.push(b);
+                        键表.push(表);
                     }
-                    各调用.push(Ok((state, questions, perms, 起)));
+                    各调用.push(Ok((输入, 各遍, 键表, 起)));
                 }
-                _ => 各调用.push(Err(EffectError("JEV 判断端口只收状态加题组".into()))),
+                Err(e) => 各调用.push(Err(e)),
             }
         }
         let mut 返回 = 并发发出(&shared, &请求体, self.concurrency)
@@ -494,25 +561,24 @@ impl JevPort {
             .collect::<Vec<_>>();
         let mut 结果 = vec![];
         for c in 各调用 {
-            结果.push(c.and_then(|(state, questions, perms, 起)| {
-                let qs: Vec<&Question> = questions.iter().collect();
-                let mut 每次答案 = vec![];
+            结果.push(c.and_then(|(输入, 各遍, 键表, 起)| {
+                let items = 输入.items();
+                let mut 每遍答案 = vec![];
                 let mut tokens = 0u64;
-                for (k, perm) in perms.iter().enumerate() {
+                for (k, 遍) in 各遍.iter().enumerate() {
                     let resp = 返回[起 + k]
                         .take()
                         .unwrap_or_else(|| Err(EffectError("并发发出：返回体缺失".into())))?;
-                    let (answers, t) = JevClient::parse_perm(&resp, &state, &qs, perm)?;
+                    let (answers, t) = JevClient::parse_pass(&resp, &items, 遍, &键表[k])?;
                     tokens += t;
-                    每次答案.push(answers);
+                    每遍答案.push(answers);
                     self.client.n_calls += 1;
                 }
                 Ok(EffectOut::Readings(self.client.merge(
-                    &state,
-                    &qs,
-                    每次答案,
+                    &items,
+                    &各遍,
+                    每遍答案,
                     tokens,
-                    perms.len(),
                 )))
             }));
         }
@@ -538,12 +604,9 @@ impl EffectPort for JevPort {
             return Ok(self.submit_concurrent(calls, shared));
         }
         let client = &mut self.client;
-        Ok(self.done.submit_with(calls, |c| match c.input {
-            CallInput::StateQuestions { state, questions } => {
-                let qs: Vec<&Question> = questions.iter().collect();
-                client.judge(&state, &qs).map(EffectOut::Readings)
-            }
-            _ => Err(EffectError("JEV 判断端口只收状态加题组".into())),
+        Ok(self.done.submit_with(calls, |c| {
+            let 输入 = 判断输入::from(c.input)?;
+            client.judge_items(&输入.items()).map(EffectOut::Readings)
         }))
     }
     fn poll(&mut self, t: &Ticket) -> std::task::Poll<Result<EffectOut, EffectError>> {
@@ -558,8 +621,54 @@ pub struct JevPorts {
     rest: Vec<Box<dyn EffectPort>>,
 }
 
-/// 并发发出时一个调用等合并的材料：状态、题组、置换表、首份请求体的位置（步 15e）
-type 待合并 = (State, Vec<Question>, Vec<Vec<usize>>, usize);
+/// 并发发出时一个调用等合并的材料：逐题材料、各遍、各遍的键表、首份请求体的位置（步 15e；B155 改逐题）
+type 待合并 = (判断输入, Vec<一遍>, Vec<Vec<HashMap<String, usize>>>, usize);
+
+/// 一次判断调用的逐题材料（B155，步 15i）：不同状态各存一份，题按下标指向自己的状态。
+/// 两种判断输入（一个状态加一组题；同材料、逐题带状态）都转成它。
+struct 判断输入 {
+    states: Vec<State>,
+    属: Vec<usize>,
+    questions: Vec<Question>,
+}
+
+impl 判断输入 {
+    fn from(input: CallInput) -> Result<判断输入, EffectError> {
+        match input {
+            CallInput::StateQuestions { state, questions } => Ok(判断输入 {
+                属: vec![0; questions.len()],
+                states: vec![state],
+                questions,
+            }),
+            CallInput::MaterialQuestions { states, questions } => {
+                let mut 各态: Vec<State> = vec![];
+                let mut 属 = vec![];
+                for s in states {
+                    match 各态.iter().position(|u| u.hash == s.hash) {
+                        Some(k) => 属.push(k),
+                        None => {
+                            属.push(各态.len());
+                            各态.push(s);
+                        }
+                    }
+                }
+                Ok(判断输入 {
+                    states: 各态,
+                    属,
+                    questions,
+                })
+            }
+            _ => Err(EffectError("JEV 判断端口只收状态加题组".into())),
+        }
+    }
+    fn items(&self) -> Vec<(&State, &Question)> {
+        self.questions
+            .iter()
+            .zip(&self.属)
+            .map(|(q, k)| (&self.states[*k], q))
+            .collect()
+    }
+}
 
 /// 请求体按上限开工作线程发出，结果按原位置放回（步 15e）。线程数 `min(上限, 请求体数)`。
 fn 并发发出(t: &Attempt, 请求体: &[Json], 上限: usize) -> Vec<Result<Json, EffectError>> {
@@ -787,6 +896,64 @@ mod tests {
         let b = 串.ports().call_many(judge, 入).unwrap();
         assert_eq!(读(&a), 读(&b));
         assert_eq!((并.judge.calls(), 串.judge.calls()), (2, 2));
+    }
+
+    /// 步 15i（B155）：同材料合批的调用在并发路径上也是一份请求体——`state` 不含 `over`，两道 `select`
+    /// 各带自己的候选；答案按各自的候选数还原；与串行路径相同。
+    #[test]
+    fn 并发路径收同材料合批() {
+        let 记: std::sync::Arc<std::sync::Mutex<Vec<Json>>> = Default::default();
+        let 记2 = 记.clone();
+        let t: Attempt = std::sync::Arc::new(move |b: &Json| {
+            记2.lock().unwrap().push(b.clone());
+            let mut ans = serde_json::Map::new();
+            for (qid, q) in b["questions"].as_object().unwrap() {
+                let n = q["criteria"].as_object().unwrap().len();
+                let probs: serde_json::Map<String, Json> = (0..n)
+                    .map(|k| (format!("c{k}"), json!(if k == n - 1 { 0.9 } else { 0.0 })))
+                    .collect();
+                ans.insert(qid.clone(), json!({"probabilities": probs}));
+            }
+            Ok(json!({"answers": ans, "usage": {"input_tokens": 3}}))
+        });
+        let 态 = |n: usize| {
+            State::new(
+                vec![Mat::literal(json!("材料"))],
+                vec![],
+                vec![],
+                (0..n)
+                    .map(|i| Mat::literal(json!(format!("候选{i}"))))
+                    .collect(),
+                false,
+            )
+        };
+        let q = Question::new(Op::Select, "哪个", "k", vec![]);
+        let 入 = vec![CallInput::MaterialQuestions {
+            states: vec![态(2), 态(3)],
+            questions: vec![q.clone(), q],
+        }];
+        let judge = jpp_effects::find(|s| s.produces_reading).unwrap();
+        let mut 并 = JevPorts::new(JevClient::with_shared_transport("jev-1.13.0", t.clone()))
+            .with_concurrency(4);
+        let a = 并.ports().call_many(judge, 入.clone()).unwrap();
+        let mut 串 = JevPorts::new(JevClient::with_shared_transport("jev-1.13.0", t));
+        let b = 串.ports().call_many(judge, 入).unwrap();
+        assert_eq!(读(&a), 读(&b));
+        assert!(
+            读(&a)[0].starts_with("[Choice([0.0, 0.9]), Choice([0.0, 0.0, 0.9])]"),
+            "{:?}",
+            读(&a)
+        );
+        assert_eq!((并.judge.calls(), 串.judge.calls()), (1, 1));
+        let 发 = 记.lock().unwrap();
+        assert!(发[0]["state"].get("over").is_none(), "{}", 发[0]);
+        assert_eq!(
+            发[0]["questions"]["q1"]["criteria"]
+                .as_object()
+                .unwrap()
+                .len(),
+            3
+        );
     }
 
     /// 步 15b（R）：真机端口表与 `JevClient` 的三个方法逐一对应——判断同答案同费用，生成报同一句错，

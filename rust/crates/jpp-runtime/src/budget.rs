@@ -47,7 +47,8 @@ impl<'a> Interp<'a> {
     /// 审计重放时，账本里记过的调用照记录算进已花（B35）：首跑在哪里停发，重放就在哪里停发。
     pub(crate) fn charge(&self, calls: u64, usd: f64) -> Result<(), String> {
         let (used_calls, used_usd) = (
-            self.cost.calls + self.audit.calls,
+            // 步 15h-2（B160）：登记了还没交出的生成也算已用（交出时才计入 cost.calls）
+            self.cost.calls + self.audit.calls + self.生成预留(),
             self.cost.usd + self.audit.usd,
         );
         if used_calls + calls > self.budget.calls || used_usd + usd > self.budget.cost {
@@ -106,16 +107,19 @@ impl<'a> Interp<'a> {
         detail: &str,
         attempts: u64,
     ) {
-        for (i, (_, _, k)) in items.iter().enumerate() {
+        for (i, (_, r, k)) in items.iter().enumerate() {
             let mk = format!("absent:{k}");
-            if self.ledger.get(&mk).is_none() {
-                self.ledger.put(Entry::Absent {
-                    key: mk,
-                    jkey: self.judge_keys.get(k).cloned(),
-                    cause: cause.to_string(),
-                    detail: detail.to_string(),
-                    attempts: if i == 0 { attempts } else { 0 },
-                });
+            if self.账本查(&mk).is_none() {
+                self.记账(
+                    r.id,
+                    Entry::Absent {
+                        key: mk,
+                        jkey: self.judge_keys.get(k).cloned(),
+                        cause: cause.to_string(),
+                        detail: detail.to_string(),
+                        attempts: if i == 0 { attempts } else { 0 },
+                    },
+                );
             }
         }
     }

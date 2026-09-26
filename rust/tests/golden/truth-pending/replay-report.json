@@ -54,7 +54,7 @@
     "events": [
       {
         "cost": 0.0,
-        "key": "f742504ac754174a740c0b83",
+        "key": "55a4b76fcf6dba9b7c357435",
         "kind": "judge",
         "note": "「这段话是否提到了钢琴？」",
         "replayed": true,
@@ -65,7 +65,7 @@
       },
       {
         "cost": 0.0,
-        "key": "c6382fb2e46f34173a3be548",
+        "key": "9656e0a4a995785c4fe93725",
         "kind": "judge",
         "note": "「这段话是否提到了钢琴？」",
         "replayed": true,
@@ -78,9 +78,8 @@
     "warnings": [
       "W-window-untested: @466 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
       "W-form-pending: @466 题式级记录未上岗（待核：人工抽检一致率 0.78（39/50）< 门槛 0.90）；本题按冷键处理",
-      "W-untested: @466 calib_line 在本次路径上没有被测量，按 J-15 取保守项（出口 cold）。修法【作者可改】：用 calib-import 从带真值样本为这道题或它的题式认证一条线（模式级记录不供线，B44）",
+      "W-untested: @466 calib_line 在本次路径上没有被测量，按 J-15 取保守项（出口 cold）。修法【作者可改】：这道题没有认证过的线（模式级记录不供线，B44）。四条出路，按成本从低到高：(1) 题库——用 bank/bank.json 里已认证的同题型题式，fill(题式, {…})，作者一条不标；(2) 真值可算——标签由程序算出（source: computed），经 calib-import 导入，零人工；(3) 标注或代标——calib-import 从带真值样本认证一条线（可由强模型代标加复核，B36、B89）；(4) 作者声明线——cut(r, {declare: {hi: …, lo: …}}) 按你写的数切，不作错误率保证，放行不可逆动作须 --release-on-declared（B128）",
       "W-form-pending: @466 题式级记录未上岗（待核：人工抽检一致率 0.78（39/50）< 门槛 0.90）；本题按冷键处理",
-      "W-untested: @466 calib_line 在本次路径上没有被测量，按 J-15 取保守项（出口 cold）。修法【作者可改】：用 calib-import 从带真值样本为这道题或它的题式认证一条线（模式级记录不供线，B44）",
       "returned_unsure: unsure(cold|untested:calib_line), unsure(cold|untested:calib_line)"
     ]
   },
@@ -102,7 +101,7 @@
         },
         "index": 0,
         "item": "那台立式乐器占了客厅一角，搬家时最费劲。",
-        "key": "f742504ac754174a740c0b83",
+        "key": "55a4b76fcf6dba9b7c357435",
         "pos": 0,
         "q": {
           "calib": "form-concept",
@@ -126,7 +125,7 @@
         },
         "index": 1,
         "item": "他背起吉他，坐在公园长椅上弹唱了一下午。",
-        "key": "c6382fb2e46f34173a3be548",
+        "key": "9656e0a4a995785c4fe93725",
         "pos": 1,
         "q": {
           "calib": "form-concept",

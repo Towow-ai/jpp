@@ -38,6 +38,7 @@ fn 端口<'a>() -> Ports<'a> {
                 .iter()
                 .map(|q| if q.op == Op::Select { 5 } else { 0 })
                 .collect(),
+            confidence: vec![],
         })
     }))
 }

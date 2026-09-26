@@ -1,50 +1,50 @@
 ir v1
 budget calls=0 cost=0 depth=256 escalate=- unsure=- latency_p95=- absent=-
-block 58..392
-  fn-stmt compose
+block 58..410
+  fn-stmt compose_rules
     #0 fn (f:{"Function":[[{"Named":"Int"}],{"Named":"Int"}]}, g:{"Function":[[{"Named":"Int"}],{"Named":"Int"}]}) -> {"Function":[[{"Named":"Int"}],{"Named":"Int"}]} effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
-      block 165..202
+      block 171..208
         result
           #2 fn (x:{"Named":"Int"}) -> {"Named":"Int"} effects=-
-            block 189..200
+            block 195..206
               result
-                #3 call 191..198
+                #3 call 197..204
                   callee:
                     #4 name g
-                  #5 call 193..197
+                  #5 call 199..203
                     callee:
                       #6 name f
                     #7 name x
   fn-stmt increment
     #8 fn (x:{"Named":"Int"}) -> {"Named":"Int"} effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
-      block 232..241
+      block 238..247
         result
           #9 binary +
             #10 name x
             #11 int 1
   fn-stmt twice
     #12 fn (x:{"Named":"Int"}) -> {"Named":"Int"} effects=- ; {"effect":{"known":[],"open":false},"summary":{"may_touch_world":false,"may_refresh":false},"duty_kind":null,"refresh_point":false}
-      block 266..275
+      block 272..281
         result
           #13 binary *
             #14 name x
             #15 int 2
   let method : -
-    #16 call 290..315
+    #16 call 296..327
       callee:
-        #17 name compose
+        #17 name compose_rules
       #18 name increment
       #19 name twice
   let larger : -
-    #20 call 330..356
+    #20 call 342..374
       callee:
-        #21 name compose
+        #21 name compose_rules
       #22 name method
       #23 name increment
   result
-    #24 record 358..392
+    #24 record 376..410
       result:
-        #25 call 367..377
+        #25 call 385..395
           callee:
             #26 name larger
           #27 int 20

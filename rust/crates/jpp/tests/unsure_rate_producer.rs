@@ -37,6 +37,7 @@ fn 桩端口() -> Ports<'static> {
                 cost: 0.0,
                 mode_share: vec![],
                 perms: vec![],
+                confidence: vec![],
             })
         }))
         .with(FnPort::generate("m", |_p, _c, _n, _r| {
@@ -55,6 +56,7 @@ fn 定值端口(p: f64) -> Ports<'static> {
                 cost: 0.0,
                 mode_share: vec![],
                 perms: vec![],
+                confidence: vec![],
             })
         }))
         .with(FnPort::generate("m", |_p, _c, _n, _r| {

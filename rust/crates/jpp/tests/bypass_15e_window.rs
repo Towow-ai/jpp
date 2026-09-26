@@ -55,6 +55,7 @@ impl EffectPort for 记批 {
                             cost: self.费,
                             mode_share: vec![None; questions.len()],
                             perms: vec![0; questions.len()],
+                            confidence: vec![],
                         }))
                     }
                     CallInput::StateQuestions { .. } => Err(EffectError("连接中断".into())),
@@ -259,7 +260,8 @@ fn 全部金样并发与串行一致() {
         let pf = d.join("profile.json");
         std::fs::write(&pf, 画像).unwrap();
         for c in m["cases"].as_array().unwrap() {
-            if c["expect"] == "error" {
+            // 步 25e：从种子账本续跑的用例（`resume_ledger`）不收——从头跑会真的执行代码（没有沙箱的机器上是 J-08）
+            if c["expect"] == "error" || c["resume_ledger"].is_string() {
                 continue;
             }
             let name = c["name"].as_str().unwrap();
@@ -286,6 +288,10 @@ fn 全部金样并发与串行一致() {
             if let Some(from) = c["resume_from"].as_str() {
                 a.push("--resume".into());
                 a.push(d.join(from).join("ledger.json").display().to_string());
+            }
+            // 步 20j-2：清单项的额外参数（`--release-on-declared`）照带
+            if let Some(xs) = c["args"].as_array() {
+                a.extend(xs.iter().filter_map(|x| x.as_str().map(String::from)));
             }
             a.extend([
                 "--profile".into(),

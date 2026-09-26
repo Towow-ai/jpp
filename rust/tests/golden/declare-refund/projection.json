@@ -1,0 +1,26 @@
+{
+  "asks": 1,
+  "calls": 3,
+  "effects": [
+    [
+      "ask",
+      "「这段客服对话里，顾客是否明确提出要退款或退钱？」未答 → Pending",
+      "977b27f67fdacebd89477209",
+      false
+    ]
+  ],
+  "judge_registrations": 2,
+  "pending": [
+    [
+      "ask",
+      {
+        "end": 1272,
+        "start": 1251
+      }
+    ]
+  ],
+  "returned_unsure": [],
+  "status": "pending",
+  "usd": 0.0,
+  "value": null
+}

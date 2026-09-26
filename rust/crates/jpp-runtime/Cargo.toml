@@ -12,3 +12,7 @@ jpp-effects = { path = "../jpp-effects" }
 jpp-ledger = { path = "../jpp-ledger" }
 serde = { version = "1", features = ["derive", "rc"] }
 serde_json = "1"
+# B157 (7c)：确定性文本与数据内置。regex 用默认特性（含 unicode，中文材料上 \w/\d 需要它）；
+# chrono 只用解析与格式化，关默认特性（关 clock：不提供 now()，B157 (2)）。
+regex = "1"
+chrono = { version = "0.4", default-features = false, features = ["std"] }

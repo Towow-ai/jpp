@@ -63,6 +63,7 @@ fn 规则端口(table: HashMap<String, f64>, calls: &RefCell<u64>) -> Ports<'_> 
                 cost: 0.0,
                 perms: vec![],
                 mode_share: vec![],
+                confidence: vec![],
             })
         }))
         .with(FnPort::generate("fixed-0", |p, _c, _n, _r| {

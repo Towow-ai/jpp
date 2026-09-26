@@ -1,0 +1,7 @@
+// 错误示例：E-stat-unavailable。cut 的 stat: "confidence" 要求画像声明 reports_confidence（H9），
+// 发行画像 jev-1.13.0.json 没有这个字段，检查期直接报错，不等运行期、不悄悄退回 p_max。
+budget {calls: 4, cost: 0.01, depth: 8};
+let owner = select("这段工单最可能归哪个组处理？", "ticket-owner");
+let k = judge(state(mat("样例工单"), {over: [mat("前端"), mat("后端")]}), owner);
+handle(cut(k, {stat: "confidence", declare: {hi: 0.6}}), {
+    act: fn() { "端侧" }, ignore: fn() { "服务侧" }, unsure: fn(u) { consume(u, "drop"); "待定" }})

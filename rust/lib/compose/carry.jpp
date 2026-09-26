@@ -1,0 +1,9 @@
+// 未决上传（B148，步 25c）：内层的未决元素并进外层的未决清单，每个元素记下经过的这一层。
+// carry(外层未决, 内层未决, 层名) —— 两个都是未决元素列表（契约值的 pending），层名是 Text。
+// 元素的出口（责任）原样带着走，不销账；经过的层写在 via（列表，按经过先后）。
+// trail 不动：trail 装的是上游已决出口（B81/B82），层名不是出口（过程记录 工程-步25c.md Q1）。
+fn carry(outer, inner, layer) {
+    concat(outer, map(inner, fn(p) {
+        with(p, "via", append(if has(p, "via") { p.via } else { [] }, layer))
+    }))
+}
