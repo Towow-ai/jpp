@@ -194,7 +194,7 @@ form.addEventListener('submit', async (e) => {
       return;
     }
     const id = r.data.id || (r.data.node && r.data.node.id);
-    if (id) store.set('towow.me', id);
+    if (id) { store.set('towow.me', id); meId = id; lastMeKey = ''; }
     msg.className = 'msg ok';
     msg.textContent = r.data.status === 'offline' || (r.data.node && r.data.node.status === 'offline')
       ? '资料已收到。现在是录像回放，网络恢复后你会入网。'
