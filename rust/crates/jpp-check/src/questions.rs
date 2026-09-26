@@ -73,6 +73,10 @@ fn 声明记录(e: Option<&Expr>) -> Result<声明, String> {
         return Err("第三个实参不是字面记录".into());
     };
     let 取 = |k: &str| fields.iter().find(|(n, _)| n == k).map(|(_, v)| v);
+    // B155（步 15i）：是非题的答案标签进题式哈希，这里的零槽哈希不算它；不导出一个算错的 form_hash
+    if 取("labels").is_some() {
+        return Err("labels 进题式哈希，导出暂不收（B155）".into());
+    }
     let evidence = match 取("evidence") {
         None => vec![],
         Some(v) => 字面文本列表(v).ok_or("evidence 不是字面文本列表")?,

@@ -125,6 +125,7 @@ fn 出口的taint对jpp可见() {
                     cost: 0.0,
                     mode_share: vec![],
                     perms: vec![],
+                    confidence: vec![],
                 })
             }))
             .with(FnPort::generate(
@@ -195,6 +196,7 @@ fn 读taint不能替代可信判断() {
                     cost: 0.0,
                     mode_share: vec![],
                     perms: vec![],
+                    confidence: vec![],
                 })
             }))
             .with(FnPort::generate(
@@ -289,6 +291,7 @@ fn 指纹不出来的transform输出不进账本() {
                     cost: 0.0,
                     mode_share: vec![],
                     perms: vec![],
+                    confidence: vec![],
                 })
             }))
             .with(FnPort::generate(

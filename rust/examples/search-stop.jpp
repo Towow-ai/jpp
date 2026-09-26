@@ -1,0 +1,17 @@
+// 搜索凑够就停（步 25c，B148）：生成器按需求提候选店名，判断器只判可行域（objective 为 unit），
+// 第一轮就有 2 个合适的，达到 width = 2，iterate 以 stop 结束。被拒的在 detail.ignore，未决的带 via 进 pending。
+// 固定观察下生成来自夹具；真机下 `--gen-model sonnet` 换成 `claude -p`。
+import "../lib/compose/search.jpp";
+budget {calls: 8, cost: 0.01, depth: 64};
+
+let brief = mat("为一家社区咖啡馆起名：温暖、好记、不超过四个汉字");
+let propose = fn(frontier, i) {
+    gen("按下面的需求提出 3 个候选店名，每个候选是一个字符串；需求之后的上下文是上一轮留下的候选", concat([brief], frontier), 3, i)
+};
+let fits = test("这个名字适合做一家社区咖啡馆的店名吗？", "search-fit");
+
+let r = search([], propose, fits, unit, 3, {width: 2});
+{kept: map(r.value, fn(e) { e.item }), found_in: map(r.value, fn(e) { e.round }), duplicates: r.detail.duplicates,
+ rejected: map(r.detail.ignore, fn(e) { e.item }),
+ reason: r.detail.reason, rounds: r.detail.rounds, measures: r.detail.measures,
+ pending: r.pending}

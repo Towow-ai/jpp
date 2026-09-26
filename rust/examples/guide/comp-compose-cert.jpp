@@ -1,0 +1,12 @@
+// 组合原语：compose 与 cert（步 25d，B131、B161）。search、graph 这些搭配库内部都是靠 compose
+// 把多个出口合成一个、靠 cert 读出联合的误差界；这里直接用这两个原语，看它们做了什么。
+// compose(出口们, "all") 只在全部分量都放行时才放行；结果未决时吸收全部未决分量的责任。
+// cert(出口) 读 {grade, alpha, alpha_bound, n_unknown, line}：alpha_bound 是「这组结果里至少一条判错」
+// 的概率上界，未经认证的线（这里是夹具线）一律按 1 计、n_unknown 加一——所以下面的 alpha_bound 是 1。
+budget {calls: 4, cost: 0.01, depth: 8};
+let a = test("材料 a 是否满足条件一？", "cond-a");
+let b = test("材料 b 是否满足条件二？", "cond-b");
+let ea = cut(judge(state(mat("材料 a 的内容")), a));
+let eb = cut(judge(state(mat("材料 b 的内容")), b));
+let joined = compose([ea, eb], "all");
+{joined: exit_kind(joined), cert: cert(joined)}

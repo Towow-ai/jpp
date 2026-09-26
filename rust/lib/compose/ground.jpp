@@ -1,0 +1,30 @@
+// 接地与核验（B148，步 25e）：执行 → 判结果，JEV 与执行器的搭配。
+//
+// ground(action, args_of, render) -> fn(cand: Mat) -> Mat | Fail
+//   action   已登记的 do 动作名（如 "exec_py"、"check_tests"），由调用者传入
+//   args_of  fn(候选材料) -> [实参]，给出动作的实参列表，如 fn(c) { [content(c), "", 5] }
+//   render   fn(候选材料, 输出材料) -> Text，把候选与执行输出渲染成判断要看的字面材料
+// 产物经 transform 得到（transform 只收一份材料，候选由闭包捕获）：taint 承接执行输出（执行器为 untrusted，
+// 产物也是），来源边承接输出；输出的来源里已并进实参（候选内容）的来源。
+// 动作报错（包括没有沙箱时的 NoSandbox）时返回 do 的失败值：交给 sieve 后这个元素未决，不中断程序。
+// 超时与非零退出码写在执行器的输出记录里（timed_out、exit_code），不是失败值，由 render 渲染、交判断定。
+// iter_seq 恒为 0：同一动作、同一实参第二次按键从账本取，同一段代码只跑一次。
+//
+// verify(cands, grounder, q) = sieve(map(cands, grounder), q)：返回契约值，出口照普通 sieve 放行。
+// ground 是函数值，可以直接放进 search 的 opts.ground，就是「提出 → 执行 → 判 → 再提出」的闭环。
+//
+// 注意（过程记录 工程-步25e.md 问题清单）：这里的 do 动作名不是字面量，检查期不报 E-action-no-sandbox，
+// 没有沙箱时到运行期才得到失败值（进 pending）；CLI 把非字面动作名的 do 算作可能不可逆，
+// 引本文件的程序运行时要给 --ledger-out。
+import "../outcome.jpp";
+
+fn ground(action, args_of, render) {
+    fn(cand) {
+        let out = do(action, args_of(cand), 0);
+        if is_fail(out) { out } else { transform(fn(o) { render(cand, o) }, out) }
+    }
+}
+
+fn verify(cands, grounder, q) {
+    sieve(map(cands, grounder), q)
+}

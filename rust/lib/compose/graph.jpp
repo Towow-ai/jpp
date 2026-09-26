@@ -1,0 +1,154 @@
+// 判出来的图 + 图算法（B148 搭配层，步 25d）：JEV 判边，图算法在判出来的图上跑，数值产物给区间。
+//
+// 边有三种状态：已决有（edges）、已决无（rejected）、未决（pending）。算法只在已决边上跑；未决边另跑一次
+// 「乐观图」（已决 ∪ 未决），两次产物之差由 differs 标出——那几条就是该先问人的边。
+// 数字不流：读数不作边权、不进算法；算法只吃已决与未决两组边（权默认 1，调用者可给非判断来源的权）。
+// 每个函数的输入输出都是普通值与契约值，产物元素带 item，可再交给 sieve、pair，或作下一张图的节点。
+//
+// 依据：B148（12 §2.3、§5 搭配层行）；21 步 25d；比赛/附注-2026-09-25-搭配层设计与36小时施工.md §三·3.3、§三·5；
+// 动作契约见 crates/jpp/src/actions/graph.rs。产物出口 = compose(所用边出口, "all")，误差界由 compose 累加、cert 读出
+// （B161），库不自己加 α。已知缺口（过程记录/工程-步25d.md）：differs 非空时产物的出口还不能降为不放行；
+// 分组类算法（k 人一队）没有动作（graph:partition_k，24e-3）。
+
+// 材料或元素（带 item 的记录）统一取材料：借 pair 的元素识别，不需要类型判别
+fn graph_materials(xs) { map(pair(map(xs, fn(x) { [x, x] })).value, fn(r) { r.item.a }) }
+
+// 未决里「没观察到」的那一类（与 lib/outcome.jpp 的 unobserved_cause 同一集合，B95）
+fn graph_unobserved(c) { c == "budget" || c == "absent" || c == "latency" }
+
+// 候选下标对判边，组成图。ij 是 [[i, j]]，left/right 是两端的节点列表，off 是右端节点号的偏移
+fn graph_judge(nodes, n_left, left, right, ij, off, edge_q) -> Record<Exit> {
+    let rels = pair(map(ij, fn(p) { [left[p[0]], right[p[1]]] })).value;
+    // ends：两端节点号；eid：候选序号（判后 value 与 pending 各自重排位置，用 eid 认边）
+    let o = sieve(map(rels, fn(r) { with(with(r, "ends", [ij[r.pos][0], off + ij[r.pos][1]]), "eid", r.pos) }), edge_q);
+    {kind: "graph", nodes: nodes, n_left: n_left,
+     edges: o.value, rejected: o.detail.ignore, pending: o.pending,
+     unobserved: filter(o.pending, fn(p) { graph_unobserved(p.cause) }),
+     judged: o, spent: o.spent}
+}
+
+// 单集合、无向：候选取 i < j；opts.prune(nodes) 给下标对时只判这些；opts.over(a, b) 给时按它筛
+fn judged_graph(nodes, edge_q, opts) -> Record<Exit> {
+    let n = len(nodes);
+    let ij = if has(opts, "prune") { opts.prune(nodes) } else {
+        fold(range(0, n), [], fn(acc, i) {
+            concat(acc, map(filter(range(0, n), fn(j) {
+                i < j && (!has(opts, "over") || opts.over(nodes[i], nodes[j]))
+            }), fn(j) { [i, j] }))
+        })
+    };
+    graph_judge(nodes, unit, nodes, nodes, ij, 0, edge_q)
+}
+
+// 二部图：左右两组节点，右侧节点号从 len(left) 起；opts.prune(left, right) 给 [[i, j]]（i 在左、j 在右）
+fn judged_bipartite(left, right, edge_q, opts) -> Record<Exit> {
+    let nl = len(left);
+    let ij = if has(opts, "prune") { opts.prune(left, right) } else {
+        fold(range(0, nl), [], fn(acc, i) {
+            concat(acc, map(filter(range(0, len(right)), fn(j) {
+                !has(opts, "over") || opts.over(left[i], right[j])
+            }), fn(j) { [i, j] }))
+        })
+    };
+    graph_judge(concat(left, right), nl, left, right, ij, nl, edge_q)
+}
+
+// 节点号的文字形（动作把节点号一律转成文字）还原成节点号
+fn graph_node_no(g, s) { filter(range(0, len(g.nodes)), fn(i) { text(i) == s })[0] }
+
+// 交给动作的输入：边行 + 按算法补的字段
+fn graph_input(g, algo, args, rows) {
+    let ids = range(0, len(g.nodes));
+    if algo == "matching" {
+        let base = {edges: rows, nodes: ids};
+        let b = if g.n_left == unit { base } else {
+            with(with(base, "bipartite", true), "parts", [slice(ids, 0, g.n_left), slice(ids, g.n_left, len(ids))])
+        };
+        if has(args, "size") { with(b, "size", args.size) } else { b }
+    } else {
+        if algo == "shortest_path" {
+            {edges: rows, nodes: ids, source: args.source, target: args.target,
+             directed: has(args, "directed") && args.directed}
+        } else {
+            if algo == "max_clique" || algo == "components" { {edges: rows, nodes: ids} } else {
+                fail(join(["on_graph 只接 matching、shortest_path、max_clique、components；", algo,
+                           " 不是在边上跑的形状（set_cover、max_flow 请直接 do）"], ""))
+            }
+        }
+    }
+}
+
+// 一个产物：所用边（在 used 里的下标）与成员节点号 → 元素，出口 = compose(所用边出口, "all")（B131、B161）。
+// 用到未决边的产物出口未决，并吸收那几条边的责任；同一条边在 g.pending 里的那份是同一责任的另一个视图（B162）
+fn graph_product(g, used, idx, members, pair_item) -> Record<Exit> {
+    let es = map(idx, fn(k) { used[k] });
+    let item = if pair_item { es[0].item } else { {members: graph_materials(map(members, fn(i) { g.nodes[i] }))} };
+    {item: item, trail: [], members: members, nodes: map(members, fn(i) { g.nodes[i] }),
+     edges: es, exit: compose(map(es, fn(e) { e.exit }), "all")}
+}
+
+// 算法产物 → 元素列表
+fn graph_products(g, algo, used, out) -> List<Record<Exit>> {
+    if algo == "matching" {
+        map(out.pairs, fn(p) { graph_product(g, used, [p.edge_index],
+                                             [graph_node_no(g, p.u), graph_node_no(g, p.v)], true) })
+    } else {
+        if algo == "shortest_path" {
+            if out.reachable {
+                [graph_product(g, used, map(out.path_edges, fn(x) { x.edge_index }),
+                               map(out.path, fn(s) { graph_node_no(g, s) }), false)]
+            } else { [] }
+        } else {
+            if algo == "max_clique" {
+                [graph_product(g, used, out.edge_indices, map(out.clique, fn(s) { graph_node_no(g, s) }), false)]
+            } else {
+                map(out.components, fn(c) {
+                    let ms = map(c, fn(s) { graph_node_no(g, s) });
+                    graph_product(g, used, filter(range(0, len(used)), fn(k) { contains(ms, used[k].ends[0]) }), ms, false)
+                })
+            }
+        }
+    }
+}
+
+// 在图上跑一个算法。mode = "decided" 只用已决边；"optimistic" 用已决 ∪ 未决。
+// args：算法参数（matching: size；shortest_path: source、target、directed，节点号即 g.nodes 的下标），
+// 以及可选的 weight: fn(边) -> 数（非判断来源的权；缺省 1）。
+// 算法没跑成（不支持的算法、预算不够时 do 的失败值，B93）：返回空产物，detail.failed 带失败值，不中止程序
+fn on_graph(g, algo, args, mode) -> Record<Exit> {
+    let used = if mode == "decided" { g.edges } else { concat(g.edges, g.pending) };
+    let rows = map(used, fn(e) {
+        {u: e.ends[0], v: e.ends[1], w: if has(args, "weight") { args.weight(e) } else { 1 }}
+    });
+    let input = graph_input(g, algo, args, rows);
+    let r = if is_fail(input) { input } else {
+        do(join(["graph:", algo], ""), [input], if mode == "decided" { 0 } else { 1 })
+    };
+    if is_fail(r) {
+        outcome({value: [], detail: {algo: algo, mode: mode, failed: r, edges_used: len(used)}})
+    } else {
+        let out = content(r);
+        let ps = graph_products(g, algo, used, out);
+        outcome({value: filter(ps, fn(p) { exit_kind(p.exit) == "act" }),
+                 pending: filter(ps, fn(p) { exit_kind(p.exit) != "act" }),
+                 detail: {algo: algo, mode: mode, result: out, edges_used: len(used)}})
+    }
+}
+
+// 区间：已决图与乐观图各跑一次。differs = 乐观产物用到的未决边（已决产物按定义不用未决边）。
+// complete：两次都跑成；same：跑成且 differs 为空，即结论不依赖未决边。
+// exit = 乐观产物出口的 compose(…, "all")；alpha_bound、n_unknown 取 cert(exit)（B161 联合界：所用边证书 α 之和封顶 1，
+// 无证书的边按 1 计并计入 n_unknown）
+fn interval(g, algo, args) -> Record<Exit> {
+    let lo = on_graph(g, algo, args, "decided");
+    let hi = on_graph(g, algo, args, "optimistic");
+    let open = fold(concat(hi.value, hi.pending), [], fn(acc, p) {
+        concat(acc, filter(map(p.edges, fn(e) { e.eid }), fn(k) { !contains(acc, k) }))
+    });
+    let differs = filter(g.pending, fn(e) { contains(open, e.eid) });
+    let complete = !has(lo.detail, "failed") && !has(hi.detail, "failed");
+    let x = compose(map(concat(hi.value, hi.pending), fn(p) { p.exit }), "all");
+    let c = cert(x);
+    {lo: lo, hi: hi, exit: x, differs: differs, complete: complete, same: complete && len(differs) == 0,
+     alpha_bound: c.alpha_bound, n_unknown: c.n_unknown}
+}

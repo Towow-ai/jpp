@@ -13,7 +13,7 @@ use crate::check::{self, Report};
 use crate::effects::{CalibRecord, CalibStore, FitRegistry, Sample};
 use crate::interp::{ActionRegistry, EntryArgs, Interp, Outcome, RtError};
 use crate::ir::EntryDecl;
-use crate::ledger::Ledger;
+use crate::ledger::{Ledger, LedgerPort};
 use crate::{Error, Program};
 use jpp_effects::Ports;
 
@@ -24,6 +24,8 @@ pub struct Session<'a> {
     calib: &'a CalibStore,
     actions: &'a ActionRegistry,
     fits: Option<&'a FitRegistry>,
+    /// 生成缓存（`--gen-cache`，步 15h-2，B151 过渡）
+    gen_cache: Option<std::rc::Rc<std::cell::RefCell<crate::interp::GenCache>>>,
 }
 
 impl<'a> Session<'a> {
@@ -38,7 +40,18 @@ impl<'a> Session<'a> {
             calib,
             actions,
             fits: None,
+            gen_cache: None,
         }
+    }
+
+    /// 带生成缓存（步 15h-2，B151 过渡）：同账本键、同生成器模型的 `gen` 不再调用；新生成的记进 `fresh`，
+    /// 由宿主写回。只凭账本的审计重放不查缓存。
+    pub fn with_gen_cache(
+        mut self,
+        cache: std::rc::Rc<std::cell::RefCell<crate::interp::GenCache>>,
+    ) -> Self {
+        self.gen_cache = Some(cache);
+        self
     }
 
     /// 带 `fit` 表（`12` §6.0 的 fit 桥要用它）
@@ -113,7 +126,7 @@ impl<'a> Session<'a> {
         self,
         program: &Program,
         entry: &EntryArgs,
-        ledger: &mut Ledger,
+        ledger: &mut dyn LedgerPort,
     ) -> Result<Outcome, Error> {
         self.go(program, entry, ledger, false)
     }
@@ -123,7 +136,7 @@ impl<'a> Session<'a> {
         self,
         program: &Program,
         entry: &EntryArgs,
-        ledger: &mut Ledger,
+        ledger: &mut dyn LedgerPort,
     ) -> Result<Outcome, Error> {
         self.go(program, entry, ledger, false)
     }
@@ -134,13 +147,17 @@ impl<'a> Session<'a> {
         self,
         program: &Program,
         entry: &EntryArgs,
-        ledger: &mut Ledger,
+        ledger: &mut dyn LedgerPort,
     ) -> Result<Outcome, Error> {
         self.go(program, entry, ledger, true)
     }
 
     /// 跳过静态检查直接执行——只给检查器本身的对照测试用。
-    pub fn run_unchecked(self, program: &Program, ledger: &mut Ledger) -> Result<Outcome, RtError> {
+    pub fn run_unchecked(
+        self,
+        program: &Program,
+        ledger: &mut dyn LedgerPort,
+    ) -> Result<Outcome, RtError> {
         let budget = program.budget.clone();
         Interp::new(self.ports, ledger, self.calib, self.actions, budget).run(program)
     }
@@ -149,7 +166,7 @@ impl<'a> Session<'a> {
         self,
         program: &Program,
         entry: &EntryArgs,
-        ledger: &mut Ledger,
+        ledger: &mut dyn LedgerPort,
         replay: bool,
     ) -> Result<Outcome, Error> {
         // **档案走到检查器**（`12` §1.2）。传 `check(program)` 会让降级规则永远够不着真实运行
@@ -201,6 +218,9 @@ impl<'a> Session<'a> {
         if replay {
             it = it.audit_replay();
         }
+        if let Some(c) = &self.gen_cache {
+            it = it.with_gen_cache(c.clone());
+        }
         let out = it.run(program).map_err(Error::Runtime)?;
         Ok(带出静态告警(out, &report))
     }
@@ -211,7 +231,8 @@ impl<'a> Session<'a> {
     pub fn restore_calib(calib: &mut CalibStore, ledger: &Ledger) -> Result<Vec<String>, String> {
         let mut 补回: Vec<String> = vec![];
         for (k, v) in &ledger.calib_used {
-            if calib.records.contains_key(k) {
+            // B142（步 20j-1）：作者声明线不是校准记录，重放从源码重算它
+            if calib.records.contains_key(k) || k.starts_with(jpp_ledger::DECLARED_PREFIX) {
                 continue;
             }
             let rec: CalibRecord = serde_json::from_value(v["record"].clone())

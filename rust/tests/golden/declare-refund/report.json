@@ -1,0 +1,136 @@
+{
+  "backend": "fixed-0",
+  "cost": {
+    "asks": 1,
+    "calls": 3,
+    "replayed": 0,
+    "tokens": 0,
+    "usd": 0.0
+  },
+  "entry": [],
+  "exits": [
+    {
+      "declared": {
+        "hi": 0.7,
+        "lo": 0.3,
+        "site": 1042
+      },
+      "evidence": {
+        "certified": {
+          "grade": "Trial",
+          "hi": 0.46,
+          "key": "cs-refund",
+          "lo": 0.09
+        },
+        "errors_at_line": 0,
+        "labelled": 80,
+        "near_line": {
+          "count": 1,
+          "share": 0.5,
+          "window": 0.2
+        }
+      },
+      "exit": "ignore",
+      "grade": "Declared",
+      "item": "907b7e5467e7",
+      "key": "cs-refund",
+      "releases": false,
+      "site": 1042
+    },
+    {
+      "declared": {
+        "hi": 0.7,
+        "lo": 0.3,
+        "site": 1042
+      },
+      "evidence": {
+        "certified": {
+          "grade": "Trial",
+          "hi": 0.46,
+          "key": "cs-refund",
+          "lo": 0.09
+        },
+        "errors_at_line": 0,
+        "labelled": 80,
+        "near_line": {
+          "count": 1,
+          "share": 0.5,
+          "window": 0.2
+        }
+      },
+      "exit": "unsure(band)",
+      "grade": "Declared",
+      "item": "f6f82d87b93e",
+      "key": "cs-refund",
+      "releases": false,
+      "site": 1042
+    }
+  ],
+  "fixture_description": "Fixed readings for the author-declared line golden (step 20j-1, B128): one clear no (0.08, ignore) and one reading inside the declared band (0.55, unsure -> ask, unanswered).",
+  "local_checks": [],
+  "mode": "fixed observations; no model API requests",
+  "pending": [
+    {
+      "cause": "ask",
+      "detail": "等人回答「这段客服对话里，顾客是否明确提出要退款或退钱？」",
+      "key": "977b27f67fdacebd89477209",
+      "site": {
+        "end": 1272,
+        "start": 1251
+      }
+    }
+  ],
+  "questions": [
+    {
+      "kind": "attr",
+      "q": "7392b555d5b96a1bc4d09bf3"
+    }
+  ],
+  "replay": false,
+  "resumed": false,
+  "returned_unsure": [],
+  "status": "pending",
+  "trace": {
+    "events": [
+      {
+        "cost": 0.0,
+        "key": "9d4c4cd7bcd8e22cd6867bc2",
+        "kind": "judge",
+        "note": "「这段客服对话里，顾客是否明确提出要退款或退钱？」",
+        "replayed": false,
+        "site": {
+          "end": 1069,
+          "start": 1046
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "6c762632b19140b8ddf26fb7",
+        "kind": "judge",
+        "note": "「这段客服对话里，顾客是否明确提出要退款或退钱？」",
+        "replayed": false,
+        "site": {
+          "end": 1069,
+          "start": 1046
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "977b27f67fdacebd89477209",
+        "kind": "ask",
+        "note": "「这段客服对话里，顾客是否明确提出要退款或退钱？」未答 → Pending",
+        "replayed": false,
+        "site": {
+          "end": 1272,
+          "start": 1251
+        }
+      }
+    ],
+    "warnings": [
+      "W-window-untested: @1046 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
+      "W-drop-vs-escalate: 显式丢弃了未决责任 unsure(band)（题 7392b555）；drop 合法且已记账，但只有 escalate 会把它交给人",
+      "W-declared-line: @1042 键 cs-refund 用作者声明线 hi=0.7 lo=0.3（B128）：同键标注 80 条，按此线切错 0 条；本趟线附近 ±0.2 的读数 1/2（0.5）；同键认证线 hi=0.46 lo=0.09（Trial）。出口按你写的数路由，不作错误率保证；放行不可逆动作须宿主接受作者线（CLI：--release-on-declared）"
+    ]
+  },
+  "value": null
+}

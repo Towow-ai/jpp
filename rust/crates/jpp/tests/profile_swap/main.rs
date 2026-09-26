@@ -130,6 +130,10 @@ fn 跑用例(
         a.push("--calib".into());
         a.push(root().join(f).display().to_string());
     }
+    // 步 20j-2：清单项的额外参数（`--release-on-declared`）照带
+    if let Some(xs) = c["args"].as_array() {
+        a.extend(xs.iter().filter_map(|x| x.as_str().map(String::from)));
+    }
     if let Some(from) = c["resume_from"].as_str() {
         a.push("--resume".into());
         a.push(dir.join(from).join("ledger.json").display().to_string());
@@ -178,12 +182,14 @@ fn 去键(v: &mut Json, ks: &[&str]) {
     }
 }
 
-/// 报告里已决的判断出口（不是 `unsure…` 的）
+/// 报告里用记录的线判成已决的出口（不是 `unsure…` 的）。作者声明线（`grade: Declared`，B128，步 20j-1）
+/// 不来自记录，不算借线、也不算「无校准却已决」，不计入
 fn 已决出口(rep: &Json) -> Vec<String> {
     rep["exits"]
         .as_array()
         .into_iter()
         .flatten()
+        .filter(|e| e["grade"] != "Declared")
         .filter_map(|e| e["exit"].as_str())
         .filter(|x| !x.starts_with("unsure"))
         .map(String::from)
@@ -229,7 +235,12 @@ fn 反值() -> Vec<(&'static str, Option<Json>)> {
 #[test]
 fn a_全部示例逐字段换值程序不改() {
     let base = 临时("a");
-    let cases = 用例();
+    // 步 25e：从种子账本续跑的用例（`resume_ledger`）不收——从头跑会真的执行代码（没有沙箱的机器上是 J-08），
+    // 从种子续跑则种子录下时没有画像，换任何画像都报 W-header，与「换字段程序不改」要比的东西无关
+    let cases: Vec<Json> = 用例()
+        .into_iter()
+        .filter(|c| !c["resume_ledger"].is_string())
+        .collect();
     let mut 变体 = vec![("底".to_string(), 发行画像())];
     for (k, v) in 反值() {
         let mut j = 发行画像();
@@ -511,6 +522,7 @@ fn c_delta未测出口未决() {
             cost: 0.0,
             mode_share: vec![None; qs.len()],
             perms: vec![0; qs.len()],
+            confidence: vec![],
         })
     }));
     let mut l = Ledger::new();
@@ -641,7 +653,8 @@ fn d1_替身判断器跑全部示例() {
     let mut 跑完 = vec![];
     let mut 停: BTreeMap<String, String> = BTreeMap::new();
     for c in 用例() {
-        if c["resume_from"].is_string() {
+        // 续跑的用例（含步 25e 从种子账本续跑的）不从头跑
+        if c["resume_from"].is_string() || c["resume_ledger"].is_string() {
             continue;
         }
         let name = c["name"].as_str().unwrap().to_string();
@@ -660,20 +673,34 @@ fn d1_替身判断器跑全部示例() {
     }
     let 停名: Vec<&str> = 停.keys().map(|s| s.as_str()).collect();
     // 预注册预测停 4 个（三个调 gen、pair-team 下标越界）；实测多一个 `partial`：全部冷出口时它有一条
-    // 未消费的 unsure，运行期 J-05（程序自身对冷出口的处理，不是替身的问题；过程记录 §三）
+    // 未消费的 unsure，运行期 J-05（程序自身对冷出口的处理，不是替身的问题；过程记录 §三）。
+    // 步 15h-1 新增金样用例 `gen-choose` 也调 gen，替身不生成，同 lifecycle 一类停下；
+    // 步 25c 的三个 `search-*` 用例的 propose 包 gen，同一类
     assert_eq!(
         停名,
         vec![
+            "gen-choose",
             "lifecycle",
             "pair-team",
             "partial",
+            "search-bound",
+            "search-noshrink",
+            "search-stop",
             "sieve-review",
             "unsure-causes"
         ],
         "跑完 {}：{跑完:?}；停：{停:#?}",
         跑完.len()
     );
-    for g in ["lifecycle", "sieve-review", "unsure-causes"] {
+    for g in [
+        "gen-choose",
+        "lifecycle",
+        "search-bound",
+        "search-noshrink",
+        "search-stop",
+        "sieve-review",
+        "unsure-causes",
+    ] {
         assert!(停[g].contains("stub 判断器不生成"), "{g}：{}", 停[g]);
     }
     assert!(
@@ -682,8 +709,14 @@ fn d1_替身判断器跑全部示例() {
         停["pair-team"]
     );
     assert!(停["partial"].contains("J-05"), "{}", 停["partial"]);
-    // 步 23c 新增两个金样用例（seq-wrapped-old/new），都跑得完：23 → 25
-    assert_eq!(跑完.len(), 25);
+    // 步 23c 新增两个金样用例（seq-wrapped-old/new），步 20j-1 加 declare-refund（作者声明线，不靠校准记录），
+    // 替身上都跑得完：23 → 26。步 7t 新增 env-snake（B159 (1)(a) 纯函数环境示例）：全部出口在替身上
+    // 都是未测 Unsure，decide() 里三处 cut_bool 各自 consume(u, "drop") 就地消费，没有未消费的 unsure
+    // 带出顶层，程序正常跑完（不是本条断言原先漏列——预注册 `地基/过程记录/工程-步7t.md` 没有覆盖到
+    // profile_swap 这一处，属预注册漏列，在此补记）：26 → 27。步 25d 加 graph-interval、graph-nested：27 → 29。
+    // 步 20j-3 加 declare-stat（统计量上的声明线，mass / expect 不要置换），替身上跑得完：29 → 30
+    // 步 20j-2 加 declare-refund-accept（同一源码带 --release-on-declared），替身上跑得完：30 → 31
+    assert_eq!(跑完.len(), 31);
 }
 
 /// (D2) 校准不跨判断器（`12` B60：校准键含 `model`）：带 jev 校准记录的用例在替身判断器上跑，
@@ -708,7 +741,8 @@ fn d2_校准不跨判断器() {
         }
     }
     // 预注册写 7 个，数错了：`question-forms@truth`、`sieve@truth`、`topic-relevance`、`truth-pending` 与五个 `bank-*`，共 9 个
-    assert_eq!(带校准, 9);
+    // 步 20j-1 加金样 declare-refund（带 --calib 展示 evidence），10 个；它的出口是声明线，不计借线
+    assert_eq!(带校准, 10);
     assert!(借线.is_empty(), "替身判断器借用了 jev 的校准线：{借线:?}");
 }
 

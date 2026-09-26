@@ -36,6 +36,7 @@ fn 定值端口<'a>(p: f64) -> Ports<'a> {
                 cost: 0.0,
                 mode_share: vec![],
                 perms: vec![],
+                confidence: vec![],
             })
         },
     ))

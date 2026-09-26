@@ -78,3 +78,53 @@ pub fn resolve(options: &RunOptions) -> Result<Option<Resolved>, String> {
         spec.name
     ))
 }
+
+/// 解析出的生成器（步 15h-1，B149）：注册表行、模型名、画像从哪个文件读的、读出来的值。
+pub struct GenResolved {
+    pub spec: &'static jpp::backends::GenSpec,
+    pub model: String,
+    pub path: PathBuf,
+    pub profile: jpp::backends::GenProfile,
+}
+
+/// 生成器画像按 B73 同一口径解析：`--gen-profile`，否则 `--profiles-dir/<生成器画像文件名>`，否则可执行文件旁
+/// `profiles/`；找不到报 `E-profile-missing`，不回退代码兜底。没给 `--gen-model` 返回 `Ok(None)`。
+pub fn resolve_gen(options: &RunOptions) -> Result<Option<GenResolved>, String> {
+    let Some(model) = &options.gen_model else {
+        return Ok(None);
+    };
+    // 注册表今天只有一行（claude-p）；多一个生成器时再加 `--gen-backend`
+    let spec = jpp::backends::GENERATORS[0];
+    let tried: Vec<PathBuf> = match &options.gen_profile {
+        Some(p) => vec![p.clone()],
+        None => options
+            .profiles_dir
+            .clone()
+            .or_else(beside_executable)
+            .into_iter()
+            .map(|d| d.join(spec.profile_file))
+            .collect(),
+    };
+    let Some(path) = tried.iter().find(|p| p.is_file()) else {
+        let tried_text = tried
+            .iter()
+            .map(|p| p.display().to_string())
+            .collect::<Vec<_>>()
+            .join("、");
+        return Err(format!(
+            // 依据：B73（生成器画像同一口径）；B149（`12` §2.4）
+            "E-profile-missing: --gen-model {model} 需要生成器画像 {}（B149、B73），不回退代码兜底值；试过：{tried_text}。\
+             修法：--gen-profile <画像文件>，或 --profiles-dir <目录>",
+            spec.profile_file
+        ));
+    };
+    let bytes = std::fs::read(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    let profile =
+        jpp::backends::GenProfile::load(&bytes).map_err(|e| format!("{}: {e}", path.display()))?;
+    Ok(Some(GenResolved {
+        spec,
+        model: model.clone(),
+        path: path.clone(),
+        profile,
+    }))
+}

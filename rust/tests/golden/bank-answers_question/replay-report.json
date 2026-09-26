@@ -73,7 +73,7 @@
     "events": [
       {
         "cost": 0.0,
-        "key": "1fa92b2217417b08b9522a10",
+        "key": "917fcb1b14ff618f3c44f9df",
         "kind": "judge",
         "note": "「b 是否给出了 a 所问的信息？（间接但足以推出答案的说法也算）」",
         "replayed": true,
@@ -84,7 +84,7 @@
       },
       {
         "cost": 0.0,
-        "key": "a3b7dd2cc1b801115a599719",
+        "key": "8797b1f8b1e808045a43d835",
         "kind": "judge",
         "note": "「b 是否给出了 a 所问的信息？（间接但足以推出答案的说法也算）」",
         "replayed": true,
@@ -95,7 +95,7 @@
       },
       {
         "cost": 0.0,
-        "key": "31a7a10023f6c4f363741b82",
+        "key": "e4067a135eb7f00dd5fe1c4b",
         "kind": "judge",
         "note": "「b 是否给出了 a 所问的信息？（间接但足以推出答案的说法也算）」",
         "replayed": true,
@@ -106,7 +106,7 @@
       },
       {
         "cost": 0.0,
-        "key": "a78e352c93eb4a9a551cea4c",
+        "key": "0cc9f9e894cd33b76b0d01fb",
         "kind": "judge",
         "note": "「b 是否给出了 a 所问的信息？（间接但足以推出答案的说法也算）」",
         "replayed": true,
@@ -159,7 +159,7 @@
           "a": "路由器的默认密码是多少？",
           "b": "默认密码印在路由器底部的标签上。"
         },
-        "key": "a78e352c93eb4a9a551cea4c",
+        "key": "0cc9f9e894cd33b76b0d01fb",
         "left": "路由器的默认密码是多少？",
         "pos": 3,
         "q": {

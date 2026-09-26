@@ -290,7 +290,7 @@
     "events": [
       {
         "cost": 0.0,
-        "key": "11f1113b560e30368f05b8ad",
+        "key": "117e53578ca7a52e554484e1",
         "kind": "judge",
         "note": "「这段话是否提到了成都？」",
         "replayed": true,
@@ -301,7 +301,7 @@
       },
       {
         "cost": 0.0,
-        "key": "f2c8ffa06dc452cec1fcc373",
+        "key": "013e3d61c8a60294232c1f85",
         "kind": "judge",
         "note": "「这段话是否提到了北京？」",
         "replayed": true,
@@ -312,7 +312,7 @@
       },
       {
         "cost": 0.0,
-        "key": "e24872a37a8698fdc1ffb48a",
+        "key": "baf25074a12f75e6299f2550",
         "kind": "judge",
         "note": "「这段话是否提到了上海？」",
         "replayed": true,
@@ -323,7 +323,7 @@
       },
       {
         "cost": 0.0,
-        "key": "fde2aacd50af059d5098a8cc",
+        "key": "a2eedc95b0bc6e8d8692af7a",
         "kind": "judge",
         "note": "「这段话是否提到了杭州？」",
         "replayed": true,
@@ -334,7 +334,7 @@
       },
       {
         "cost": 0.0,
-        "key": "0cef434c567a0cf404f32790",
+        "key": "efa597005e5c48fc7ed59eee",
         "kind": "judge",
         "note": "「这段话是否提到了西安？」",
         "replayed": true,
@@ -345,7 +345,7 @@
       },
       {
         "cost": 0.0,
-        "key": "837a9355483b82744e812981",
+        "key": "e3746acd2e58400badf2acbd",
         "kind": "judge",
         "note": "「这段话是否提到了南京？」",
         "replayed": true,
@@ -356,7 +356,7 @@
       },
       {
         "cost": 0.0,
-        "key": "b17a4612029bee0b2ed257c8",
+        "key": "d89e7554555ed5ec3952bbf5",
         "kind": "judge",
         "note": "「这段话是否提到了武汉？」",
         "replayed": true,
@@ -367,7 +367,7 @@
       },
       {
         "cost": 0.0,
-        "key": "f5a5f2d1f9b48d573f07901c",
+        "key": "bff6dc19b7f2863d4e6712cd",
         "kind": "judge",
         "note": "「这段话是否提到了重庆？」",
         "replayed": true,
@@ -378,7 +378,7 @@
       },
       {
         "cost": 0.0,
-        "key": "97a4cf470c90aad4c6c9a905",
+        "key": "61ca5642a768f0ce19541f4c",
         "kind": "judge",
         "note": "「这段话是否提到了天津？」",
         "replayed": true,
@@ -389,7 +389,7 @@
       },
       {
         "cost": 0.0,
-        "key": "4d8fac39c163516815461dff",
+        "key": "73ab4abae7d3af94b78b5e5c",
         "kind": "judge",
         "note": "「这段话是否提到了苏州？」",
         "replayed": true,
@@ -400,7 +400,7 @@
       },
       {
         "cost": 0.0,
-        "key": "775b13ceaddde29dade6a7fa",
+        "key": "f84885b187ca82e9992bb4b4",
         "kind": "judge",
         "note": "「这段话是否提到了长沙？」",
         "replayed": true,
@@ -411,7 +411,7 @@
       },
       {
         "cost": 0.0,
-        "key": "9dae809848a583a441b19e00",
+        "key": "aaa6fa29d064fd1a4ad0b2e1",
         "kind": "judge",
         "note": "「这段话是否提到了郑州？」",
         "replayed": true,
@@ -422,7 +422,7 @@
       },
       {
         "cost": 0.0,
-        "key": "c486ed4bd04af60d08e4b6c7",
+        "key": "d741885593b5e2c6fd9c5b79",
         "kind": "judge",
         "note": "「这段话是否提到了青岛？」",
         "replayed": true,
@@ -433,7 +433,7 @@
       },
       {
         "cost": 0.0,
-        "key": "3df0b7416bf3f132124bd6f8",
+        "key": "b4f77f668908cdb96280a7e1",
         "kind": "judge",
         "note": "「这段话是否提到了厦门？」",
         "replayed": true,

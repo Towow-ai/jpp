@@ -21,6 +21,7 @@ fn 不判端口() -> Ports<'static> {
                 cost: 0.0,
                 mode_share: vec![],
                 perms: vec![],
+                confidence: vec![],
             })
         }))
         .with(FnPort::generate("fixed-0", |_p, _c, _n, _r| {

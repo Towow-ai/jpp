@@ -1,0 +1,21 @@
+{
+  "schema": "gen-profile/1",
+  "generator": "claude-p",
+  "gen": {
+    "cost_usd_per_call": 0,
+    "cost_note": "claude -p 走本机订阅，按次不计费；claude 自报的 total_cost_usd 是按 API 价的估算，不是账单，不记为费用（步 15h-1）",
+    "latency_p95_ms": null,
+    "latency_note": "未测（样本不足以估 p95）；步 15h-1 预注册前单次探测 4.3 s（空上下文、3 项输出、--model sonnet）",
+    "concurrency": 4,
+    "concurrency_note": "宿主策略值，非实测（21 步 15h 缺省 4）",
+    "timeout_s": 120,
+    "timeout_note": "宿主策略值，非实测：超时只截断挂起的子进程",
+    "failure_kinds": ["timeout", "failed", "malformed", "empty"],
+    "empty_rate": null,
+    "taint_out": "untrusted"
+  },
+  "provenance": {
+    "written_by": "库轨步 15h-1（地基/过程记录/工程-步15h-1.md）",
+    "basis": "B149（12 §2.4）；20 v2 §五 S12"
+  }
+}

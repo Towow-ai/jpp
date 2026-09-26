@@ -31,6 +31,7 @@ fn c端口(p: f64, log: Rc<RefCell<Vec<String>>>) -> Ports<'static> {
                 cost: 0.0,
                 mode_share: vec![],
                 perms: vec![],
+                confidence: vec![],
             })
         },
     ))

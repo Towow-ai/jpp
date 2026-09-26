@@ -64,10 +64,21 @@ impl<'a> Interp<'a> {
                 if let Some(说明) = 谱系 {
                     补充.push_str(&format!("。{说明}（谱系放行，B72-4）"));
                 }
+                // B128（步 20j-1）：守卫出口来自作者声明线时说出线与开关名
+                let 声明 = self
+                    .frames
+                    .iter()
+                    .flat_map(|f| f.exits.iter())
+                    .find_map(|e| self.声明出口.get(&e.id).cloned());
+                if let Some(说明) = 声明 {
+                    补充.push_str(&format!(
+                        "。守卫出口来自作者声明线（{说明}）；宿主未声明接受作者线放行（CLI：--release-on-declared，B128）"
+                    ));
+                }
                 return err(
                     Some("J-08"),
                     format!(
-                        "不可逆动作 {name} 的守卫里没有一个来自可信状态的合取项：不可信材料上的判断不得**单独**放行不可逆动作（宪法 IFC / 12 §5 J-08）。修法：在条件里再合取一个来自 trusted 状态的判断，或改走 ask 让人拍板，或把这个动作登记成可逆。注意：凭夹具线（W-fixture-line，B29）或停岗候选线（W-suspend-candidate，B25）得到的出口不算可信合取项；类线（B75）、试用线（B72、B89）、临时上岗线（B19 修订）、认证范围外或范围未知（B68、B104）、证书未记录认证带宽（B104）、判据未测（J-15）的出口同样不算（报告 exits 表 releases: false）{补充}"
+                        "不可逆动作 {name} 的守卫里没有一个来自可信状态的合取项：不可信材料上的判断不得**单独**放行不可逆动作（宪法 IFC / 12 §5 J-08）。修法：在条件里再合取一个来自 trusted 状态的判断，或改走 ask 让人拍板，或把这个动作登记成可逆。注意：凭夹具线（W-fixture-line，B29）或停岗候选线（W-suspend-candidate，B25）得到的出口不算可信合取项；类线（B75）、试用线（B72、B89）、临时上岗线（B19 修订）、认证范围外或范围未知（B68、B104）、证书未记录认证带宽（B104）、判据未测（J-15）、宿主未接受的作者声明线（B128）的出口同样不算（报告 exits 表 releases: false）{补充}"
                     ),
                     sp,
                 );
@@ -140,7 +151,7 @@ impl<'a> Interp<'a> {
     }
 
     fn parents_of(&self, key: &str) -> Vec<String> {
-        match self.ledger.get(key) {
+        match self.ledger.view().get(key) {
             Some(Entry::Judge { parents, .. }) => parents.clone(),
             _ => vec![],
         }

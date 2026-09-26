@@ -58,18 +58,33 @@ fn shape_violation(shape: &jpp_effects::MatShape, out: &Json) -> Option<String> 
     None
 }
 
+/// 一组题的端口输入（B155，步 15i）：全组同一 `StateHash` 发 `StateQuestions`（与步 15i 前逐字节相同，
+/// 只认它的端口不受影响）；跨多个状态（同材料、`over` 不同）发 `MaterialQuestions`，逐题带状态。
+/// 依据：B155（地基/附注/2026-09-26-批6裁定.md §三）
+fn judge_input(states: &[Rc<State>], questions: Vec<Question>) -> CallInput {
+    if states.iter().all(|s| s.hash == states[0].hash) {
+        CallInput::StateQuestions {
+            state: (*states[0]).clone(),
+            questions,
+        }
+    } else {
+        CallInput::MaterialQuestions {
+            states: states.iter().map(|s| (**s).clone()).collect(),
+            questions,
+        }
+    }
+}
+
 impl<'a> Interp<'a> {
-    /// 判断调用经端口发出（步 15b）：产出读数的效应的端口，输入是一个状态加一组题。
+    /// 判断调用经端口发出（步 15b）：产出读数的效应的端口。`states[i]` 是 `questions[i]` 的状态，
+    /// 同一组题材料相同（B155，步 15i）；全组同一 `StateHash` 时输入仍是一个状态加一组题。
     pub(crate) fn call_judge(
         &mut self,
-        state: &State,
+        states: &[Rc<State>],
         questions: &[&Question],
     ) -> Result<jpp_effects::JudgeResult, EffectError> {
         let effect = jpp_effects::find(|s| s.produces_reading).expect("注册表里有判断");
-        let input = CallInput::StateQuestions {
-            state: state.clone(),
-            questions: questions.iter().map(|q| (*q).clone()).collect(),
-        };
+        let input = judge_input(states, questions.iter().map(|q| (*q).clone()).collect());
         match self.ports.call(effect, input)? {
             EffectOut::Readings(r) => Ok(r),
             _ => Err(EffectError("判断端口返回的不是读数".into())),
@@ -84,9 +99,11 @@ impl<'a> Interp<'a> {
         let effect = jpp_effects::find(|s| s.produces_reading).expect("注册表里有判断");
         let inputs = 窗
             .iter()
-            .map(|g| CallInput::StateQuestions {
-                state: (*g.state).clone(),
-                questions: g.items.iter().map(|(q, _, _)| (**q).clone()).collect(),
+            .map(|g| {
+                judge_input(
+                    &g.states,
+                    g.items.iter().map(|(q, _, _)| (**q).clone()).collect(),
+                )
             })
             .collect();
         match self.ports.call_many(effect, inputs) {
@@ -185,7 +202,7 @@ impl<'a> Interp<'a> {
             output_mat,
             cost,
             ..
-        }) = self.ledger.get(&key)
+        }) = self.ledger.view().get(&key)
         {
             // 账本 v3 记下了首跑的来源边（B84、B92）；重放时再并上由实参重算的边（同一程序同一结果）
             let v = match entry_to_effect_value(output, output_mat.as_deref()) {
@@ -201,8 +218,43 @@ impl<'a> Interp<'a> {
                 self.audit.calls += 1;
             }
             self.cost.replayed += 1;
-            self.trace.push(s.name, &key, true, 0.0, sp, name.into());
+            self.trace_不付费(s, &key, sp, name);
             return Ok(v);
+        }
+        // 入参 taint 要**递归看容器**：材料嵌在记录字段或嵌套列表里时，顶层 match 看不见它，
+        // 以前落进 `_ => Trusted`，于是 Inherit 的动作拿到「入参全可信」——脏材料喂进 do 出来就干净了。
+        // 与 J-01 的 `unwrap_or(false)`、taint 反序列化兜底、`mat(content(脏))` 同一形状。
+        let taint_in = args
+            .iter()
+            .fold(Taint::Trusted, |t, a| Taint::join(t, taint_of(a)));
+        let taint = out_taint(s.taint_rule, taint_in, Some(action.taint_out));
+        // B55（步 18b）：上一趟执行前写了意向、账本里没有结果的不可逆动作，远端可能已经完成。
+        // 续接与审计重放都不重执行（画像声明 `idempotent: true` 的除外），给结果未知的失败值
+        // （J-12 走 `Unsure(fail)`）；不补写 `Effect`，账本里「有 `Effect` 即动作返回过」保持成立。
+        // 依据：B55（20 v2 附录 B55 条、§4.3）；主会话 2026-09-25（审计重放同样给失败值、idempotent 缺失按不幂等）
+        let 意向键 = format!("intent:{key}");
+        let 要意向 = !action.reversible;
+        let 幂等 = self
+            .calib
+            .profile()
+            .actions
+            .get(name)
+            .and_then(|a| a.idempotent)
+            .unwrap_or(false);
+        if 要意向 && !幂等 && self.ledger.view().get(&意向键).is_some() {
+            // 依据：B55（20 v2 附录 B55 条：有意向无结果的不可逆动作不重执行，标明未知）
+            self.trace.warn(format!(
+                "W-unknown-outcome: @{} do「{name}」上一趟执行前写了意向、账本里没有结果：动作可能已经完成，也可能没有。不重执行，产出结果未知的失败值（B55）；要确认请去查动作的目标",
+                sp.start
+            ));
+            self.trace_不付费(s, &key, sp, name);
+            return Ok(Value::Fail(
+                Rc::from(
+                    format!("unknown_outcome: do「{name}」上一趟写了意向、没有结果，远端可能已经完成；不重执行（B55）")
+                        .as_str(),
+                ),
+                Provenance::new(taint, from_keys_of(args)),
+            ));
         }
         // J-08：不可逆 `do` 的唯一放行点（`20` v2 §2.3 `guard.rs::release`；步 16）
         self.release(name, action.reversible, sp)?;
@@ -215,13 +267,13 @@ impl<'a> Interp<'a> {
         if self.audit.on {
             return Err(self.replay_missing(format!("do「{name}」"), sp));
         }
-        // 入参 taint 要**递归看容器**：材料嵌在记录字段或嵌套列表里时，顶层 match 看不见它，
-        // 以前落进 `_ => Trusted`，于是 Inherit 的动作拿到「入参全可信」——脏材料喂进 do 出来就干净了。
-        // 与 J-01 的 `unwrap_or(false)`、taint 反序列化兜底、`mat(content(脏))` 同一形状。
-        let taint_in = args
-            .iter()
-            .fold(Taint::Trusted, |t, a| Taint::join(t, taint_of(a)));
-        let taint = out_taint(s.taint_rule, taint_in, Some(action.taint_out));
+        // B55（步 18b）：不可逆动作执行前写意向并落盘，写不进去即停（动作不执行）。键加 `intent:` 前缀：
+        // 与结果同键的话，`put` 会因同键已有丢掉后来的 `Effect`。`at` = 追加时账本已有的条目数。
+        // 依据：B55（20 v2 附录 B55 条）
+        if 要意向 && self.ledger.view().get(&意向键).is_none() {
+            let at = self.ledger.view().len() as u64;
+            self.即刻记账(Entry::Intent { key: 意向键, at }, sp)?;
+        }
         // B51-R2（步 15d）：声明了输出形状的动作，返回后核基数与单项尺寸；违反即失败值
         let result = (action.f)(args).and_then(|v| match &action.mat_shape {
             Some(shape) => shape_violation(shape, &v.to_json()).map_or(Ok(v), Err),
@@ -255,17 +307,28 @@ impl<'a> Interp<'a> {
         self.cost.usd += action.cost;
         self.cost.calls += 1;
         let (output, output_mat) = effect_value_to_entry(&out);
-        self.ledger.put(Entry::Effect {
+        let 结果 = Entry::Effect {
             key: key.clone(),
             ekey: self.effect_keys.get(&key).cloned(),
             output_mat: output_mat.map(Box::new),
             kind: s.name.into(),
             output,
             cost: action.cost,
-        });
+        };
+        // B55：不可逆动作的结果即刻落盘；可逆动作层末落盘
+        if 要意向 {
+            self.即刻记账(结果, sp)?;
+        } else {
+            self.账本追加(结果);
+        }
         self.trace
             .push(s.name, &key, false, action.cost, sp, name.into());
         Ok(out)
+    }
+
+    /// `do` 没有执行、不付费的一行轨迹（账本里已有结果，或 B55 的未知结果）
+    fn trace_不付费(&mut self, s: &'static EffectSpec, key: &str, sp: Span, name: &str) {
+        self.trace.push(s.name, key, true, 0.0, sp, name.into());
     }
 
     pub(crate) fn generate(
@@ -307,31 +370,60 @@ impl<'a> Interp<'a> {
         let from = ctx
             .iter()
             .fold(Sources::empty(), |s, m| s.union(&m.prov().sources));
-        let wrap = |outs: &[Json]| {
-            Value::list(
-                outs.iter()
-                    .map(|o| {
-                        Value::Mat(Rc::new(
-                            Mat::new(
-                                o.clone(),
-                                &format!("gen:{prompt}"),
-                                vec![format!("gen:{key}")],
-                                taint,
-                                derived.clone(),
-                            )
-                            .with_sources(&from),
-                        ))
-                    })
-                    .collect(),
-            )
+        // 输出材料的 taint：端口声明了就取声明（B149：生成器端口缺省 `untrusted`），否则 ∨ ctx（B37）
+        let wrap = |outs: &[Json], taint: Taint| {
+            crate::gen_pending::包材料(outs, prompt, &key, taint, &derived, &from)
         };
-        if let Some(Entry::Effect { output, cost, .. }) = self.ledger.get(&key) {
-            let outs: Vec<Json> = output.as_array().cloned().unwrap_or_default();
+        if let Some(Entry::Effect {
+            output,
+            output_mat,
+            cost,
+            ..
+        }) = self.ledger.view().get(&key)
+        {
+            // 步 15h-1：失败照记录给回 `Fail`；声明的 taint 记在 `output_mat`（旧条目为空，照旧 ∨ ctx）
+            let v = if output.get("__fail").is_some() {
+                entry_to_effect_value(output, None)
+            } else {
+                let outs: Vec<Json> = output.as_array().cloned().unwrap_or_default();
+                wrap(&outs, output_mat.as_ref().map_or(taint, |m| m.taint))
+            };
             let cost = *cost;
             self.audit_account(0, cost, sp);
             self.cost.replayed += 1;
             self.trace.push(s.name, &key, true, 0.0, sp, prompt.into());
-            return Ok(wrap(&outs));
+            return Ok(v);
+        }
+        // `--gen-cache`（步 15h-2，B151 过渡）：同账本键、同生成器模型命中即不调用、不计预算调用；
+        // 照写一条账本条目（费用 0），这一趟的账本仍可只凭账本重放。审计重放只凭账本，不查缓存。
+        let model = self
+            .ports
+            .instance_of(s.id)
+            .map(|i| i.model)
+            .unwrap_or_default();
+        if !self.audit.on
+            && let Some(hit) = self.查生成缓存(&key, &model)
+        {
+            let outs: Vec<Json> = hit.output.as_array().cloned().unwrap_or_default();
+            let v = wrap(&outs, hit.taint.unwrap_or(taint));
+            self.账本追加(Entry::Effect {
+                key: key.clone(),
+                ekey: self.effect_keys.get(&key).cloned(),
+                output_mat: hit.taint.map(|t| {
+                    Box::new(MatMeta {
+                        addr: format!("gen:{prompt}"),
+                        origin: vec![format!("gen:{key}")],
+                        taint: t,
+                        sources: vec![],
+                    })
+                }),
+                kind: s.name.into(),
+                output: hit.output,
+                cost: 0.0,
+            });
+            self.cost.replayed += 1;
+            self.trace.push(s.name, &key, true, 0.0, sp, prompt.into());
+            return Ok(v);
         }
         // B93（步 22-0）：超预算不发，产出失败值（J-12），程序照常往下
         if let Err(detail) = self.charge(1, 0.0) {
@@ -348,34 +440,9 @@ impl<'a> Interp<'a> {
             n,
             retry_seq: retry_seq as u64,
         };
-        let res = match self.ports.call(s.id, input) {
-            Ok(EffectOut::Mats(r)) => Ok(r),
-            Ok(_) => Err(EffectError("生成端口返回的不是材料".into())),
-            Err(e) => Err(e),
-        }
-        .map_err(|e| {
-            Fault::Error(RtError::new(
-                Some("E-rt-client"),
-                format!("gen 失败：{}", e.0),
-                sp,
-            ))
-        })?;
-        // 13 §5：后端已经返回 = 钱已经花了。先记事实（费用、token、账本），再核预算决定下一步。
-        self.cost.calls += 1;
-        self.cost.tokens += res.tokens;
-        self.cost.usd += res.cost;
-        self.ledger.put(Entry::Effect {
-            key: key.clone(),
-            ekey: self.effect_keys.get(&key).cloned(),
-            output_mat: None,
-            kind: s.name.into(),
-            output: Json::Array(res.outputs.clone()),
-            cost: res.cost,
-        });
-        self.trace
-            .push(s.name, &key, false, res.cost, sp, prompt.into());
+        // 步 15h-2（B149）：只交端口、不在调用点等；结果在第一次被检视时取回、记账（`gen_pending.rs`）。
         // 实际费用超出时停的是下一步（下一次发出前的核对，B93）
-        Ok(wrap(&res.outputs))
+        self.登记生成(s, key, prompt, input, taint, derived, from, sp)
     }
 
     pub(crate) fn ask(
@@ -389,7 +456,7 @@ impl<'a> Interp<'a> {
         self.解析全部帧()?;
         let key = self.effect_key_of(s.name, &[&state.hash, &q.hash]);
         // 已答的照答；已问未答的：重放照记的给出（Pending），续跑再问一次
-        let recorded = match self.ledger.get(&key) {
+        let recorded = match self.ledger.view().get(&key) {
             Some(Entry::Ask {
                 answer: Some(a), ..
             }) => Some(Some(a.clone())),
@@ -445,7 +512,7 @@ impl<'a> Interp<'a> {
                 ))
             })?;
             // 已问未答也入账（步 7）：重放照样以 Pending 结束；续跑得到答案时另起一条（只增）
-            self.ledger.put_answer(Entry::Ask {
+            self.账本追加(Entry::Ask {
                 key: key.clone(),
                 ekey: self.effect_keys.get(&key).cloned(),
                 answer: a.clone(),
@@ -478,6 +545,7 @@ impl<'a> Interp<'a> {
                 );
                 if let Value::Exit(x) = &e {
                     x.from_ask.set(true); // 12:265「或经 ask」；人答是 trusted（§2.11）
+                    x.alpha.set(Some(jpp_value::stat::ALPHA_HUMAN)); // B161：人答即真值（B31），联合界计 0
                 }
                 Ok(e)
             }
@@ -580,7 +648,7 @@ impl<'a> Interp<'a> {
             s.name,
             &[&sp.start.to_string(), &f.hash, &captured, &hashes.join(",")],
         );
-        if let Some(Entry::Effect { output, .. }) = self.ledger.get(&key) {
+        if let Some(Entry::Effect { output, .. }) = self.ledger.view().get(&key) {
             self.cost.replayed += 1;
             self.trace.push(s.name, &key, true, 0.0, sp, String::new());
             return Ok(Value::Mat(Rc::new(
@@ -617,7 +685,7 @@ impl<'a> Interp<'a> {
             Value::Mat(m) => m.content.clone(),
             other => other.to_json(),
         };
-        self.ledger.put(Entry::Effect {
+        self.账本追加(Entry::Effect {
             key: key.clone(),
             ekey: self.effect_keys.get(&key).cloned(),
             output_mat: None,

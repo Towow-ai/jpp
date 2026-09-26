@@ -1,0 +1,4 @@
+{"description": "Fixed readings for the statistic-line golden (step 20j-3, B153): a four-level measure reading [0.1, 0.2, 0.6, 0.1] (expected level 1.7: below the declared 2.0 -> ignore; bucketed by cuts [0.5, 1.5, 2.5] -> at 2) and a four-candidate select reading [0.3, 0.25, 0.4, 0.05] (mass of candidates 0 and 1 is 0.55 >= 0.5 -> act).", "observations": [
+  {"on": ["用户反馈：登录页偶尔白屏，刷新后恢复，影响部分安卓用户。"], "op": "measure", "text": "这段工单描述的故障影响有多大？", "calib": "ticket-impact", "scale": ["无", "轻", "中", "重"], "answer": {"Score": [0.1, 0.2, 0.6, 0.1]}},
+  {"on": ["安卓客户端升级到 5.2 后收不到推送，服务端日志显示已发送。"], "over": ["前端", "客户端", "后端", "运维"], "op": "select", "text": "这段工单最可能归哪个组处理？", "calib": "ticket-owner", "answer": {"Choice": [0.3, 0.25, 0.4, 0.05]}}
+]}

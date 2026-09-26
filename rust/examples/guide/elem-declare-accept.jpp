@@ -1,0 +1,23 @@
+// 作者声明线（B128，步 20j-1）：「0.7 以上算要退款、0.3 以下算不要，其间转人工」由作者直接写在 cut 上，
+// 程序按写的数切，不查校准记录定线、不平移、不被同键的认证线替换。两侧线加 unsure 臂 ask 是推荐写法。
+// act 臂的 write_json 登记为不可逆：声明线出口单独守它时，宿主未接受作者线（--release-on-declared，步 20j-2）
+// 就在 J-08 停下并说出开关名。本金样两段对话一段判 ignore、一段落在带内转人工（ask 未答，挂起），走不到 act；
+// 报告 exits 的两行带 declared 与 evidence（同键校准记录里的标注数、按声明线切的错数、线附近读数、认证线对照）。
+budget {calls: 4, cost: 0.01, depth: 16, escalate: 1};
+let refund = test("这段客服对话里，顾客是否明确提出要退款或退钱？", "cs-refund");
+fn 退款(chat) { content(do("write_json", ["refund-issued.json", {chat: chat}], 0)) }
+fn 处理(chat) {
+    let m = mat(chat);
+    handle(cut(judge(state(m), refund), {declare: {hi: 0.7, lo: 0.3}}), {
+        act: fn() { 退款(chat) },
+        ignore: fn() { "不退" },
+        unsure: fn(u) {
+            consume(u, "drop");
+            handle(ask(state(m), refund), {
+                act: fn() { 退款(chat) },
+                ignore: fn() { "不退" },
+                unsure: fn(v) { consume(v, "drop"); "人工未答" }})
+        }})
+}
+[处理("顾客：你好，我想问一下这款耳机有没有黑色的。客服：有的，黑色和白色都有货。"),
+ 处理("顾客：这个用着不太顺手，你们能帮我看看怎么处理吗？客服：好的，请问是哪方面的问题？")]

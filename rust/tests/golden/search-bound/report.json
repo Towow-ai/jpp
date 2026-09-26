@@ -1,0 +1,379 @@
+{
+  "backend": "fixed-0",
+  "cost": {
+    "asks": 0,
+    "calls": 11,
+    "replayed": 0,
+    "tokens": 0,
+    "usd": 0.0
+  },
+  "entry": [],
+  "exits": [
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 0,
+      "item": "f5986f6e33ec",
+      "key": "search-fit",
+      "pos": 0,
+      "releases": false,
+      "site": 6456
+    },
+    {
+      "exit": "ignore",
+      "grade": "Fixture",
+      "index": 1,
+      "item": "de09a4cad917",
+      "key": "search-fit",
+      "pos": 1,
+      "releases": false,
+      "site": 6456
+    },
+    {
+      "exit": "unsure(band)",
+      "grade": "Fixture",
+      "index": 2,
+      "item": "b82a14938cdb",
+      "key": "search-fit",
+      "pos": 2,
+      "releases": false,
+      "site": 6456
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 0,
+      "item": "f5986f6e33ec",
+      "key": "search-memo",
+      "pos": 0,
+      "releases": false,
+      "site": 6575
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 0,
+      "item": "8b41c6ad867b",
+      "key": "search-fit",
+      "pos": 0,
+      "releases": false,
+      "site": 6456
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 1,
+      "item": "67d3496f3c85",
+      "key": "search-fit",
+      "pos": 1,
+      "releases": false,
+      "site": 6456
+    },
+    {
+      "exit": "ignore",
+      "grade": "Fixture",
+      "index": 2,
+      "item": "7c75c497d51a",
+      "key": "search-fit",
+      "pos": 2,
+      "releases": false,
+      "site": 6456
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 0,
+      "item": "8b41c6ad867b",
+      "key": "search-memo",
+      "pos": 0,
+      "releases": false,
+      "site": 6575
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 1,
+      "item": "67d3496f3c85",
+      "key": "search-memo",
+      "pos": 1,
+      "releases": false,
+      "site": 6575
+    }
+  ],
+  "fixture_description": "Synthetic fixed observations for search-bound.jpp (construction check only; not model evaluation). Round 0 yields one good name (fitting and memorable), one rejected and one in band; round 1 yields two more good names. Good names accumulate across rounds; width 4 is not reached within 2 rounds, so the search ends at bound. The calibration records are hand-written to exercise routing.",
+  "local_checks": [],
+  "mode": "fixed observations; no model API requests",
+  "pending": [],
+  "questions": [
+    {
+      "kind": "attr",
+      "q": "bf77935372f7724b9117f8d3"
+    },
+    {
+      "kind": "attr",
+      "q": "e84bfe7b9e435a413224fe38"
+    }
+  ],
+  "replay": false,
+  "resumed": false,
+  "returned_unsure": [
+    "unsure(band)"
+  ],
+  "status": "returned",
+  "trace": {
+    "events": [
+      {
+        "cost": 0.0,
+        "key": "ed97c0e7cc4c6fcf2609acaf",
+        "kind": "gen",
+        "note": "按下面的需求提出 3 个候选店名，每个候选是一个字符串；需求之后的上下文是上一轮留下的候选",
+        "replayed": false,
+        "site": {
+          "end": 869,
+          "start": 700
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "43b0de22faf25690ac9432b6",
+        "kind": "judge",
+        "note": "「这个名字适合做一家社区咖啡馆的店名吗？」",
+        "replayed": false,
+        "site": {
+          "end": 6490,
+          "start": 6456
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "ff91feecf1ef5835aa031df4",
+        "kind": "judge",
+        "note": "「这个名字适合做一家社区咖啡馆的店名吗？」",
+        "replayed": false,
+        "site": {
+          "end": 6490,
+          "start": 6456
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "8af96b8fa8b1323df7135b8d",
+        "kind": "judge",
+        "note": "「这个名字适合做一家社区咖啡馆的店名吗？」",
+        "replayed": false,
+        "site": {
+          "end": 6490,
+          "start": 6456
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "f1d8fbe9343d1d45556f92cf",
+        "kind": "judge",
+        "note": "「这个名字读一遍就能记住吗？」",
+        "replayed": false,
+        "site": {
+          "end": 6605,
+          "start": 6575
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "cd2e9c1207333c47460b8f10",
+        "kind": "gen",
+        "note": "按下面的需求提出 3 个候选店名，每个候选是一个字符串；需求之后的上下文是上一轮留下的候选",
+        "replayed": false,
+        "site": {
+          "end": 869,
+          "start": 700
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "59503ffab3673ea352468d27",
+        "kind": "judge",
+        "note": "「这个名字适合做一家社区咖啡馆的店名吗？」",
+        "replayed": false,
+        "site": {
+          "end": 6490,
+          "start": 6456
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "1c4956f7d603b46335faa205",
+        "kind": "judge",
+        "note": "「这个名字适合做一家社区咖啡馆的店名吗？」",
+        "replayed": false,
+        "site": {
+          "end": 6490,
+          "start": 6456
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "b0e601bbf08627a694e29234",
+        "kind": "judge",
+        "note": "「这个名字适合做一家社区咖啡馆的店名吗？」",
+        "replayed": false,
+        "site": {
+          "end": 6490,
+          "start": 6456
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "92b6892dfe8ac4e4edb16a7b",
+        "kind": "judge",
+        "note": "「这个名字读一遍就能记住吗？」",
+        "replayed": false,
+        "site": {
+          "end": 6605,
+          "start": 6575
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "0f835797f7caed68276e8530",
+        "kind": "judge",
+        "note": "「这个名字读一遍就能记住吗？」",
+        "replayed": false,
+        "site": {
+          "end": 6605,
+          "start": 6575
+        }
+      }
+    ],
+    "warnings": [
+      "W-window-untested: @6456 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
+      "W-fixture-line: @6456 键 search-fit 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-window-untested: @6575 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
+      "W-fixture-line: @6575 键 search-memo 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-fixture-line: @6456 键 search-fit 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-fixture-line: @6456 键 search-fit 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-fixture-line: @6575 键 search-memo 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-fixture-line: @6575 键 search-memo 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-untyped-transfer: search 把 unsure(band) 装在返回值里交了出去，但返回类型没提 Exit，调用者从签名上看不出自己收到了一份未决。修法：把返回类型标为含 Exit（如 `-> Exit`、`-> Record<Exit>`）",
+      "returned_unsure: unsure(band)"
+    ]
+  },
+  "value": {
+    "duplicates": 0,
+    "found_in": [
+      0,
+      1,
+      1
+    ],
+    "kept": [
+      {
+        "content": "暖巷咖啡",
+        "mat": "e28a26831d34e164fbba34b8",
+        "origin": [
+          "gen:ed97c0e7cc4c6fcf2609acaf"
+        ],
+        "taint": "Trusted"
+      },
+      {
+        "content": "豆巷",
+        "mat": "689367848c9d919b51656637",
+        "origin": [
+          "gen:cd2e9c1207333c47460b8f10"
+        ],
+        "taint": "Trusted"
+      },
+      {
+        "content": "巷口咖啡",
+        "mat": "c35e64c1764731a51f080665",
+        "origin": [
+          "gen:cd2e9c1207333c47460b8f10"
+        ],
+        "taint": "Trusted"
+      }
+    ],
+    "measures": [
+      12,
+      9,
+      3
+    ],
+    "pending": [
+      {
+        "cause": "band",
+        "exit": {
+          "consumed": true,
+          "exit": "unsure(band)",
+          "id": 2,
+          "q": "bf77935372f7724b9117f8d3"
+        },
+        "index": 2,
+        "item": {
+          "content": "邻里豆",
+          "mat": "47f7334f53ef664a2ce9c328",
+          "origin": [
+            "gen:ed97c0e7cc4c6fcf2609acaf"
+          ],
+          "taint": "Trusted"
+        },
+        "key": "8af96b8fa8b1323df7135b8d",
+        "pos": 2,
+        "q": {
+          "calib": "search-fit",
+          "op": "noul",
+          "question": "bf77935372f7724b9117f8d3",
+          "text": "这个名字适合做一家社区咖啡馆的店名吗？"
+        },
+        "qi": 0,
+        "trail": [],
+        "via": [
+          "search#0"
+        ]
+      }
+    ],
+    "reason": "bound",
+    "rejected": [
+      {
+        "content": "街角慢时光咖啡馆",
+        "mat": "5993de3f04a1247d390d958a",
+        "origin": [
+          "gen:ed97c0e7cc4c6fcf2609acaf"
+        ],
+        "taint": "Trusted"
+      },
+      {
+        "content": "日常",
+        "mat": "bdc7e5ae71d86c7530c1d8bd",
+        "origin": [
+          "gen:cd2e9c1207333c47460b8f10"
+        ],
+        "taint": "Trusted"
+      }
+    ],
+    "rounds": 2,
+    "trail_kinds": [
+      [
+        "act"
+      ],
+      [
+        "act"
+      ],
+      [
+        "act"
+      ]
+    ],
+    "undecided": [
+      {
+        "cause": "band",
+        "item": {
+          "content": "邻里豆",
+          "mat": "47f7334f53ef664a2ce9c328",
+          "origin": [
+            "gen:ed97c0e7cc4c6fcf2609acaf"
+          ],
+          "taint": "Trusted"
+        },
+        "via": [
+          "search#0"
+        ]
+      }
+    ]
+  }
+}

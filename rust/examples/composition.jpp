@@ -1,12 +1,12 @@
 // Independent source: methods are arguments and results.
 budget {calls: 0, cost: 0, depth: 256};
-fn compose(f: Fn(Int) -> Int, g: Fn(Int) -> Int) -> Fn(Int) -> Int {
+fn compose_rules(f: Fn(Int) -> Int, g: Fn(Int) -> Int) -> Fn(Int) -> Int {
     fn(x: Int) -> Int { g(f(x)) }
 }
 
 fn increment(x: Int) -> Int { x + 1 }
 fn twice(x: Int) -> Int { x * 2 }
 
-let method = compose(increment, twice);
-let larger = compose(method, increment);
+let method = compose_rules(increment, twice);
+let larger = compose_rules(method, increment);
 {result: larger(20), expected: 43}

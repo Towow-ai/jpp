@@ -127,7 +127,7 @@ impl<'a> Interp<'a> {
                 {
                     evidence.push(Value::text(&r.ledger_key));
                 }
-                let exit = self.cut(r, None, None, sp)?;
+                let exit = self.cut(r, None, Default::default(), sp)?;
                 let Value::Exit(e) = &exit else {
                     return err(Some("E-rt-arg"), "cut 没有给出出口", sp);
                 };

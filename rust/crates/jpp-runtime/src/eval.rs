@@ -149,7 +149,7 @@ impl<'a> Interp<'a> {
             K::Field { value, field } => {
                 let v = self.eval(value, env)?;
                 // 检视点（B94）：取惰性出口的字段先解析
-                let v = if matches!(v, Value::Cut(_)) {
+                let v = if matches!(v, Value::Cut(_) | Value::Gen(_)) {
                     self.检视(v)?
                 } else {
                     v
@@ -222,7 +222,7 @@ impl<'a> Interp<'a> {
                 let i = self.eval(index, env)?;
                 // 检视点（B94）：下标本身是惰性出口时先解析（列表里的元素原样取出，不解析）
                 let i = self.检视(i)?;
-                let v = if matches!(v, Value::Cut(_)) {
+                let v = if matches!(v, Value::Cut(_) | Value::Gen(_)) {
                     self.检视(v)?
                 } else {
                     v
@@ -584,11 +584,30 @@ impl<'a> Interp<'a> {
         //      样例的返回类型补齐后这一条升为错（见 INTERFACE.md §七）。
         // B52：随返回值交出的责任里，只经一个闭包可达的，那个闭包就是它的唯一路径（Fn¹）
         let mut transferred: Vec<Rc<Exit>> = vec![];
+        // B162：同一判断的另一个持有者在返回值里、或这份责任的键已解除，也算有去向（一份责任的多个视图）
+        let 值键 = crate::duty::值里的键(&v);
         for e in frame
             .exits
             .into_iter()
             .filter(|e| e.is_unsure() && !e.consumed.get())
         {
+            if !in_value.contains(&e.id) {
+                match self.键的去向(&e, &值键) {
+                    // 另一个持有者已消费：这份是同一责任的视图，已解除
+                    Some(true) => {
+                        *e.consumed_by.borrow_mut() = "view:已解除".into();
+                        e.consumed.set(true);
+                        continue;
+                    }
+                    // 同键的持有者在返回值里：随返回值交出，继续挂在调用者那一帧，由上层与程序结束前接着核
+                    Some(false) => {
+                        transferred.push(e.clone());
+                        self.frame().exits.push(e);
+                        continue;
+                    }
+                    None => {}
+                }
+            }
             if in_value.contains(&e.id) {
                 // B115（A-12）：只对具名函数报；函数字面量没有调用者从签名读它，
                 // 转移义务落在最近的具名函数或程序返回值上
@@ -934,6 +953,8 @@ impl<'a> Interp<'a> {
                         self.env_fingerprint(&c.env, &referenced_names(&c.function), depth - 1)?;
                     parts.push(format!("{n}=fn:{}:{inner}", c.hash));
                 }
+                // 未取回的生成（步 15h-2）没有指纹；取回后按结果算（下面 `other` 臂的 `to_json`）
+                Value::Gen(g) if g.value().is_none() => return None,
                 Value::Reading(_)
                 | Value::Exit(_)
                 | Value::Cut(_)

@@ -136,6 +136,7 @@ fn 报在任何模型调用之前() {
             cost: 0.0,
             mode_share: vec![],
             perms: vec![],
+            confidence: vec![],
         })
     }));
     let mut l = jpp::ledger::Ledger::new();

@@ -88,7 +88,7 @@
     "events": [
       {
         "cost": 0.0,
-        "key": "2f5e596a2647710d53c2734e",
+        "key": "2a5f94caf3516844df13a456",
         "kind": "judge",
         "note": "「这个候选是否会写 Rust？」",
         "replayed": true,
@@ -99,7 +99,7 @@
       },
       {
         "cost": 0.0,
-        "key": "2d77caf1189a3eafc797ffaf",
+        "key": "1dfbe3573342c5fdd6fbf0a8",
         "kind": "judge",
         "note": "「这个候选是否会写 Rust？」",
         "replayed": true,
@@ -110,7 +110,7 @@
       },
       {
         "cost": 0.0,
-        "key": "883a4f501524d8bd2da5520d",
+        "key": "6766e3fa917b9c50747bcad9",
         "kind": "judge",
         "note": "「这个候选是否会写 Rust？」",
         "replayed": true,
@@ -121,7 +121,7 @@
       },
       {
         "cost": 0.0,
-        "key": "541ebf4cfeed6b25df1c1474",
+        "key": "b404722ba7b1dc7ccfc230d6",
         "kind": "judge",
         "note": "「这个候选是否会写 Rust？」",
         "replayed": true,
@@ -143,7 +143,7 @@
       },
       {
         "cost": 0.0,
-        "key": "5d338c6fbf5d38e7a0e7bacd",
+        "key": "164188c21363535693101df0",
         "kind": "judge",
         "note": "「这个候选是否会写 Rust？」",
         "replayed": true,
@@ -154,7 +154,7 @@
       },
       {
         "cost": 0.0,
-        "key": "c1a9e1f6f19a5202574fa024",
+        "key": "4f0a42287390332e27ad5fa4",
         "kind": "judge",
         "note": "「这个候选是否会写 Rust？」",
         "replayed": true,

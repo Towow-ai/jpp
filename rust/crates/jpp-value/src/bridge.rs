@@ -56,6 +56,9 @@ pub fn issue(p: ExitParts) -> Exit {
         delta_unknown: Cell::new(false),
         scope_unknown: Cell::new(false),
         parts: RefCell::new(Vec::new()),
+        host_accepts_declared: Cell::new(false),
+        alpha: Cell::new(None),
+        bound: Cell::new(None),
     }
 }
 
@@ -122,7 +125,8 @@ pub fn decide(i: &CutInput) -> (ExitKind, Untested) {
                 ExitKind::Unsure("cold".into()),
                 Some((
                     "calib_line".into(),
-                    "修法【作者可改】：用 calib-import 从带真值样本为这道题或它的题式认证一条线（模式级记录不供线，B44）".into(),
+                    // 依据：B130（冷出口列四条出路；地基/附注/2026-09-25-作者主权与策略表达裁定.md §三）
+                    "修法【作者可改】：这道题没有认证过的线（模式级记录不供线，B44）。四条出路，按成本从低到高：(1) 题库——用 bank/bank.json 里已认证的同题型题式，fill(题式, {…})，作者一条不标；(2) 真值可算——标签由程序算出（source: computed），经 calib-import 导入，零人工；(3) 标注或代标——calib-import 从带真值样本认证一条线（可由强模型代标加复核，B36、B89）；(4) 作者声明线——cut(r, {declare: {hi: …, lo: …}}) 按你写的数切，不作错误率保证，放行不可逆动作须 --release-on-declared（B128）".into(),
                 )),
             )
         };
@@ -184,6 +188,144 @@ pub fn decide(i: &CutInput) -> (ExitKind, Untested) {
     }
 }
 
+/// 作者声明线（B128；`cuts` 为 B153 的分桶，`closed` 为 B165 的端位；步 20j-1、20j-3）。
+/// `cuts` 非空时是分桶线（出 `At(ℓ)`），`hi`/`lo` 不用；否则是 `{hi, lo}` 线，只给 `hi` 时 `lo = hi`。
+#[derive(Clone, Debug, PartialEq)]
+pub struct DeclaredLine {
+    pub hi: f64,
+    pub lo: f64,
+    pub cuts: Vec<f64>,
+    /// 作者写了 `lo`（单线时为假）
+    pub lo_given: bool,
+    pub closed_hi: bool,
+    pub closed_lo: bool,
+    pub closed_cuts: bool,
+}
+
+/// 缺省两端（与切点）全闭（B165 (2)：与认证线同约定）。手写而不派生：派生的 `bool` 缺省为假，会把端位静默变开。
+impl Default for DeclaredLine {
+    fn default() -> DeclaredLine {
+        DeclaredLine {
+            hi: Default::default(),
+            lo: Default::default(),
+            cuts: vec![],
+            lo_given: false,
+            closed_hi: true,
+            closed_lo: true,
+            closed_cuts: true,
+        }
+    }
+}
+
+impl DeclaredLine {
+    /// `{hi, lo?}` 线，两端闭（B128 原样）
+    pub fn two_sided(hi: f64, lo: f64, lo_given: bool) -> DeclaredLine {
+        DeclaredLine {
+            hi,
+            lo,
+            lo_given,
+            ..Default::default()
+        }
+    }
+    /// `{cuts: [c₁ < c₂ < …]}` 分桶线（B153），切点闭（B165 缺省）；`hi`/`lo` 不用
+    pub fn with_cuts(cuts: Vec<f64>) -> DeclaredLine {
+        DeclaredLine {
+            cuts,
+            ..Default::default()
+        }
+    }
+    pub fn is_cuts(&self) -> bool {
+        !self.cuts.is_empty()
+    }
+    /// 端位不是缺省全闭时的 `closed` 记录（B165 (3)）；全闭为 `None`，不写进记录与报告
+    pub fn closed_json(&self) -> Option<serde_json::Value> {
+        if self.is_cuts() {
+            (!self.closed_cuts).then(|| serde_json::json!({"cuts": false}))
+        } else if self.closed_hi && self.closed_lo {
+            None
+        } else {
+            Some(serde_json::json!({"hi": self.closed_hi, "lo": self.closed_lo}))
+        }
+    }
+    /// 线的数：`{hi, lo}` 或 `{cuts}`（B142 记录与报告 `declared` 共用）
+    pub fn numbers_json(&self) -> serde_json::Map<String, serde_json::Value> {
+        let mut m = serde_json::Map::new();
+        if self.is_cuts() {
+            m.insert("cuts".into(), serde_json::json!(self.cuts));
+        } else {
+            m.insert("hi".into(), serde_json::json!(self.hi));
+            m.insert("lo".into(), serde_json::json!(self.lo));
+        }
+        m
+    }
+    /// 告警与线源里的一段文字：`hi=0.7 lo=0.3`、`cuts=[0.5, 1.5]`，非缺省端位附在后面
+    pub fn describe(&self) -> String {
+        let 数 = if self.is_cuts() {
+            format!("cuts={:?}", self.cuts)
+        } else {
+            format!("hi={} lo={}", self.hi, self.lo)
+        };
+        match self.closed_json() {
+            Some(c) => format!("{数} closed={c}"),
+            None => 数,
+        }
+    }
+}
+
+/// 统计量 `s` 过声明线（B128、B153、B165）：`{hi, lo}` 线出 test 型出口（act 当且仅当 s 在上侧已决区，ignore
+/// 当且仅当在下侧已决区，其间 `Unsure(band)`）；`cuts` 线出 `At(ℓ)`，ℓ = 越过的切点数。闭端按现行容差
+/// （`stat::decided_up/down`，δ = 0，与认证同一已决集合），开端按「严格越过线 ± ε」（`stat::beyond_up/down`）。
+/// 依据：B153 (1)、B165 (2)(4)（地基/附注/2026-09-26-批6裁定.md §一、§十三）
+pub fn past_declared(s: f64, l: &DeclaredLine) -> ExitKind {
+    use crate::stat::{beyond_down, beyond_up, decided_down, decided_up};
+    if l.is_cuts() {
+        let 档 = l
+            .cuts
+            .iter()
+            .filter(|c| {
+                if l.closed_cuts {
+                    decided_up(s, **c, crate::stat::DECLARED_DELTA)
+                } else {
+                    beyond_up(s, **c)
+                }
+            })
+            .count();
+        return ExitKind::At(档);
+    }
+    let 上 = if l.closed_hi {
+        decided_up(s, l.hi, crate::stat::DECLARED_DELTA)
+    } else {
+        beyond_up(s, l.hi)
+    };
+    let 下 = if l.closed_lo {
+        decided_down(s, l.lo, crate::stat::DECLARED_DELTA)
+    } else {
+        beyond_down(s, l.lo)
+    };
+    if 上 {
+        ExitKind::Act
+    } else if 下 {
+        ExitKind::Ignore
+    } else {
+        ExitKind::Unsure("band".into())
+    }
+}
+
+/// `stat` 不是 `max` 而没有 `declare`：冷（B153 (1)「认证在 p_max 上的线对别的统计量无效，不借」）。
+pub fn cold_for_stat(stat: &crate::stat::Stat) -> (ExitKind, Untested) {
+    (
+        ExitKind::Unsure("cold".into()),
+        Some((
+            "calib_line".into(),
+            format!(
+                "修法【作者可改】：认证线在 p_max 上，对 stat: {} 无效（同键记录不借）；要按这个统计量切，写作者声明线 cut(r, {{stat: {}, declare: {{hi: …, lo: …}}}})，按你写的数切，不作错误率保证，放行不可逆动作须 --release-on-declared（B153、B128）",
+                stat.name(),
+                stat.to_json()
+            ),
+        )),
+    )
+}
+
 #[cfg(test)]
 mod line_grade_tests {
     //! 步 20a-1：`Exit::releases` 是唯一放行判定点（`附注/2026-09-24-评估①裁定.md` §十第 12(a) 条）。
@@ -229,6 +371,27 @@ mod line_grade_tests {
             assert_eq!(e.releases(), rel, "{name}");
             assert_eq!(e.guard_trusted(), rel, "{name}");
         }
+    }
+
+    /// 步 20j-2（B128）：`Declared` 未经宿主接受不放行，接受后放行；taint 仍由 `guard_trusted` 合取
+    #[test]
+    fn declared_releases_only_when_host_accepts() {
+        let d = 出口(Some(LineGrade::Declared), None);
+        assert!(!d.releases() && !d.guard_trusted());
+        d.host_accepts_declared.set(true);
+        assert!(d.releases() && d.guard_trusted());
+        // 接受位对其他等级无作用
+        let t = 出口(Some(LineGrade::Trial), None);
+        t.host_accepts_declared.set(true);
+        assert!(!t.releases());
+        // 正交位照样否决
+        let u = 出口(Some(LineGrade::Declared), Some("permutation"));
+        u.host_accepts_declared.set(true);
+        assert!(!u.releases());
+        let x = issue(部件(None, Taint::Untrusted));
+        x.grade.set(Some(LineGrade::Declared));
+        x.host_accepts_declared.set(true);
+        assert!(x.releases() && !x.guard_trusted());
     }
 
     /// 正交位：任一为真即不放行，可与放行等级叠加；`untested`（J-15）自步 20a-1 起计入。

@@ -33,6 +33,7 @@ fn call(cx: &Cx, s: &CallSite) -> Vec<Diagnostic> {
             if s.name == "cut" {
                 h3_calibration(cx, s, &mut out);
                 cost_shape(&mut out, s.args);
+                h9_confidence(cx, s, &mut out);
             }
         }
         "measure" => calib_literal(&mut out, s.name, s.args, 2),
@@ -66,9 +67,18 @@ fn calib_literal(out: &mut Vec<Diagnostic>, name: &str, args: &[&Expr], idx: usi
         ExprKind::Decimal | ExprKind::Integer(_) | ExprKind::Bool
     ) {
         // 依据：12 §5 J-03（线不可字面）
+        // B129（步 20j-1）：`cut` 上的裸数字多半是作者要的判定规则，修法给出作者声明线的写法与含义
+        let 修法 = if name == "cut" && !matches!(a.kind(), ExprKind::Bool) {
+            "修法：若这是你要的判定规则，写成作者声明线 cut(r, {declare: {hi: <这个数>}})——按这个数切，不作错误率保证，放行不可逆动作须 --release-on-declared（B128、B129）；若要语言担保错误率，写校准键 cut(r, \"校准键\") 并用 calib-import 认证".to_string()
+        } else {
+            format!("修法：{name}(…, \"校准键\")")
+        };
         out.push(Diagnostic::error(
             "J-03",
-            format!("{name} 的第 {} 个参数是数字字面量：线不可字面，这一位只收校准记录的键（Text）。修法：{name}(…, \"校准键\")", idx + 1),
+            format!(
+                "{name} 的第 {} 个参数是数字字面量：线不可字面，这一位只收校准记录的键（Text）。{修法}",
+                idx + 1
+            ),
             a.span,
         ));
     }
@@ -103,6 +113,35 @@ fn cost_shape(out: &mut Vec<Diagnostic>, args: &[&Expr]) {
             rec_expr.span,
         ));
     }
+}
+
+/// H9（B154 (3)，步 20j-3）：`cut` 的字面记录写 `stat: "confidence"`，而加载的画像没有说判断器报自报置信度
+/// （`reports_confidence` 未测按假，B39 守卫侧）——检查期报 `E-stat-unavailable`，不等运行期、不静默退回 p_max。
+/// 没加载画像不报：运行期按判断器有没有给这个数定（固定观察端口按夹具，缺省 p_max）。
+fn h9_confidence(cx: &Cx, s: &CallSite, out: &mut Vec<Diagnostic>) {
+    let Some(p) = cx.profile else { return };
+    let 写了 = s.args.iter().skip(1).any(|a| match a.kind() {
+        ExprKind::Record(fields) => fields.iter().any(|(k, v)| {
+            k == "stat" && matches!(v.kind(), ExprKind::Text(t) if t == "confidence")
+        }),
+        _ => false,
+    });
+    if !写了 {
+        return;
+    }
+    let 状态 = match p.reports_confidence() {
+        jpp_effects::Tri::真 => return,
+        jpp_effects::Tri::假 => "reports_confidence: false",
+        jpp_effects::Tri::未测 => "reports_confidence 未测（按假，B39）",
+    };
+    // 依据：B154 (3)（地基/附注/2026-09-26-批6裁定.md §二）
+    out.push(Diagnostic::error(
+        "E-stat-unavailable",
+        format!(
+            "cut 的 stat: \"confidence\" 在这个判断器上取不到：画像 {状态}（H9，判断器是否随答案给出自报置信度）。修法：换一个画像填了 reports_confidence: true 的判断器，或改用 stat: \"max\"（缺省）；固定观察可在夹具观察里给 confidence（B154）"
+        ),
+        s.span,
+    ));
 }
 
 /// H3（步 24d）：`cut` 站点，画像给了但 `calibration` 未测——代价比线不可用（只用保形线），

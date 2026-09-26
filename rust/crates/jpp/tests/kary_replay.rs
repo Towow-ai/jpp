@@ -68,6 +68,7 @@ fn 桩端口<'a>(禁发: bool, calls: &'a RefCell<u64>) -> Ports<'a> {
                 cost: 0.0,
                 mode_share,
                 perms,
+                confidence: vec![],
             })
         }))
         .with(FnPort::generate("m", |_p, _c, _n, _r| {

@@ -26,11 +26,23 @@ impl<'a> Interp<'a> {
             .filter(|k| arms.get(k).is_none() && (*k == "unsure" || !has_other))
             .collect();
         if !missing.is_empty() {
+            // 步 20j-3：`stat` 线的出口按 `cut` 的选项取臂（B153 (1)），`select` 读数上也可能是 test 型，报文照实说
+            let 出处 = match self
+                .exit_rows
+                .get(&e.id)
+                .and_then(|i| self.exit_grades.get(*i))
+                .and_then(|row| row.get("stat"))
+            {
+                Some(s) => format!(
+                    "stat={s} 线的出口是 {} 型（按 cut 的选项取臂：{{hi, lo}} 出 act / ignore / unsure，cuts 出 at / unsure，B153），",
+                    if e.op == Op::Measure { "at" } else { "test" }
+                ),
+                None => format!("{} 题的出口", e.op.phys()),
+            };
             return err(
                 Some("J-05"),
                 format!(
-                    "handle 不穷尽：{} 题的出口缺分支 {}。修法：补上；注意 unsure 必须自己写一臂，otherwise 兜不住未决责任",
-                    e.op.phys(),
+                    "handle 不穷尽：{出处}缺分支 {}。修法：补上；注意 unsure 必须自己写一臂，otherwise 兜不住未决责任",
                     missing.join(", ")
                 ),
                 sp,
@@ -132,6 +144,49 @@ impl<'a> Interp<'a> {
         )
     }
 
+    /// B162（步 25d）：登记一份未决责任的解除（`consume`、`escalate`、`literalize`）。它的键已由另一个出口解除时，
+    /// 这次消费不再计账，报 `W-duty-twice`（写明首次解除处）。依据：B162
+    pub(crate) fn 登记解除(&mut self, e: &Exit, how: &str, sp: Span) {
+        let 键 = 责任键(e);
+        if 键.is_empty() {
+            return;
+        }
+        let 已解: Vec<&String> = 键.iter().filter(|k| self.解除.contains_key(*k)).collect();
+        if !已解.is_empty() && 已解.len() == 键.len() {
+            let 首次 = self.解除[已解[0]].clone();
+            // 依据：B162（地基/附注/2026-09-26-批6裁定.md §十）
+            self.trace.warn(format!(
+                "W-duty-twice: @{} {} 的未决 {}（题 {}）已在 {首次} 解除；同一判断的责任只计一次（B162），这次消费不再计账。两处去向不同时请只留一处",
+                sp.start,
+                how,
+                e.label(),
+                头(&e.q_hash, 8)
+            ));
+            return;
+        }
+        for k in 键 {
+            self.解除
+                .entry(k)
+                .or_insert_with(|| format!("@{} {how}", sp.start));
+        }
+    }
+
+    /// B162：一份未消费的未决责任在返回处怎样有去向。`Some(true)`：它的键都已解除（另一个持有者消费过）；
+    /// `Some(false)`：键都出现在返回值的某个未决出口上（含合成出口的分量）、但并非都已解除——随返回值交出；
+    /// `None`：没有键或有键无处着落（仍按出口号核）
+    pub(crate) fn 键的去向(&self, e: &Exit, 值键: &HashSet<String>) -> Option<bool> {
+        let 键 = 责任键(e);
+        if 键.is_empty() {
+            return None;
+        }
+        if 键.iter().all(|k| self.解除.contains_key(k)) {
+            return Some(true);
+        }
+        键.iter()
+            .all(|k| self.解除.contains_key(k) || 值键.contains(k))
+            .then_some(false)
+    }
+
     /// B95（步 21）：返回值离开程序前核一遍显式 drop 过的未决——它本身、它所在的元素记录，或带它
     /// 账本键来源的投影（`item` 与由 `item` 算出的值，B84）仍在返回值里，就是「输出列了这一项，责任却丢了」。
     /// 只告警：drop 是合法去向（B31），这里只指出它与输出矛盾。只凭 `index`/`pos` 算出的编号不带来源，
@@ -176,4 +231,105 @@ fn 输出来源(v: &Value, out: &mut BTreeSet<String>) {
         Value::Stop(x) => 输出来源(x, out),
         other => out.extend(other.prov().sources.to_set()),
     }
+}
+
+/// B162：这个出口是否只因被合成（`compose`、`tally`）吸收才记为已消费——它的责任转进了合成出口、并未解除，
+/// 按它自己处理（drop、escalate、重问）仍要按账本键登记解除
+pub(crate) fn 已被吸收(e: &Exit) -> bool {
+    e.consumed.get() && matches!(e.consumed_by.borrow().as_str(), "compose" | "tally")
+}
+
+/// B162：一份未决责任的键：出口自己的账本键；合成出口没有键，取其未决分量的键（递归）。依据：B162
+pub(crate) fn 责任键(e: &Exit) -> Vec<String> {
+    let k = e.ledger_key.borrow().clone();
+    if !k.is_empty() {
+        return vec![k];
+    }
+    let mut out: Vec<String> = vec![];
+    for p in e.parts.borrow().iter().filter(|p| p.is_unsure()) {
+        for k in 责任键(p) {
+            if !out.contains(&k) {
+                out.push(k);
+            }
+        }
+    }
+    out
+}
+
+/// B162：返回值里未决出口（含未决合成出口的未决分量，不论是否已被吸收）带的账本键。已决出口不算持有者：
+/// 同一读数经另一条线切出的已决出口，不替这份未决找去向
+pub(crate) fn 值里的键(v: &Value) -> HashSet<String> {
+    fn 收(e: &Exit, out: &mut HashSet<String>) {
+        if !e.is_unsure() {
+            return;
+        }
+        let k = e.ledger_key.borrow().clone();
+        if !k.is_empty() {
+            out.insert(k);
+        }
+        for p in e.parts.borrow().iter() {
+            收(p, out);
+        }
+    }
+    let mut out = HashSet::new();
+    visit_exits(v, &mut |e| 收(e, &mut out));
+    out
+}
+
+/// B162：返回值里每个账本键的持有者路径（`$.a[0].exit` 形）；合成出口按其分量的键计入
+pub(crate) fn 键的持有者(
+    v: &Value,
+) -> std::collections::BTreeMap<String, (String, Vec<String>)> {
+    fn 走(
+        v: &Value,
+        path: &str,
+        out: &mut std::collections::BTreeMap<String, (String, Vec<String>)>,
+    ) {
+        match v {
+            Value::Exit(e) | Value::Duty(e) if e.is_unsure() => {
+                let mut 键 = vec![];
+                let k = e.ledger_key.borrow().clone();
+                if !k.is_empty() {
+                    键.push(k);
+                } else {
+                    fn 分量键(e: &Exit, out: &mut Vec<String>) {
+                        for p in e.parts.borrow().iter().filter(|p| p.is_unsure()) {
+                            let k = p.ledger_key.borrow().clone();
+                            if !k.is_empty() {
+                                if !out.contains(&k) {
+                                    out.push(k);
+                                }
+                            } else {
+                                分量键(p, out);
+                            }
+                        }
+                    }
+                    分量键(e, &mut 键);
+                }
+                for k in 键 {
+                    let slot = out.entry(k).or_insert_with(|| (e.label(), vec![]));
+                    if !slot.1.contains(&path.to_string()) {
+                        slot.1.push(path.to_string());
+                    }
+                }
+            }
+            Value::Cut(c) => {
+                if let Some(e) = c.exit() {
+                    走(&Value::Exit(e), path, out)
+                }
+            }
+            Value::List(l) => l
+                .iter()
+                .enumerate()
+                .for_each(|(i, x)| 走(x, &format!("{path}[{i}]"), out)),
+            Value::Record(r) => r
+                .iter()
+                .for_each(|(k, x)| 走(x, &format!("{path}.{k}"), out)),
+            Value::Stop(x) => 走(x, path, out),
+            _ => {}
+        }
+    }
+    let mut out = std::collections::BTreeMap::new();
+    走(v, "$", &mut out);
+    out
 }

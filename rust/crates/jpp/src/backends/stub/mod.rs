@@ -66,6 +66,7 @@ fn 判(model: &str, state: &State, questions: &[&Question]) -> Result<JudgeResul
         cost: 0.0,
         mode_share: vec![None; questions.len()],
         perms: vec![0; questions.len()],
+        confidence: vec![],
     })
 }
 

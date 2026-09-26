@@ -208,7 +208,7 @@
     "events": [
       {
         "cost": 0.0,
-        "key": "b199a35a5578afb5fe1d5a0b",
+        "key": "5e2855f071a7cd4aa8bd9e89",
         "kind": "judge",
         "note": "「这段话是否提到了成都？」",
         "replayed": true,
@@ -219,7 +219,7 @@
       },
       {
         "cost": 0.0,
-        "key": "cdceaf6cf32b552d9eab9bf0",
+        "key": "b0013322b2cb27ab009ee913",
         "kind": "judge",
         "note": "「这段话是否提到了北京？」",
         "replayed": true,
@@ -230,7 +230,7 @@
       },
       {
         "cost": 0.0,
-        "key": "88dc107f76310f16100c5de1",
+        "key": "90fa3cfae23b460ded9066c5",
         "kind": "judge",
         "note": "「这段话是否提到了上海？」",
         "replayed": true,
@@ -241,7 +241,7 @@
       },
       {
         "cost": 0.0,
-        "key": "fec73260ce24f93fa9ab99b0",
+        "key": "0f7e14ec599ec8dd811e9d6a",
         "kind": "judge",
         "note": "「这段话是否提到了杭州？」",
         "replayed": true,
@@ -252,7 +252,7 @@
       },
       {
         "cost": 0.0,
-        "key": "6686cdb2d6e2a12638ea5a45",
+        "key": "85b5b4df61acafe8d9f2fba4",
         "kind": "judge",
         "note": "「这段话是否提到了西安？」",
         "replayed": true,
@@ -263,7 +263,7 @@
       },
       {
         "cost": 0.0,
-        "key": "e2df1c26751d1540850b71a2",
+        "key": "dc39ad77595e9153444553c5",
         "kind": "judge",
         "note": "「清单里是否有面包？」",
         "replayed": true,
@@ -274,7 +274,7 @@
       },
       {
         "cost": 0.0,
-        "key": "e2853cca7cda5e69b758e65e",
+        "key": "01450b0ed7651a1f0e28b405",
         "kind": "judge",
         "note": "「清单里是否有酱油？」",
         "replayed": true,
@@ -285,7 +285,7 @@
       },
       {
         "cost": 0.0,
-        "key": "810ca5b04b540dca0a32afb5",
+        "key": "6e9e01674ca188e0e8cfa840",
         "kind": "judge",
         "note": "「清单里是否有咖啡？」",
         "replayed": true,
@@ -296,7 +296,7 @@
       },
       {
         "cost": 0.0,
-        "key": "9e7d019a88abbc9116a29c3e",
+        "key": "d2e78253924325ee6939314d",
         "kind": "judge",
         "note": "「清单里是否有牛奶？」",
         "replayed": true,
@@ -307,7 +307,7 @@
       },
       {
         "cost": 0.0,
-        "key": "89e7438e0bf4ba8737af61b9",
+        "key": "8e788298a44ecf4b287fc406",
         "kind": "judge",
         "note": "「清单里是否有盐？」",
         "replayed": true,

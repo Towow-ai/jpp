@@ -17,7 +17,7 @@ impl<'a> Interp<'a> {
         phys: &str,
         site: usize,
     ) -> String {
-        let k = JudgeKey::new(
+        let mut k = JudgeKey::new(
             &self.model_id,
             state_hash,
             q_hash,
@@ -26,6 +26,8 @@ impl<'a> Interp<'a> {
             self.run_seq,
             site,
         );
+        // B155：渲染分量取本趟的渲染版本（只凭账本重放时是账本头记的，其余是 `RENDER_VERSION`）
+        k.render = self.render.clone();
         let d = k.digest();
         self.judge_keys.insert(d.clone(), k);
         d
@@ -131,13 +133,15 @@ impl<'a> Interp<'a> {
                 cost,
                 call,
                 perm,
+                confidence,
                 ..
-            }) = self.ledger.get(k)
+            }) = self.账本查(k)
             {
-                let (answer, cost, call, perm) = (answer.clone(), *cost, *call, *perm);
+                let (answer, cost, call, perm, confidence) =
+                    (answer.clone(), *cost, *call, *perm, *confidence);
                 // 账本命中当场填：写答案只经 flush.rs 的 fill_answer（grep_fill 核）；
-                // 置换测量随答案一起取回，否则 K 选一出口在重放处变成 `untested`
-                self.fill_from_record(&readings[i], answer, perm);
+                // 置换测量随答案一起取回，否则 K 选一出口在重放处变成 `untested`；自报置信度同理（B154）
+                self.fill_from_record(&readings[i], answer, perm, confidence);
                 self.audit_account(call, cost, sp);
                 self.cost.replayed += 1;
                 self.trace
@@ -161,6 +165,20 @@ impl<'a> Interp<'a> {
         // 个数。warn 级：不阻塞，只是「读数可能被语境接管（H8 串扰）而无人察觉」的提示，与上面
         // 窗口检查同一性质。
         self.check_multi_object(state, qs, sp);
+        // B155（步 15i）：候选是 `{label, text}` 记录时线上按标签名排序发出，正逆两序发不出来——
+        // `{permute: true}` 在这道题上不生效（端口不发第二遍、不记置换测量），出口因此不会是 `Pick`。
+        // 说清楚原因，免得作者照 J-15 的修法去声明置换却看不到效果。依据：B155、B64
+        if qs.iter().any(|q| q.op == Op::Select && q.permute)
+            && state.over_labels().is_some()
+            && self
+                .unknown_reported
+                .insert(format!("permute-labels@{}", sp.start))
+        {
+            self.trace.warn(format!(
+                "W-untested: @{} select 的候选是 {{label, text}} 记录，线上按标签名排序发出，正逆两序发不出来：{{permute: true}} 在这道题上不生效，出口不会是 Pick；要置换测量就把候选写成文本（依据：B155）",
+                sp.start
+            ));
+        }
         if !missing.is_empty() {
             self.pending.push(PendingJudge {
                 state: state.clone(),
@@ -241,7 +259,12 @@ impl<'a> Interp<'a> {
                 if self.hooks.may_effect(value, &view, Reach::Strict) {
                     break;
                 }
-                let v = self.eval(value, env)?;
+                // 步 15h-2（B149）：提升期间不取回生成；要用未取回的生成就停在这里，留到正常求值
+                let r = self.推测中不等生成(|it| it.eval(value, env));
+                if crate::gen_pending::是不等生成(&r) {
+                    break;
+                }
+                let v = r?;
                 env_define(env, name, v);
                 lifted.insert(step.index);
             }
@@ -306,7 +329,7 @@ impl<'a> Interp<'a> {
     }
 
     /// 直线段提升穿过函数调用（B94 下半，步 23c）：钩子给出本句起直线段里的目标（13b 的三个条件），
-    /// 求出各站点的状态与题，按状态分组，只把一组里有两处以上的提前登记——「同一状态的多次 judge
+    /// 求出各站点的状态与题，按材料分组（B155 前按状态），只把一组里有两处以上的提前登记——「同一状态的多次 judge
     /// 提升到段首」；单独一处的等它自己的真站点登记（不同状态的层合并没有消费者，与 `lift` 同口径）。
     /// 递归调用由钩子的路径集挡住一层；`if` 分支内不提升（候选不进分支体）。
     pub(crate) fn 提升过调用(&mut self, b: &Block, at: jpp_ir::key::NodeId, env: &Env) {
@@ -320,12 +343,14 @@ impl<'a> Interp<'a> {
         }
         let mut sites = vec![];
         self.eval_targets(b, &targets, env, &mut sites);
+        // B155（步 15i）：「同一状态」订正为同一材料（`hash(on, ctx, ref)`），同材料上候选集不同的
+        // `select` 也一起提升，刷新时合成一次调用。依据：B155（地基/附注/2026-09-26-批6裁定.md §三）
         let mut 计数: HashMap<String, usize> = HashMap::new();
         for (st, _, _) in &sites {
-            *计数.entry(st.hash.clone()).or_default() += 1;
+            *计数.entry(st.mat_hash()).or_default() += 1;
         }
         for (st, qs, sp) in sites {
-            if 计数[&st.hash] >= 2 && self.register_speculative(&st, &qs, sp).is_some() {
+            if 计数[&st.mat_hash()] >= 2 && self.register_speculative(&st, &qs, sp).is_some() {
                 // 审查修复 3b：提升登记的组排在真站点之后（刷新按第一条非提升登记排序）
                 if let Some(p) = self.pending.last_mut() {
                     p.lifted = true;
@@ -366,7 +391,7 @@ impl<'a> Interp<'a> {
                     };
                     let mut vals = vec![];
                     for a in &args {
-                        match self.eval(a, env) {
+                        match self.推测中不等生成(|it| it.eval(a, env)) {
                             Ok(v) => vals.push(v),
                             Err(_) => break,
                         }
@@ -404,8 +429,9 @@ impl<'a> Interp<'a> {
         else {
             return None;
         };
-        if let (Ok(Value::State(st)), Ok(q)) =
-            (self.eval(arguments[0], env), self.eval(arguments[1], env))
+        // 步 15h-2（B149）：推测期间不取回生成（求值以内部报文结束 = 此刻算不出，放弃这个站点）
+        if let (Ok(Value::State(st)), Ok(q)) = self
+            .推测中不等生成(|it| (it.eval(arguments[0], env), it.eval(arguments[1], env)))
         {
             let qs: Vec<Rc<Question>> = match q {
                 Value::Question(q) => vec![q],
@@ -450,7 +476,7 @@ impl<'a> Interp<'a> {
         let mut items = vec![];
         for (q, k) in qs.iter().zip(&keys) {
             // 账本里已经有 = 不用推
-            if self.ledger.get(k).is_some() {
+            if self.账本查(k).is_some() {
                 continue;
             }
             // 这一层已经登记过同一个键 = 不重复推
@@ -500,6 +526,41 @@ impl<'a> Interp<'a> {
             lifted: false,
         });
         Some(())
+    }
+
+    /// 同材料一组题发出前的窗口核对（B155 (5)，步 15i）：候选随题走，一次请求里语境槽加各道 `select`
+    /// 的 `criteria` 总量按材料核，对 JSON 槽已测窗口。画像没测窗口时不核、不另报（登记时已报
+    /// `W-window-untested`）。依据：B155（地基/附注/2026-09-26-批6裁定.md §三）
+    pub(crate) fn check_window_group(
+        &mut self,
+        states: &[Rc<State>],
+        items: &[(Rc<Question>, Rc<Reading>, String)],
+        sp: Span,
+    ) {
+        let Some(w) = self.calib.profile().window() else {
+            return;
+        };
+        let criteria: usize = states
+            .iter()
+            .zip(items)
+            .filter(|(_, (q, _, _))| q.op == Op::Select)
+            .map(|(s, _)| s.over.iter().map(|m| m.tokens()).sum::<usize>())
+            .sum();
+        if criteria == 0 {
+            return;
+        }
+        let ctx: usize = states[0]
+            .ctx
+            .iter()
+            .chain(&states[0].r#ref)
+            .map(|m| m.tokens())
+            .sum();
+        if ctx + criteria > w.json_ctx {
+            self.trace.warn(format!(
+                "W-window: @{} 同材料一次请求的语境槽 {ctx} token 加各题候选 {criteria} token 超 JSON 槽已测窗口 {}（B155：候选随题走，按材料合批后一次请求的总量）",
+                sp.start, w.json_ctx
+            ));
+        }
     }
 
     /// 窗口检查（J-14 / `12`:117）。静态判不了大小，所以在**登记时**查。

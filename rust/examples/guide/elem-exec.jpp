@@ -1,0 +1,8 @@
+// 元素：执行（do("exec_py", …)）。判断只看字面（〇.1），代码本身不是字面材料，只有跑出来的输出才是；
+// 执行器在操作系统沙箱里跑（B164：临时目录是唯一可写处、断网、超时），没有沙箱时返回 Fail(NoSandbox)，
+// 这里不判断，只演示执行本身；把执行输出交给判断见「组合：ground / verify」一节。
+// 引了非字面动作名的 do 时 CLI 把它算作可能不可逆，要求 --ledger-out（这里动作名是字面量，可不带，
+// 写法与「组合」一节的 ground 保持一致）。
+budget {calls: 4, cost: 0, depth: 8};
+let out = content(do("exec_py", ["print(sum(range(1, 11)))", "", 5], 0));
+{stdout: out.stdout, exit_code: out.exit_code, timed_out: out.timed_out}

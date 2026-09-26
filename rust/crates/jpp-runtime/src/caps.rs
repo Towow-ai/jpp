@@ -277,8 +277,8 @@ impl Cap<KeyCollect> {
 }
 
 impl Cap<LedgerRead> {
-    pub(crate) fn ledger<'b>(&self, it: &'b Interp) -> &'b Ledger {
-        &*it.ledger
+    pub(crate) fn ledger<'b>(&self, it: &'b Interp) -> &'b jpp_ledger::Ledger {
+        it.ledger.view()
     }
     /// 缺席账的停发标记（B93，步 22-0：预算停发的读数标 `budget`）
     pub(crate) fn absent_mark<'b>(&self, it: &'b Interp, key: &str) -> Option<&'b str> {
@@ -287,9 +287,13 @@ impl Cap<LedgerRead> {
 }
 
 impl Cap<LedgerWrite> {
-    /// 账本的写入口（持写权者也可经它读）
-    pub(crate) fn ledger_mut<'b>(&self, it: &'b mut Interp) -> &'b mut Ledger {
-        &mut *it.ledger
+    /// 持写权者读账本（步 18b 起经账本端口的 `view()`）
+    pub(crate) fn ledger<'b>(&self, it: &'b Interp) -> &'b jpp_ledger::Ledger {
+        it.ledger.view()
+    }
+    /// 账本的写入口：条目经账本端口追加、层末落盘（步 18b，B55；原 `ledger_mut` 取可变账本）
+    pub(crate) fn ledger_put(&self, it: &mut Interp, e: Entry) {
+        it.账本追加(e)
     }
     #[allow(clippy::too_many_arguments)]
     pub(crate) fn trace_event(
@@ -321,8 +325,10 @@ impl Cap<IssueQuestion> {
         presupposition: Option<String>,
         request: Option<String>,
         permute: bool,
+        labels: Option<jpp_value::value::TestLabels>,
     ) -> Value {
-        let mut q = Question::with_evidence(op, text, calib, vec![], evidence);
+        // B155：答案标签进题哈希（无标签时不变）
+        let mut q = Question::with_evidence(op, text, calib, vec![], evidence).with_labels(labels);
         q.presupposition = presupposition;
         q.request = request;
         q.permute = permute;
@@ -355,14 +361,16 @@ impl Cap<IssueQuestion> {
         )
         .map(未完成题式)
     }
-    /// 题式的第二步：写置换声明（B64，不进 `form_hash`）与 `over_kind`（B76，只决定题类）
+    /// 题式的第二步：写置换声明（B64，不进 `form_hash`）、`over_kind`（B76，只决定题类）与
+    /// 答案标签（B155，有值时进 `form_hash`）
     pub(crate) fn finish_form(
         &self,
         f: 未完成题式,
         permute: bool,
         over_kind: Option<jpp_value::value::OverKind>,
+        labels: Option<jpp_value::value::TestLabels>,
     ) -> Value {
-        let mut f = f.0;
+        let mut f = f.0.with_labels(labels);
         f.permute = permute;
         f.over_kind = over_kind;
         Value::Form(Rc::new(f))
@@ -398,8 +406,8 @@ pub struct ConstructSpec {
     pub privileges: &'static [Privilege],
     /// 依据条文
     pub clause: &'static str,
-    /// `.jpp` 可调的构造带实现入口；`None` = 内部构造，只经本模块的入口被别的构造调用（步 25-2b：`compose`、
-    /// `element` 暂不开放成 `.jpp` 名字，`过程记录/工程-步25-2b.md` Q16）
+    /// `.jpp` 可调的构造带实现入口；`None` = 内部构造，只经本模块的入口被别的构造调用。步 25-2b 时 `compose`、
+    /// `element` 是内部构造（`过程记录/工程-步25-2b.md` Q16），步 25d、25-8a 起都已开放，现在没有内部构造
     run: Option<Run>,
 }
 
@@ -577,10 +585,10 @@ static CONSTRUCTS: &[ConstructSpec] = &[
         clause: "B28；B9",
         run: Some(|it, c, n, a, s| it.b_agg(c, n, a, s)),
     },
-    // 依据：12 §5 判断向量（同题同锚跨对象偏序）；J-04
+    // 依据：12 §5 判断向量（同题同锚跨对象偏序）；J-04；B166（一条 select 读数的候选分档）、B167（stat、tie）
     ConstructSpec {
         name: "order",
-        params: "order(读数们)",
+        params: "order(读数们[, {stat?, tie?}])，或 order(一条 select 读数)",
         returns: "分档的下标列表",
         refresh: &["order"],
         privileges: &[P_READ],
@@ -603,22 +611,22 @@ static CONSTRUCTS: &[ConstructSpec] = &[
     // 依据：B131（出口合成：封闭规则集，内核算种类）；B51-R1；12 §2.3 出口合成条
     ConstructSpec {
         name: "compose",
-        params: "compose(出口们, \"any\" | \"all\" | {first: k} | {sup: 格} | \"min\")（内部构造，步 25-8 开放）",
-        returns: "出口（合成，带 parts）",
+        params: "compose(出口们, \"any\" | \"all\" | {first: k} | {sup: 格} | \"min\")（步 25d 开放，B148、B161）",
+        returns: "出口（合成，带 parts 与联合界 alpha_bound、n_unknown）",
         refresh: &[],
         privileges: &[P_COMPOSITE, P_DUTY],
-        clause: "12 §2.3 B131",
-        run: None,
+        clause: "12 §2.3 B131；B161",
+        run: Some(|it, c, n, a, s| it.b_compose(c, n, a, s)),
     },
     // 依据：B133（元素记录构造）；B81；B82；B92；B120
     ConstructSpec {
         name: "element",
-        params: "element(输入, 出口, {pos, q, qi, fill?, key})（内部构造，步 25-11 开放）",
+        params: "element(输入, 出口, {pos, q, qi?, fill?, key?})（步 25-8a 开放）",
         returns: "元素记录",
         refresh: &[],
         privileges: &[P_SELECT, P_ROW],
         clause: "12 §2.12 B133",
-        run: None,
+        run: Some(|it, c, n, a, s| it.b_element(c, n, a, s)),
     },
 ];
 
@@ -630,13 +638,6 @@ pub fn construct_specs() -> &'static [ConstructSpec] {
 /// 按源码名查 `.jpp` 可调的构造（内部构造不在这里，按名字调不到）
 pub(crate) fn construct(name: &str) -> Option<&'static ConstructSpec> {
     CONSTRUCTS.iter().find(|s| s.name == name && s.exposed())
-}
-
-fn 内部构造(name: &str) -> &'static ConstructSpec {
-    CONSTRUCTS
-        .iter()
-        .find(|s| s.name == name && !s.exposed())
-        .unwrap_or_else(|| panic!("内部构造 {name} 未注册"))
 }
 
 impl<'a> Interp<'a> {
@@ -655,7 +656,12 @@ impl<'a> Interp<'a> {
 
     /// 调合成构造 `compose`（B131）：令牌按 `compose` 的声明发放，调用者不需要任何能力。
     pub(crate) fn 调合成(&mut self, 请求: 合成请求, sp: Span) -> R<Value> {
-        let caps = Caps::for_spec(内部构造("compose"));
+        // `compose` 步 25d 起开放为 `.jpp` 名字；内部入口（`tally`、`first_k`）按同一份声明发令牌
+        let spec = CONSTRUCTS
+            .iter()
+            .find(|s| s.name == "compose")
+            .expect("compose 已注册");
+        let caps = Caps::for_spec(spec);
         self.合成(&caps, 请求, sp)
     }
 
@@ -663,7 +669,8 @@ impl<'a> Interp<'a> {
     pub(crate) fn 调元素(
         &mut self, input: &Value, exit: &Rc<Exit>, ctx: 元素上下文
     ) -> Value {
-        let caps = Caps::for_spec(内部构造("element"));
+        // 步 25-8a 起 `element` 开放；`sieve` 在 Rust 内仍经这里调同一实现、同一份能力
+        let caps = Caps::for_spec(construct("element").expect("element 已注册"));
         self.元素(&caps, input, exit, ctx)
     }
 }
@@ -742,23 +749,22 @@ mod tests {
         let _ = caps.read_answer();
     }
 
-    /// B131：`tally`、`first_k` 经合成构造签发出口，自己不需要任何内核能力；`compose`、`element` 是内部构造
+    /// B131：`tally`、`first_k` 经合成构造签发出口，自己不需要任何内核能力；`compose` 步 25d 起开放为 `.jpp` 名字
+    /// （B148、B161），`element` 步 25-8a 起开放；两者能力不变
     #[test]
-    fn tally_first_k_不声明能力_合成与元素是内部构造() {
+    fn tally_first_k_不声明能力_合成与元素开放() {
         for n in ["tally", "first_k"] {
             let s = construct(n).expect("已注册");
             assert!(s.privileges.is_empty(), "{n} 声明了 {:?}", s.privileges);
         }
-        for n in ["compose", "element"] {
-            assert!(construct(n).is_none(), "{n} 不能按名字调用");
-            assert!(!内部构造(n).exposed());
-        }
+        assert!(construct("compose").is_some_and(|s| s.exposed()));
+        assert!(construct("element").is_some_and(|s| s.exposed()));
         assert_eq!(
-            内部构造("compose").privileges,
+            construct("compose").expect("compose 已开放").privileges,
             &[Privilege::IssueComposite, Privilege::Duty]
         );
         assert_eq!(
-            内部构造("element").privileges,
+            construct("element").expect("已开放").privileges,
             &[Privilege::SourceSelect, Privilege::ExitRow]
         );
         // B138 (3)：key_of 是读法内置，不在构造表

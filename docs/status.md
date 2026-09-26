@@ -1,6 +1,6 @@
 # Current scope / 当前实现范围
 
-Updated 2026-09-26, after the daily sync from research-tree commit `2eb748dc` (see [progress.md](progress.md) for the full account). Standalone `.jpp` source runs through the native Rust implementation in [`rust/`](../rust/README.md), which is the primary implementation; the Python package remains available as a behavioral reference and for the discovery demonstrations. `cargo test --locked --workspace`: **1033 passed, 0 failed, 10 ignored**.
+Updated 2026-09-26, after two daily syncs (research-tree commits `2eb748dc` and, later the same day, current private main head -- see [progress.md](progress.md) for the full account of both). Standalone `.jpp` source runs through the native Rust implementation in [`rust/`](../rust/README.md), which is the primary implementation; the Python package remains available as a behavioral reference and for the discovery demonstrations. `cargo test --locked --workspace`: **1221 passed, 0 failed, 10 ignored**.
 
 ## What's in this repository
 
@@ -14,10 +14,16 @@ Updated 2026-09-26, after the daily sync from research-tree commit `2eb748dc` (s
 - Windowed dispatch and in-port concurrency let one backend port serve several judgments from the same refresh window concurrently. A batch of static checks (research steps 24a-24g, 24h) covers pending-output warnings, multi-object crosstalk, untested-profile-field warnings, a comparative-fingerprint static face, an unregistered-action-name face, a diagnostics-layer shape-mismatch consumer, an old-style function-type warning and an under-limit judgment-budget warning -- see [progress.md](progress.md) for the rule numbers. `calib-import --cost fp,fn` certifies an action-space cost line from labeled evidence (now split into a selection half and a certification half, ruling B85, after a Codex review on PR #35), alongside reading-space `declare` and certificate-only `alpha`.
 - **A composition-layer host action table, 14 entries.** A single table (`crates/jpp/src/actions/`) backs everything `do` can call: the original `record_check`/`read_json`/`write_json`, six exact-algorithm actions under a `graph:` prefix (matching, shortest path, max clique, connected components, set cover, max flow -- each checked against a brute-force reference on 200 random graphs), and five executor/retrieval actions (`exec_py`, `check_tests`, `exec_sql` -- run inside an OS-level sandbox (macOS `sandbox-exec`, Linux `bwrap`), probed once at startup with a real smoke test and cached; the sandbox blocks writes outside a per-call temp directory and network access, but not reading any host-readable file or CPU/memory/process-count limits, and the three actions are marked non-reversible with a static `E-action-no-sandbox` check when no usable sandbox is found; `embed_topk`, `bm25_topk` -- local semantic and keyword retrieval).
 - **Lazy cut bridging and straight-line lifting through function calls** (ruling B94, research step 23c): a `cut`'s judgment now resolves only when something actually inspects it, not at the point it's written, and same-state `judge` calls (including calls to functions with literal arguments) can lift to the top of a straight-line segment across a function boundary -- stopping at branches, loops and short-circuit operators. On constructed benchmarks this cut call layering from 4 to 2 with the same call count.
+- **A composition layer: `search`, `ground`, and JEV-judged graphs, all nestable.** `lib/compose/ground.jpp` pairs JEV with any executor action into a "run it, then judge" function; `lib/compose/search.jpp` runs propose-judge-repropose in rounds and accepts a `ground` function so generation, execution and judgment can close into one loop (worked example: `examples/search-ground.jpp`); `lib/compose/graph.jpp` runs an exact graph algorithm over JEV-judged edges, resolving edges not yet decided by running the algorithm twice and comparing. Two general-purpose primitives back all three: `compose(exits, rule)` folds a list of judgment exits into one under `any`/`all`/`min`/first-or-highest while preserving three-way undecided semantics and error-bound bookkeeping, and `cert(exit)` reads a certified error bound and certification grade off any exit, single or composed; `element(input, exit, ctx)` builds a single graph/search element from a judgment outcome.
+- **A real generator backend.** `gen` now dispatches to `claude -p` (`--gen-model`) through a non-blocking submit/poll pool; a generation call is only sent at its layer's next refresh point and only waited on when read, so an unread generated value is never paid for. Generated output carries an explicit `untrusted` tag through the same taint mechanism as everything else; `--gen-cache` skips re-paying for a repeated generation.
+- **Author-declared policy lines, now with a host-acceptance path and a richer statistic.** An author may write `declare:{hi, lo?}` directly on a `cut`, used verbatim and never written into the calibration store. A host now explicitly accepts a declared line to license an irreversible action (`--release-on-declared`, hashed into `entry_hash`) instead of the run refusing outright; `cut` also gained a `stat` option so a declared line can gate on a judgment's aggregate statistic (an expected value or a probability mass over a subset) rather than only its top answer, with independently open/closed comparison at each end.
+- **Ledger writes are durable line by line**, not only at the end of a run; an irreversible action's intent is recorded before it executes, and a host with no durable ledger storage is refused outright (`E-ledger-required`) rather than running without the safety property.
+- **22 built-in functions for text and data**, plus seeded, reproducible randomness (`rand`/`rand_int`/`shuffle`, a fixed versioned algorithm) -- string operations, regular expressions, stable sorting (plain and by key), JSON round-tripping through the ledger's canonical form, content hashing through the ledger's own hash function, and date parsing/formatting/arithmetic, all taint-propagating.
+- **Judgments on the same material batch together more often**: candidates now travel with the question being asked and are grouped by the material actually judged, closing a gap where a hand-written program would have combined two questions into one call and this project's runtime previously would not. This bumped the on-the-wire request format to a new render version (`r2`); older recorded ledgers still replay correctly but need an explicit re-recording step to resume with new calls.
+- **`order` ranks scored judgments correctly**, and a checked-to-run guide chapter for the composition layer. `order` gained the same statistic option `cut` has and now defaults to ranking a scored judgment by its bucket position rather than its top bucket's raw probability -- the correct-ranking behavior `search`'s objective-based sorting had been missing. `rust/GUIDE.md`'s new "Pairings" chapter walks through every pairing above with real example files (`rust/examples/guide/`), all 20 checked to run and cross-verified against the chapter's prose by `rust/scripts/guide_check.py`.
 
 ## What's ruled but not yet built anywhere
 
-- **Author-declared policy lines.** An author may write `declare:{hi, lo?}` directly on a `cut` as a stated policy, used verbatim and never written into the calibration store; an irreversible `do` gated on a declared line would require the host to explicitly accept it (`--release-on-declared` / `EntryArgs.accept`). Ruled today (B128-B130, `地基/附注/2026-09-25-作者主权与策略表达裁定.md`); the construction step, 20j-1, is an active work-in-progress branch, not part of this sync.
 - A complete static type/effect system, arbitrary closure serialization, machine-code compilation.
 
 ## Honest evidence on the project's three acceptance criteria
@@ -32,7 +38,7 @@ Do not reuse fixture calibration records for real decisions -- they exist only t
 
 ---
 
-Rust 内核现在是 10 个 crate：`jpp`（lib 目标加 `jpp` 二进制——检查器外观、效应、账本、CLI、存储、后端；今天由原 `jpp-core` 与 `jpp-cli` 合并而来，步 14a）、`jpp-runtime`（解释器：预算、桥、构造求值、宿主内置函数）、`jpp-syntax`（由 `jpp-frontend` 改名，解析与降级）、`jpp-check`（静态检查）、`jpp-ir`、`jpp-value`、`jpp-effects`、`jpp-ledger`、`jpp-calib`、`jpp-plan`；已裁定的上限是 11 个。源码解析、共用 AST、一套明确定义的静态检查子集、解释执行、原生 CLI、预算、固定观察与账本（v3）重放都已合入本仓库 `main`。`cargo test --locked --workspace`：**1033 passed, 0 failed, 10 ignored**。
+Rust 内核现在是 10 个 crate：`jpp`（lib 目标加 `jpp` 二进制——检查器外观、效应、账本、CLI、存储、后端；今天由原 `jpp-core` 与 `jpp-cli` 合并而来，步 14a）、`jpp-runtime`（解释器：预算、桥、构造求值、宿主内置函数）、`jpp-syntax`（由 `jpp-frontend` 改名，解析与降级）、`jpp-check`（静态检查）、`jpp-ir`、`jpp-value`、`jpp-effects`、`jpp-ledger`、`jpp-calib`、`jpp-plan`；已裁定的上限是 11 个。源码解析、共用 AST、一套明确定义的静态检查子集、解释执行、原生 CLI、预算、固定观察与账本（v3）重放都已合入本仓库 `main`。`cargo test --locked --workspace`：**1221 passed, 0 failed, 10 ignored**。
 
 真实 JEV 后端接上了一条现在真正便宜的认证路径：`jpp run --backend live` 发真实判断调用；`jpp calib-import` 从标注证据建一条校准记录并认证阈值。两档认证：原有的拆分样本两侧界（正式档约 160 条标注），以及固定序方法（B104/B87 裁定，研究树步 20h-1/20i）——序贯候选对齐同一顺序、保证随机到达与标签无关，用远小得多的标注集达到同一个正式档，80 条盲复核零分歧后才正式上岗。另有一档更松的试用线（证据更少，不能放行不可逆动作），用于分派但不做完整认证。没有匹配校准记录的真机运行明确返回未决（`Unsure(cold)`），不会瞎猜一条线；每次真机运行都必须带能力画像（B73）。
 
@@ -50,7 +56,21 @@ Rust 内核现在是 10 个 crate：`jpp`（lib 目标加 `jpp` 二进制——�
 
 **惰性过桥与直线段提升穿过函数调用**（B94 裁定，研究树步 23c）：`cut` 的判断现在只在真被用到时才解析，不再是写下的那一刻；状态相同的 `judge` 调用（含实参为字面量的函数调用）可以跨函数边界提升到直线段段首——遇分支、循环、短路运算符即停。构造的基准程序上，调用层数从 4 层降到 2 层，调用数不变。
 
-只写进了设计裁定、任何分支都还没有代码的：作者声明的策略线——作者可以直接在 `cut` 上写 `declare:{hi, lo?}`，按写的数字原样用，不写进校准库；放行不可逆 `do` 的声明线需要宿主显式接受（`--release-on-declared` / `EntryArgs.accept`）。今天裁定（B128–B130，`地基/附注/2026-09-25-作者主权与策略表达裁定.md`）；施工步 20j-1 目前是一个进行中的 worktree 分支，不在本次同步范围内。一套完整的静态类型/效应系统、任意闭包序列化、机器码编译，同样还没有代码。
+**搭配层：`search`、`ground`、判出来的图，都能互相嵌套。** `lib/compose/ground.jpp` 把 JEV 与任何执行器动作搭成一个「跑一遍再判」的函数；`lib/compose/search.jpp` 分轮跑「提出-判-再提出」，接受一个 `ground` 函数，让生成、执行、判断能闭成一个环（可跑例子：`examples/search-ground.jpp`）；`lib/compose/graph.jpp` 在 JEV 判出来的边上跑精确图算法，对还没判完的边把算法跑两遍再比较来定位。两个通用原语撑着这三者：`compose(exits, rule)` 按 `any`/`all`/`min`/取第一个或最高排名的规则把一批判断出口折成一个，同时保留三值未决语义与误差界记账；`cert(exit)` 能从任何出口（单个或合成）读出经认证的误差界与认证等级；`element(input, exit, ctx)` 从一个判断产物直接造出一个图/搜索元素。
+
+**生成器接上真后端。** `gen` 现在经一个非阻塞提交/轮询池调到 `claude -p`（`--gen-model`）；生成调用只在它所在层的下一个刷新点发出，只在被读到时才等，没被读到的生成值不花钱。生成出的材料带明确的 `untrusted` 标签，走语言里其他值同一套 taint 机制；`--gen-cache` 让重复的生成不用再花一次钱。
+
+**作者声明的策略线，现在有了宿主接受路径与更丰富的统计量。** 作者可以直接在 `cut` 上写 `declare:{hi, lo?}`，按写的数字原样用，不写进校准库。宿主现在能显式接受一条声明线来放行不可逆动作（`--release-on-declared`，进 `entry_hash`），不再是直接拒绝运行；`cut` 也加了 `stat` 选项，让声明线能判一个汇总统计量（期望值或某个子集上的概率总和），不再只能判单一最高档答案，线的两端各自独立可开可闭。
+
+**账本写入逐行落盘**，不再只在运行结束时才写；一个不可逆动作在执行前先记下意向，完全没法提供落盘能力的宿主直接被拒绝（`E-ledger-required`），不会在没有这层安全保障时运行。
+
+**22 个文本与数据内置函数**，加带种子、可复现的随机数（`rand`/`rand_int`/`shuffle`，固定的有版本号的算法）——字符串操作、正则表达式、稳定排序（普通与按键）、经账本规范形式往返的 JSON、经账本同一哈希函数的内容哈希、日期解析/格式化/加减，全部传播可信位。
+
+**同一份材料上的判断更常合批**：候选现在随被问的那道题一起走，按实际判的材料分组，补上了此前手写程序会合成一次调用而 J++ 有时不会的缺口。这把线上请求格式升到新渲染版本（`r2`）；旧账本仍能正确重放，但要续接发新调用需要一步显式重录。
+
+**`order` 能正确给打分判断排序，加一份能跑起来验的搭配层指南章节。** `order` 加了 `cut` 已有的那个统计量选项，对打分判断现在缺省按档位排、不再按最高档的原始概率排——这正是 `search` 按目标题排序此前一直缺的正确排序行为。`rust/GUIDE.md` 新增的「搭配」一章把上面每种搭配都配上真实示例文件（`rust/examples/guide/`），20 个全部经 `rust/scripts/guide_check.py` 跑通并与正文交叉核对。
+
+一套完整的静态类型/效应系统、任意闭包序列化、机器码编译，还没有代码。
 
 项目三条验收标准的如实数字：表达量在孤立对照上是 2–5 倍，还没到 9–20 倍的文献参考带。最近一次多实现测量（步 31-1b，B96 裁定）把 T1 的逐点打分改成留出集、按性质验收，并对每个实现重新跑了第二套基线（十份新基线九份第一次验收就过）：T1 读数是只计通过新验收方法的实现 3.69×，计入全部实现 4.48×，按旧冻结打分法（留作对照的 `t1-strict`）4.97×——都远低于 9–20× 参考带，也不能直接拿来跟本文件昨天写的 `约 4.1×`/`约 3.4×` 比，因为两者背后的验收方法本身变了。深度证据是固定观察下的跳数分布：一、二、三跳的判断数为 22、12、4；逐跳未决率与真机深度曲线还没测。换后端可用性按黑板记录的最近一次仪表读数，验证了追踪的八类能力假设中的一类（见上——后续步骤对另外四组摘掉 ignore，还没有重新跑仪表确认）。
 

@@ -33,6 +33,7 @@ fn 记序端口(p: f64, 日志: Rc<RefCell<Vec<String>>>) -> Ports<'static> {
                 cost: 0.0,
                 mode_share: vec![],
                 perms: vec![],
+                confidence: vec![],
             })
         }))
         .with(FnPort::generate("fixed-0", |_p, _c, _n, _r| {

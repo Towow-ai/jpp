@@ -66,7 +66,7 @@
     "events": [
       {
         "cost": 0.0,
-        "key": "d3928c702517e716628304a6",
+        "key": "794b5ca9f49414424da28be8",
         "kind": "judge",
         "note": "「下列哪一段话里也直接写出了这段话里那个城市的名字？」",
         "replayed": false,
@@ -77,7 +77,7 @@
       },
       {
         "cost": 0.0,
-        "key": "0d95f1b4f31d130e640ec1dc",
+        "key": "165aad84efcdc8e23c0ef0f3",
         "kind": "judge",
         "note": "「下列哪一段话里也直接写出了这段话里那个城市的名字？」",
         "replayed": false,
@@ -88,7 +88,7 @@
       },
       {
         "cost": 0.0,
-        "key": "c31ad9c079d0af9d3560772f",
+        "key": "8f7b945d92d6a13464620c5c",
         "kind": "judge",
         "note": "「下列哪一段话里也直接写出了这段话里那个人的名字？」",
         "replayed": false,
@@ -99,7 +99,7 @@
       },
       {
         "cost": 0.0,
-        "key": "0d95f1b4f31d130e640ec1dc",
+        "key": "165aad84efcdc8e23c0ef0f3",
         "kind": "judge",
         "note": "「下列哪一段话里也直接写出了这段话里那个城市的名字？」",
         "replayed": true,
@@ -110,7 +110,7 @@
       },
       {
         "cost": 0.0,
-        "key": "c31ad9c079d0af9d3560772f",
+        "key": "8f7b945d92d6a13464620c5c",
         "kind": "judge",
         "note": "「下列哪一段话里也直接写出了这段话里那个人的名字？」",
         "replayed": true,

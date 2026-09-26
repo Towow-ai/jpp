@@ -1,0 +1,4 @@
+{"description": "Author-declared line accepted by the host (step 20j-2, B128): the same program as declare-refund, run with --release-on-declared. The first conversation is a clear no (0.08, ignore); the second reads above the declared line (0.85 >= 0.7, act), so the irreversible write_json runs. Without the switch the same act exit would stop at J-08.", "observations": [
+  {"on": ["顾客：你好，我想问一下这款耳机有没有黑色的。客服：有的，黑色和白色都有货。"], "op": "test", "text": "这段客服对话里，顾客是否明确提出要退款或退钱？", "calib": "cs-refund", "answer": {"Noul": 0.08}},
+  {"on": ["顾客：这个用着不太顺手，你们能帮我看看怎么处理吗？客服：好的，请问是哪方面的问题？"], "op": "test", "text": "这段客服对话里，顾客是否明确提出要退款或退钱？", "calib": "cs-refund", "answer": {"Noul": 0.85}}
+]}

@@ -1,0 +1,166 @@
+{
+  "asks": 0,
+  "calls": 0,
+  "effects": [
+    [
+      "gen",
+      "按下面的需求提出 3 段 Python 代码，每段是一个字符串；需求之后的上下文是上一轮留下的候选（代码与输出）",
+      "4f07dc26c987e9fbb1ed5dd9",
+      true
+    ],
+    [
+      "do",
+      "exec_py",
+      "cac4fe73a441ec0476d51b90",
+      true
+    ],
+    [
+      "do",
+      "exec_py",
+      "e2c6fe6a5ff1d32b5c35ca39",
+      true
+    ],
+    [
+      "do",
+      "exec_py",
+      "2ed400935481e78fd6d581ba",
+      true
+    ],
+    [
+      "gen",
+      "按下面的需求提出 3 段 Python 代码，每段是一个字符串；需求之后的上下文是上一轮留下的候选（代码与输出）",
+      "d0f0879f5b9300f008eaf6f1",
+      true
+    ],
+    [
+      "do",
+      "exec_py",
+      "0bd9faba1f843239ae7f1237",
+      true
+    ],
+    [
+      "do",
+      "exec_py",
+      "ca4a4d8bc60fac49633cb04a",
+      true
+    ],
+    [
+      "do",
+      "exec_py",
+      "a93bd15d7a5305fb9893caf7",
+      true
+    ]
+  ],
+  "judge_registrations": 6,
+  "pending": [],
+  "returned_unsure": [
+    "unsure(band)"
+  ],
+  "status": "returned",
+  "usd": 0.0,
+  "value": {
+    "duplicates": 0,
+    "found_in": [
+      1
+    ],
+    "kept": [
+      {
+        "content": "代码：print(sum(i * i for i in range(1, 11)))\n输出：385\n",
+        "mat": "32df080287acec7aee7c90fd",
+        "origin": [
+          "transform:f5e113f01dd112f484972f5b"
+        ],
+        "taint": "Untrusted"
+      }
+    ],
+    "measures": [
+      4,
+      3
+    ],
+    "pending": [
+      {
+        "cause": "band",
+        "exit": {
+          "consumed": true,
+          "exit": "unsure(band)",
+          "id": 2,
+          "q": "91b07311b733ad9db5420e42"
+        },
+        "index": 2,
+        "item": {
+          "content": "代码：print('大约', 385)\n输出：大约 385\n",
+          "mat": "1864059016d916ee9e44a2fe",
+          "origin": [
+            "transform:ae12fed44655e0c01b92ecfa"
+          ],
+          "taint": "Untrusted"
+        },
+        "key": "2e77656070c975133a439abe",
+        "pos": 2,
+        "q": {
+          "calib": "ground-correct",
+          "op": "noul",
+          "question": "91b07311b733ad9db5420e42",
+          "text": "这段代码的输出是否等于 1 到 10 的平方和（385）？"
+        },
+        "qi": 0,
+        "trail": [],
+        "via": [
+          "search#0"
+        ]
+      }
+    ],
+    "reason": "stop",
+    "rejected": [
+      {
+        "content": "代码：print(sum(i * i for i in range(10)))\n输出：285\n",
+        "mat": "7658d6ca337b7702b01a6770",
+        "origin": [
+          "transform:59fb571b6eb25396ced3e185"
+        ],
+        "taint": "Untrusted"
+      },
+      {
+        "content": "代码：print(sum(range(1, 11)) ** 2 // 10)\n输出：302\n",
+        "mat": "83318eb500f2691b363e49d6",
+        "origin": [
+          "transform:f9feb0ac374412c4396b006c"
+        ],
+        "taint": "Untrusted"
+      },
+      {
+        "content": "代码：print(sum(range(1, 11)))\n输出：55\n",
+        "mat": "a9c2366cd62f961644c12cca",
+        "origin": [
+          "transform:678cf27e8487a5904122beec"
+        ],
+        "taint": "Untrusted"
+      },
+      {
+        "content": "代码：print(10 * 11 * 21 // 6 + 1)\n输出：386\n",
+        "mat": "eb9674b851a5351574f1e989",
+        "origin": [
+          "transform:4affbb8a22e72a2a622ee94b"
+        ],
+        "taint": "Untrusted"
+      }
+    ],
+    "rounds": 2,
+    "undecided": [
+      {
+        "cause": "band",
+        "item": {
+          "content": "代码：print('大约', 385)\n输出：大约 385\n",
+          "mat": "1864059016d916ee9e44a2fe",
+          "origin": [
+            "transform:ae12fed44655e0c01b92ecfa"
+          ],
+          "taint": "Untrusted"
+        },
+        "via": [
+          "search#0"
+        ]
+      }
+    ]
+  }
+}

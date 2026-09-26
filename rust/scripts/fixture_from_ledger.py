@@ -49,7 +49,11 @@ def load_live(ledger: Path, report: Path) -> list:
     for j in rows:
         n = notes.get(j["key"], "")
         text = n[1:-1] if n.startswith("「") and n.endswith("」") else n
-        out.append({"state": j["jkey"]["state"], "text": text, "answer": j["answer"], "key": j["key"]})
+        row = {"state": j["jkey"]["state"], "text": text, "answer": j["answer"], "key": j["key"]}
+        # 判断器随答案报的自报置信度（B154，步 20j-3）：账本有才写，夹具缺省按 p_max
+        if j.get("confidence") is not None:
+            row["confidence"] = j["confidence"]
+        out.append(row)
     return out
 
 
@@ -67,7 +71,8 @@ def calib_used(ledger):
     used = {}
     for l in lines[1:]:
         e = json.loads(l).get("entry", {}).get("CalibUsed")
-        if e:
+        # B142（步 20j-1）：`declared:` 键是作者声明线，不是校准记录，不写成记录文件
+        if e and not e["key"].startswith("declared:"):
             used[e["key"]] = {"hash": e["hash"], "record": e["record"]}
     return used
 
@@ -125,8 +130,10 @@ def main():
             k = cands[0]
             used.add(k)
             obs = {kk: st[kk] for kk in ("on", "ctx", "ref", "over") if kk in st}
-            obs.update({kk: q[kk] for kk in ("op", "text", "calib", "scale", "evidence") if kk in q and q[kk] not in (None, [])})
+            obs.update({kk: q[kk] for kk in ("op", "text", "calib", "scale", "evidence", "labels") if kk in q and q[kk] not in (None, [])})
             obs["answer"] = live[k]["answer"]
+            if "confidence" in live[k]:
+                obs["confidence"] = live[k]["confidence"]
             fx["observations"].append(obs)
         sys.exit(f"超过 {a.max_rounds} 轮仍未跑完")
 

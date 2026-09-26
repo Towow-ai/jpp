@@ -46,6 +46,14 @@ pub struct Program {
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EntryDecl {
     pub params: Vec<EntryParam>,
+    /// 宿主接受作者声明线放行（B128，步 20j-2；CLI `--release-on-declared`）。检查器的 J-08 静态子面读它；
+    /// 为假不序列化，不打印（现有 `ir.txt` 不变）。
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub accept_declared: bool,
+}
+
+fn is_false(b: &bool) -> bool {
+    !*b
 }
 
 impl EntryDecl {

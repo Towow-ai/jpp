@@ -135,6 +135,7 @@ fn 未声明标签来源的证书给强出口时留痕() {
                     cost: 0.0,
                     mode_share: vec![],
                     perms: vec![],
+                    confidence: vec![],
                 })
             }))
             .with(FnPort::generate("m", |_p, _c, _n, _r| {

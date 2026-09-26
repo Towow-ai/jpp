@@ -48,7 +48,7 @@
     "events": [
       {
         "cost": 0.0,
-        "key": "a384e3a3c82161f7149d2a85",
+        "key": "f110ceea11497523577b1fe7",
         "kind": "judge",
         "note": "「这段话是否提到了南京？只算明确写出这个城市名的情况。」",
         "replayed": true,
@@ -59,7 +59,7 @@
       },
       {
         "cost": 0.0,
-        "key": "3760f5ca457b2ec3ed68e49b",
+        "key": "bad9dae76c7857d3db0096e1",
         "kind": "judge",
         "note": "「这段话是否提到了南宁？只算明确写出这个城市名的情况。」",
         "replayed": true,

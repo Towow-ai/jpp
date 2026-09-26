@@ -1,0 +1,19 @@
+// 生成加判断的最小组合（步 15h-1，B149）：生成器按需求提 3 个候选，判断器逐个判是否满足需求，
+// 返回接受的、忽略的与未决的。固定观察下生成来自夹具；真机下 `--gen-model sonnet` 换成 `claude -p`，
+// 生成的材料 taint 为 untrusted（生成器画像声明）。生成失败时 `gen` 返回 `Fail`，这里原样交出。
+import "../lib/outcome.jpp";
+budget {calls: 4, cost: 0.01, depth: 64};
+
+let brief = mat("为一家社区咖啡馆起名：温暖、好记、不超过四个汉字");
+let names = gen("按下面的需求提出 3 个候选店名，每个候选是一个字符串", [brief], 3, 0);
+let fits = test("这个名字适合做一家社区咖啡馆的店名吗？", "gen-choose-fit");
+
+if is_fail(names) {
+    {failed: text(names), chosen: [], rejected: [], pending: []}
+} else {
+    let r = sieve(names, fits);
+    {chosen: map(accepted(r), fn(e) { e.item }),
+     rejected: map(ignored(r), fn(e) { e.item }),
+     taints: map(names, fn(m) { m.taint }),
+     pending: r.pending}
+}

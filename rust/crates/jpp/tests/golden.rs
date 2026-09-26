@@ -73,6 +73,12 @@ struct Case {
     calib: Option<String>,
     files: Vec<(String, String)>,
     resume_from: Option<String>,
+    /// 从仓库里存着的一份账本续跑（相对 `rust-jpp/` 的路径；步 25e）：执行器动作在固定观察下没有夹具通道，
+    /// 用在有沙箱的机器上真跑一次录下的种子账本续跑，金样不依赖本机沙箱。与 `resume_from` 不同，
+    /// 后者指本轮先跑的另一个用例的账本。
+    resume_ledger: Option<String>,
+    /// 清单项的额外命令行参数（步 20j-2：`--release-on-declared`）；首跑与重放都带
+    args: Vec<String>,
     expect_error: bool,
     /// 清单里登记的重放不成功（停机或分歧）及原因；未登记的用例重放必须成功。
     replay_exception: Option<String>,
@@ -100,6 +106,11 @@ fn cases() -> Vec<Case> {
                 })
                 .unwrap_or_default(),
             resume_from: c["resume_from"].as_str().map(String::from),
+            resume_ledger: c["resume_ledger"].as_str().map(String::from),
+            args: c["args"]
+                .as_array()
+                .map(|a| a.iter().map(|x| x.as_str().unwrap().to_string()).collect())
+                .unwrap_or_default(),
             expect_error: c["expect"] == "error",
             replay_exception: c["replay"].as_str().map(String::from),
         })
@@ -127,6 +138,7 @@ fn base_args(c: &Case) -> Vec<String> {
         a.push("--fixtures".into());
         a.push(r.join(f).display().to_string());
     }
+    a.extend(c.args.iter().cloned());
     a
 }
 
@@ -190,6 +202,10 @@ fn examples_match_golden_and_replay() {
             args.push("--resume".into());
             args.push(base.join(from).join("ledger.json").display().to_string());
         }
+        if let Some(seed) = &c.resume_ledger {
+            args.push("--resume".into());
+            args.push(root().join(seed).display().to_string());
+        }
         args.extend([
             "--ledger-out".into(),
             "ledger.json".into(),
@@ -206,6 +222,15 @@ fn examples_match_golden_and_replay() {
         let report_text = normalize(&fs::read_to_string(tmp.join("report.json")).unwrap(), &tmp);
         let ledger_text = normalize(&fs::read_to_string(tmp.join("ledger.json")).unwrap(), &tmp);
         let report: Value = serde_json::from_str(&report_text).unwrap();
+        // 步 25e：从种子续跑的用例一次新调用都不许有——有就是种子过期（改了库或示例、键变了），
+        // 续跑会转而真执行代码（没有沙箱的机器上是 J-08）。更新模式下也拦，免得在有沙箱的机器上悄悄重录。
+        if c.resume_ledger.is_some() {
+            assert_eq!(
+                report["cost"]["calls"], 0,
+                "{}：从种子账本续跑却有新调用，种子过期了。在有沙箱的机器上按 地基/过程记录/工程-步25e.md 二·4 重录种子",
+                c.name
+            );
+        }
         check(&gdir, "report.json", &report_text, &mut diffs);
         check(&gdir, "ledger.json", &ledger_text, &mut diffs);
         check(

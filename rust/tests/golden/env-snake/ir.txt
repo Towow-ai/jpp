@@ -1,0 +1,535 @@
+ir v1
+budget calls=20 cost=0 depth=64 escalate=- unsure=- latency_p95=- absent=-
+block 903..3728
+  let grid : -
+    #0 int 5
+  fn-stmt render
+    #1 fn (env:-) -> - effects=-
+      block 974..1060
+        result
+          #2 binary +
+            #3 binary +
+              #4 binary +
+                #5 text "dx="
+                #6 call 988..1017
+                  callee:
+                    #7 name text
+                  #8 binary -
+                    #9 field .x
+                      #10 field .food
+                        #11 name env
+                    #12 field .x
+                      #13 field .head
+                        #14 name env
+              #15 text " dy="
+            #16 call 1029..1058
+              callee:
+                #17 name text
+              #18 binary -
+                #19 field .y
+                  #20 field .food
+                    #21 name env
+                #22 field .y
+                  #23 field .head
+                    #24 name env
+  fn-stmt cut_bool
+    #25 fn (r:-) -> - effects=-
+      block 1077..1210
+        result
+          #26 handle @0 1083..1208
+            exit:
+              #27 cut @1 1090..1096
+                reading:
+                  #28 name r
+            arms:
+              #29 record 1098..1207
+                act:
+                  #31 fn () -> - effects=-
+                    block 1109..1117
+                      result
+                        #32 bool true
+                ignore:
+                  #34 fn () -> - effects=-
+                    block 1132..1141
+                      result
+                        #35 bool false
+                unsure:
+                  #37 fn (u:-) -> - effects=-
+                    block 1177..1206
+                      #38 consume @2 1179..1197
+                        #39 name u
+                        #40 text "drop"
+                      result
+                        #41 bool false
+  fn-stmt decide
+    #42 fn (env:-) -> - effects=[judge]
+      block 1351..1851
+        let s : -
+          #43 state @3 1365..1388
+            on:
+              #44 call 1371..1387
+                callee:
+                  #45 name mat
+                #46 call 1375..1386
+                  callee:
+                    #47 name render
+                  #48 name env
+        let qs : -
+          #49 list 1403..1627
+            #50 construct test @4 1404..1466
+              #51 text "食物在头部右边（x 更大）吗？"
+              #52 text "env-snake"
+            #53 construct test @5 1482..1544
+              #54 text "食物在头部下边（y 更大）吗？"
+              #55 text "env-snake"
+            #56 construct test @6 1560..1626
+              #57 text "水平距离是否大于等于垂直距离？"
+              #58 text "env-snake"
+        let rs : -
+          #59 effect judge @7 1642..1654
+            state:
+              #60 name s
+            questions:
+              #61 name qs
+        let right : -
+          #62 call 1672..1687
+            callee:
+              #63 name cut_bool
+            #64 index
+              #65 name rs
+              #66 int 0
+        let down : -
+          #67 call 1704..1719
+            callee:
+              #68 name cut_bool
+            #69 index
+              #70 name rs
+              #71 int 1
+        let horiz : -
+          #72 call 1737..1752
+            callee:
+              #73 name cut_bool
+            #74 index
+              #75 name rs
+              #76 int 2
+        result
+          #77 if @8 1758..1849
+            cond:
+              #78 name horiz
+            block 1767..1807
+              result
+                #79 if @9 1769..1805
+                  cond:
+                    #80 name right
+                  block 1778..1789
+                    result
+                      #81 text "right"
+                  block 1795..1805
+                    result
+                      #82 text "left"
+            block 1813..1849
+              result
+                #83 if @10 1815..1847
+                  cond:
+                    #84 name down
+                  block 1823..1833
+                    result
+                      #85 text "down"
+                  block 1839..1847
+                    result
+                      #86 text "up"
+  fn-stmt delta
+    #87 fn (a:-) -> - effects=-
+      block 1865..2023
+        result
+          #88 if @11 1871..2021
+            cond:
+              #89 binary ==
+                #90 name a
+                #91 text "right"
+            block 1887..1905
+              result
+                #92 record 1889..1903
+                  dx:
+                    #93 int 1
+                  dy:
+                    #94 int 0
+            block 1915..2021
+              result
+                #95 if @12 1915..2021
+                  cond:
+                    #96 binary ==
+                      #97 name a
+                      #98 text "left"
+                  block 1930..1949
+                    result
+                      #99 record 1932..1947
+                        dx:
+                          #100 unary -
+                            #101 int 1
+                        dy:
+                          #102 int 0
+                  block 1959..2021
+                    result
+                      #103 if @13 1959..2021
+                        cond:
+                          #104 binary ==
+                            #105 name a
+                            #106 text "down"
+                        block 1974..1992
+                          result
+                            #107 record 1976..1990
+                              dx:
+                                #108 int 0
+                              dy:
+                                #109 int 1
+                        block 2002..2021
+                          result
+                            #110 record 2004..2019
+                              dx:
+                                #111 int 0
+                              dy:
+                                #112 unary -
+                                  #113 int 1
+  fn-stmt step
+    #114 fn (env:-, i:-) -> - effects=[judge]
+      block 2050..3298
+        result
+          #115 if @14 2056..3296
+            cond:
+              #116 unary !
+                #117 field .alive
+                  #118 name env
+            block 2070..2083
+              result
+                #119 call 2072..2081
+                  callee:
+                    #120 name stop
+                  #121 name env
+            block 2089..3296
+              let action : -
+                #122 call 2112..2123
+                  callee:
+                    #123 name decide
+                  #124 name env
+              let d : -
+                #125 call 2141..2154
+                  callee:
+                    #126 name delta
+                  #127 name action
+              let nx : -
+                #128 binary +
+                  #129 field .x
+                    #130 field .head
+                      #131 name env
+                  #132 field .dx
+                    #133 name d
+              let ny : -
+                #134 binary +
+                  #135 field .y
+                    #136 field .head
+                      #137 name env
+                  #138 field .dy
+                    #139 name d
+              let body_without_tail : -
+                #140 call 2260..2297
+                  callee:
+                    #141 name slice
+                  #142 field .body
+                    #143 name env
+                  #144 int 0
+                  #145 binary -
+                    #146 call 2279..2292
+                      callee:
+                        #147 name len
+                      #148 field .body
+                        #149 name env
+                    #150 int 1
+              result
+                #151 if @15 2307..3290
+                  cond:
+                    #152 binary ||
+                      #153 binary ||
+                        #154 binary ||
+                          #155 binary <
+                            #156 name nx
+                            #157 int 0
+                          #158 binary >=
+                            #159 name nx
+                            #160 field .n
+                              #161 name env
+                        #162 binary <
+                          #163 name ny
+                          #164 int 0
+                      #165 binary >=
+                        #166 name ny
+                        #167 field .n
+                          #168 name env
+                  block 2357..2459
+                    result
+                      #169 call 2371..2449
+                        callee:
+                          #170 name stop
+                        #171 record 2376..2448
+                          head:
+                            #172 field .head
+                              #173 name env
+                          body:
+                            #174 field .body
+                              #175 name env
+                          food:
+                            #176 field .food
+                              #177 name env
+                          alive:
+                            #178 bool false
+                          n:
+                            #179 field .n
+                              #180 name env
+                  block 2465..3290
+                    result
+                      #181 if @16 2465..3290
+                        cond:
+                          #182 call 2468..2511
+                            callee:
+                              #183 name contains
+                            #184 name body_without_tail
+                            #185 record 2496..2510
+                              x:
+                                #186 name nx
+                              y:
+                                #187 name ny
+                        block 2512..2614
+                          result
+                            #188 call 2526..2604
+                              callee:
+                                #189 name stop
+                              #190 record 2531..2603
+                                head:
+                                  #191 field .head
+                                    #192 name env
+                                body:
+                                  #193 field .body
+                                    #194 name env
+                                food:
+                                  #195 field .food
+                                    #196 name env
+                                alive:
+                                  #197 bool false
+                                n:
+                                  #198 field .n
+                                    #199 name env
+                        block 2620..3290
+                          result
+                            #200 if @17 2620..3290
+                              cond:
+                                #201 binary &&
+                                  #202 binary ==
+                                    #203 name nx
+                                    #204 field .x
+                                      #205 field .food
+                                        #206 name env
+                                  #207 binary ==
+                                    #208 name ny
+                                    #209 field .y
+                                      #210 field .food
+                                        #211 name env
+                              block 2660..3038
+                                let fx : -
+                                  #212 call 2810..2834
+                                    callee:
+                                      #213 name rand_int
+                                    #214 int 9001
+                                    #215 name i
+                                    #216 field .n
+                                      #217 name env
+                                let fy : -
+                                  #218 call 2857..2881
+                                    callee:
+                                      #219 name rand_int
+                                    #220 int 9002
+                                    #221 name i
+                                    #222 field .n
+                                      #223 name env
+                                result
+                                  #224 call 2895..3028
+                                    callee:
+                                      #225 name stop
+                                    #226 record 2900..3027
+                                      head:
+                                        #227 record 2907..2921
+                                          x:
+                                            #228 name nx
+                                          y:
+                                            #229 name ny
+                                      body:
+                                        #230 call 2929..2963
+                                          callee:
+                                            #231 name concat
+                                          #232 list 2936..2952
+                                            #233 record 2937..2951
+                                              x:
+                                                #234 name nx
+                                              y:
+                                                #235 name ny
+                                          #236 field .body
+                                            #237 name env
+                                      food:
+                                        #238 record 2989..3003
+                                          x:
+                                            #239 name fx
+                                          y:
+                                            #240 name fy
+                                      alive:
+                                        #241 bool true
+                                      n:
+                                        #242 field .n
+                                          #243 name env
+                              block 3044..3290
+                                result
+                                  #244 record 3122..3280
+                                    head:
+                                      #245 record 3129..3143
+                                        x:
+                                          #246 name nx
+                                        y:
+                                          #247 name ny
+                                    body:
+                                      #248 call 3164..3227
+                                        callee:
+                                          #249 name concat
+                                        #250 list 3171..3187
+                                          #251 record 3172..3186
+                                            x:
+                                              #252 name nx
+                                            y:
+                                              #253 name ny
+                                        #254 call 3189..3226
+                                          callee:
+                                            #255 name slice
+                                          #256 field .body
+                                            #257 name env
+                                          #258 int 0
+                                          #259 binary -
+                                            #260 call 3208..3221
+                                              callee:
+                                                #261 name len
+                                              #262 field .body
+                                                #263 name env
+                                            #264 int 1
+                                    food:
+                                      #265 field .food
+                                        #266 name env
+                                    alive:
+                                      #267 bool true
+                                    n:
+                                      #268 field .n
+                                        #269 name env
+  fn-stmt dist
+    #270 fn (env:-) -> - effects=-
+      block 3313..3376
+        result
+          #271 binary +
+            #272 call 3315..3343
+              callee:
+                #273 name abs
+              #274 binary -
+                #275 field .x
+                  #276 field .food
+                    #277 name env
+                #278 field .x
+                  #279 field .head
+                    #280 name env
+            #281 call 3346..3374
+              callee:
+                #282 name abs
+              #283 binary -
+                #284 field .y
+                  #285 field .food
+                    #286 name env
+                #287 field .y
+                  #288 field .head
+                    #289 name env
+  let init : -
+    #290 record 3389..3473
+      head:
+        #291 record 3396..3408
+          x:
+            #292 int 0
+          y:
+            #293 int 0
+      body:
+        #294 list 3416..3430
+          #295 record 3417..3429
+            x:
+              #296 int 0
+            y:
+              #297 int 0
+      food:
+        #298 record 3438..3450
+          x:
+            #299 int 2
+          y:
+            #300 int 1
+      alive:
+        #301 bool true
+      n:
+        #302 name grid
+  let result : -
+    #303 construct iterate @18 3488..3518
+      #304 int 100
+      #305 name init
+      #306 name step
+      #307 name dist
+  result
+    #308 record 3521..3728
+      reason:
+        #309 field .reason
+          #310 field .resume
+            #311 name result
+      rounds:
+        #312 field .rounds
+          #313 field .resume
+            #314 name result
+      measures:
+        #315 field .measures
+          #316 field .resume
+            #317 name result
+      head:
+        #318 field .head
+          #319 field .value
+            #320 name result
+      food:
+        #321 field .food
+          #322 field .value
+            #323 name result
+      alive:
+        #324 field .alive
+          #325 field .value
+            #326 name result
+      body_len:
+        #327 call 3705..3727
+          callee:
+            #328 name len
+          #329 field .body
+            #330 field .value
+              #331 name result
+sites 19
+  @0 #26 handle 1083..1208 fn=#25 in=-
+  @1 #27 cut 1090..1096 fn=#25 in=-
+  @2 #38 consume:consume 1179..1197 fn=#37 in=-
+  @3 #43 state 1365..1388 fn=#42 in=-
+  @4 #50 construct:test 1404..1466 fn=#42 in=-
+  @5 #53 construct:test 1482..1544 fn=#42 in=-
+  @6 #56 construct:test 1560..1626 fn=#42 in=-
+  @7 #59 effect:judge 1642..1654 fn=#42 in=-
+  @8 #77 if 1758..1849 fn=#42 in=-
+  @9 #79 if 1769..1805 fn=#42 in=-
+  @10 #83 if 1815..1847 fn=#42 in=-
+  @11 #88 if 1871..2021 fn=#87 in=-
+  @12 #95 if 1915..2021 fn=#87 in=-
+  @13 #103 if 1959..2021 fn=#87 in=-
+  @14 #115 if 2056..3296 fn=#114 in=-
+  @15 #151 if 2307..3290 fn=#114 in=-
+  @16 #181 if 2465..3290 fn=#114 in=-
+  @17 #200 if 2620..3290 fn=#114 in=-
+  @18 #303 construct:iterate 3488..3518 fn=- in=-

@@ -21,6 +21,7 @@ fn 定值端口<'a>(p: f64, calls: &'a RefCell<u64>) -> Ports<'a> {
                 cost: 0.0,
                 perms: vec![],
                 mode_share: vec![],
+                confidence: vec![],
             })
         }))
         .with(FnPort::generate("fixed-0", move |_p, _c, n, _r| {
@@ -29,6 +30,7 @@ fn 定值端口<'a>(p: f64, calls: &'a RefCell<u64>) -> Ports<'a> {
                 outputs: (0..n).map(|i| serde_json::json!({"第": i})).collect(),
                 tokens: 0,
                 cost: 0.0,
+                ..Default::default()
             })
         }))
         .with(FnPort::ask("fixed-0", |_s, _q| {
@@ -469,6 +471,7 @@ let 出品 = gen("造两个", [], 2, 0);
                     outputs: (0..n).map(|i| serde_json::json!({"第": i})).collect(),
                     tokens: 30,
                     cost: 每次,
+                    ..Default::default()
                 })
             }))
             .with(FnPort::ask("fixed-0", |_s, _q| {
@@ -773,6 +776,7 @@ fn escalate是总次数上限不是每次运行的上限() {
                     cost: 0.0,
                     perms: vec![],
                     mode_share: vec![],
+                    confidence: vec![],
                 })
             }))
             .with(FnPort::generate("fixed-0", |_p, _c, _n, _r| {

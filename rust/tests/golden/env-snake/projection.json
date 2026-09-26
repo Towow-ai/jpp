@@ -1,0 +1,29 @@
+{
+  "asks": 0,
+  "calls": 3,
+  "effects": [],
+  "judge_registrations": 9,
+  "pending": [],
+  "returned_unsure": [],
+  "status": "returned",
+  "usd": 0.0,
+  "value": {
+    "alive": true,
+    "body_len": 2,
+    "food": {
+      "x": 0,
+      "y": 3
+    },
+    "head": {
+      "x": 2,
+      "y": 1
+    },
+    "measures": [
+      3,
+      2,
+      1
+    ],
+    "reason": "stop",
+    "rounds": 3
+  }
+}

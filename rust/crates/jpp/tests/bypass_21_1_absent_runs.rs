@@ -61,6 +61,7 @@ fn 缺席<'a>() -> Ports<'a> {
                     .collect(),
                 tokens: 0,
                 cost: 0.0,
+                ..Default::default()
             })
         }))
 }
@@ -84,6 +85,7 @@ fn 判过而拿不准<'a>() -> Ports<'a> {
             cost: 0.0,
             mode_share: vec![],
             perms: vec![],
+            confidence: vec![],
         })
     }))
 }

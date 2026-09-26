@@ -24,6 +24,7 @@ mod j05;
 mod j06;
 mod j07;
 mod j08;
+pub(crate) use j08::action_name as j08_action_name;
 mod j09;
 mod j10;
 mod j11;

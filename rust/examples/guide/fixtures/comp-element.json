@@ -1,0 +1,9 @@
+{
+  "description": "element() 构造最小示例。",
+  "calibrations": [
+    {"key": "elem-ok", "hi": 0.7, "lo": 0.3, "n": 1, "status": "上岗", "delta": 0.05}
+  ],
+  "observations": [
+    {"on": ["样品 A"], "op": "test", "text": "这份材料是否合格？", "calib": "elem-ok", "answer": {"Noul": 0.9}}
+  ]
+}

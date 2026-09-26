@@ -210,6 +210,28 @@ pub struct Question {
     /// 依据：B58（`12` §2.11 第 4 条；`20` v2 §3.10「文本 → 题面」行）
     #[serde(default, skip_serializing_if = "is_trusted")]
     pub taint: Taint,
+    /// 是非题的答案标签（B155，步 15i）：`test(题面, calib, {labels: {yes, no}})`，线上作
+    /// `criteria: {"true": yes, "false": no}`。它改变判断器读到的题，所以**有值时**进题哈希
+    /// （无值时哈希与步 15i 前逐字节相同）；为空不序列化。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub labels: Option<TestLabels>,
+}
+
+/// 是非题的两个答案标签（B155）：`yes` 对应读数 `p` 的「真」，`no` 对应「假」。
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TestLabels {
+    pub yes: String,
+    pub no: String,
+}
+
+impl TestLabels {
+    /// 追加进题哈希、题式哈希的分量（只在有标签时追加）
+    fn hash_parts(l: &Option<TestLabels>) -> Vec<&str> {
+        match l {
+            Some(l) => vec!["labels", l.yes.as_str(), l.no.as_str()],
+            None => vec![],
+        }
+    }
 }
 
 fn is_false(b: &bool) -> bool {
@@ -270,7 +292,23 @@ impl Question {
             over_kind: None,
             permute: false,
             taint: Taint::Trusted,
+            labels: None,
         }
+    }
+
+    /// 带答案标签（B155，步 15i）：写上 `labels` 并按「原分量 + 标签分量」重算题哈希。
+    /// `None` 时哈希与不带标签的题相同。
+    pub fn with_labels(mut self, labels: Option<TestLabels>) -> Question {
+        if labels.is_none() {
+            return self;
+        }
+        let scale = self.scale.join("\u{1e}");
+        let evidence = self.evidence.join("\u{1e}");
+        let mut parts = vec!["q", self.op.phys(), &self.text, &scale, &evidence];
+        parts.extend(TestLabels::hash_parts(&labels));
+        self.hash = hash_of(&parts);
+        self.labels = labels;
+        self
     }
 
     /// B1 的「主体」：判断读状态的哪个槽、几个对象。由题型推出——
@@ -332,9 +370,34 @@ pub struct Form {
     /// `fill` 时并进题。不进 `form_hash`；Trusted 不序列化。
     #[serde(default, skip_serializing_if = "is_trusted")]
     pub taint: Taint,
+    /// 是非题式的答案标签（B155，步 15i）：有值时进 `form_hash`，`fill` 带到题上。为空不序列化。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub labels: Option<TestLabels>,
 }
 
 impl Form {
+    /// 带答案标签（B155，步 15i）：写上 `labels` 并按「原分量 + 标签分量」重算题式哈希。
+    /// `None` 时哈希与不带标签的题式相同。
+    pub fn with_labels(mut self, labels: Option<TestLabels>) -> Form {
+        if labels.is_none() {
+            return self;
+        }
+        let scale = self.scale.join("\u{1e}");
+        let evidence = self.evidence.join("\u{1e}");
+        let mut parts = vec![
+            "form",
+            self.op.phys(),
+            &self.template,
+            &scale,
+            &evidence,
+            self.presupposition.as_deref().unwrap_or(""),
+            self.request.as_deref().unwrap_or(""),
+        ];
+        parts.extend(TestLabels::hash_parts(&labels));
+        self.hash = hash_of(&parts);
+        self.labels = labels;
+        self
+    }
     /// 解析模板里的 `{槽}`。`{{` / `}}` 不作转义——模板里不支持字面花括号，出现未闭合的 `{` 报错。
     pub fn slots_of(template: &str) -> Result<Vec<String>, String> {
         let mut out: Vec<String> = vec![];
@@ -387,6 +450,7 @@ impl Form {
             over_kind: None,
             permute: false,
             taint: Taint::Trusted,
+            labels: None,
         })
     }
     /// 按填法得到一道题。槽必须恰好填满：缺槽、多槽都是错——多出来的键多半是拼错的槽名。
@@ -415,7 +479,9 @@ impl Form {
             &self.calib,
             self.scale.clone(),
             self.evidence.clone(),
-        );
+        )
+        // B155：答案标签是题的一部分，进题哈希（无标签时不变）
+        .with_labels(self.labels.clone());
         q.presupposition = self.presupposition.clone();
         q.request = self.request.clone();
         q.form_hash = Some(self.hash.clone());
@@ -548,7 +614,44 @@ impl State {
             .join("\n")
     }
 
-    /// 送给模型的状态 JSON（H1：题面按路径引用槽）。
+    /// 线上的状态 JSON（B155，步 15i）：与 [`State::to_json`] 同形，只是不含 `over`——候选随题走，
+    /// 只作该 `select` 题的 `criteria` 发出；状态只发材料 `on`/`ctx`/`ref`。键与哈希仍取 `to_json`。
+    /// 依据：B155（地基/附注/2026-09-26-批6裁定.md §三）
+    pub fn wire_json(&self) -> Json {
+        let mut j = self.to_json();
+        if let Json::Object(o) = &mut j {
+            o.remove("over");
+        }
+        j
+    }
+
+    /// 候选标签（B155，步 15i，渲染 `r2` 的一部分）：`over` 里全是恰好 `{label: Text, text: Text}` 两键的
+    /// 记录、且标签两两不同时，返回 `(label, text)` 表——线上 `criteria` 键取 `label`、值取 `text`；
+    /// 否则 `None`，键用 `c{k}`、值取原内容。标签键的对象按键名排序发出，候选顺序由标签定，换不了序。
+    pub fn over_labels(&self) -> Option<Vec<(String, Json)>> {
+        if self.over.is_empty() {
+            return None;
+        }
+        let mut out: Vec<(String, Json)> = vec![];
+        for m in &self.over {
+            let o = m.content.as_object()?;
+            let (l, t) = (o.get("label")?.as_str()?, o.get("text")?);
+            if o.len() != 2 || !t.is_string() || out.iter().any(|(k, _)| k == l) {
+                return None;
+            }
+            out.push((l.to_string(), t.clone()));
+        }
+        Some(out)
+    }
+
+    /// 材料哈希（B155，步 15i）：`hash(on, ctx, ref)`。刷新与提升按它分组，同材料上候选集不同的题
+    /// 合成一次调用；`StateHash`（`hash`，含 `over`）仍是账本键与缓存键的状态分量。
+    pub fn mat_hash(&self) -> String {
+        hash_of(&["mat", &canon(&self.wire_json())])
+    }
+
+    /// 送给模型的状态 JSON（H1：题面按路径引用槽）。B155 起线上改发 [`State::wire_json`]，
+    /// 这里仍是状态哈希与夹具观察键的来源。
     pub fn to_json(&self) -> Json {
         let m = |v: &Vec<Mat>| Json::Array(v.iter().map(|x| x.content.clone()).collect());
         let mut o = serde_json::Map::new();
@@ -643,6 +746,12 @@ pub struct PendingCut {
     pub calib: Option<String>,
     /// `cut` 的代价记录 `{cost: [fp, fn]}`（B29）
     pub cost: Option<(f64, f64)>,
+    /// `cut` 的 `alpha: a`（B129，步 20j-1）：在 α ≤ a 的证书里选
+    pub alpha: Option<f64>,
+    /// `cut` 的作者声明线（B128，步 20j-1；`cuts`、`closed` 为步 20j-3）
+    pub declare: Option<crate::bridge::DeclaredLine>,
+    /// `cut` 的统计量（B153、B154，步 20j-3）；缺省 `max`
+    pub stat: crate::stat::Stat,
     pub site: Span,
     /// `cut` 时分配的出口号
     pub id: usize,
@@ -653,6 +762,22 @@ pub struct PendingCut {
 
 impl PendingCut {
     pub fn exit(&self) -> Option<Rc<Exit>> {
+        self.resolved.borrow().clone()
+    }
+}
+
+/// 未取回的生成（B149，步 15h-2）。`id` 是生成登记序号；`mark` 是登记时读数号计数器的值，用来与判断比
+/// 登记先后（账本按登记序，B149）。作业本身（票据、键、提示）留在运行时。
+#[derive(Debug)]
+pub struct PendingGen {
+    pub id: u64,
+    pub mark: u64,
+    pub site: Span,
+    pub resolved: RefCell<Option<Value>>,
+}
+
+impl PendingGen {
+    pub fn value(&self) -> Option<Value> {
         self.resolved.borrow().clone()
     }
 }
@@ -715,6 +840,16 @@ pub struct Exit {
     /// **合成出口的分量**（B131，步 25-2b）：由内核合成构造 `compose` 从这些出口按封闭规则派生，是合成出口的
     /// 谱系入口；非合成出口为空。不序列化。放行合取与谱系穿过它在步 25-9 落（此前合成出口一律按冷线不放行，25-1）。
     pub parts: RefCell<Vec<Rc<Exit>>>,
+    /// **宿主接受了作者声明线放行**（B128，步 20j-1 加位、恒假；20j-2 由 `EntryArgs.accept.declared_lines`
+    /// 置位并按 `20` v2 §3.4 改写 [`Exit::releases`]）。只对 `LineGrade::Declared` 的出口有意义。
+    pub host_accepts_declared: Cell<bool>,
+    /// **计入联合界的 α**（B161，步 25d）：`cut` 出口的线有证书、等级为正式或题式级、不在范围外、范围与带宽都已知时
+    /// 取证书的 `alpha_eff`；`ask` 出口取 0（人答即真值，B31）；其余 `None`（按 1 计、算一个未知），包括试用、临时上岗、
+    /// 声明线。不序列化。
+    pub alpha: Cell<Option<f64>>,
+    /// **合成出口的联合界**（B161）：`(alpha_bound, n_unknown)`，`alpha_bound = min(1, Σ 分量 α)`；非合成出口为 `None`。
+    /// 不序列化；读法内置 `cert` 读它。
+    pub bound: Cell<Option<(f64, u32)>>,
 }
 
 impl Exit {
@@ -724,8 +859,17 @@ impl Exit {
     ///
     /// 不看 taint：taint 是材料的属性，由 [`Exit::guard_trusted`] 合取。报告 `exits` 表的 `releases`
     /// 就是这个函数的值。`grade` 为 `None` 的出口（不来自 `cut`）没有线，等级一项不适用，只看正交位。
+    ///
+    /// 步 20j-2（B128；`20` v2 §3.4）：`grade = Declared` 时等级一项取 [`Exit::host_accepts_declared`]（宿主接受作者
+    /// 声明线放行），其余等级照 `LineGrade::releases`。`None` 仍为真——`None ⇒ 假` 与合成出口的分量合取是 B131
+    /// （库轨 25-9）的改动，按 COORDINATION 先合入者写。
     pub fn releases(&self) -> bool {
-        self.grade.get().is_none_or(LineGrade::releases)
+        let 等级 = match self.grade.get() {
+            None => true,
+            Some(LineGrade::Declared) => self.host_accepts_declared.get(),
+            Some(g) => g.releases(),
+        };
+        等级
             && !self.scope_out.get()
             && !self.suspend_candidate.get()
             // J-15：本次路径上有未测的判据，不放行（步 20a-1 起；此前不查）
@@ -913,6 +1057,9 @@ pub enum Value {
     /// 运行时在检视点（内置与构造的实参、`if` 条件、运算、取字段、函数与程序返回）把它换成 `Exit`；
     /// 解析一次、缓存出口，复制出去的各份共享同一个出口（同一份责任）。
     Cut(Rc<PendingCut>),
+    /// 惰性生成值（B149，步 15h-2）：`gen` 在调用点只把调用交给生成端口（非阻塞），结果在第一次被检视时
+    /// 才取回并记账；检视点与 `Cut` 相同。解析一次、缓存结果，复制出去的各份共享同一个结果。
+    Gen(Rc<PendingGen>),
     /// 未决责任 `U(q)`：`handle` 的 unsure 臂收到的就是它。不可伪造（只能由 handle 交付）、
     /// 不能默默变成材料或 JSON 就算销账。与出口共享同一个 `Rc<Exit>`，销账记录是同一份。
     Duty(Rc<Exit>),
@@ -966,6 +1113,10 @@ impl Value {
                     Sources::value(&c.reading.ledger_key, &c.reading.q_hash),
                 ),
             },
+            // 未取回的生成（步 15h-2）：取回后按结果；取回前保守答 untrusted
+            Value::Gen(g) => g
+                .value()
+                .map_or(Provenance::from(Taint::Untrusted), |v| v.prov()),
             // B58（步 17b）：题带题面 taint
             Value::Question(q) => Provenance::new(q.taint, Sources::from_set(q.from_key.clone())),
             Value::Form(f) => Provenance::from(f.taint),
@@ -1046,6 +1197,7 @@ impl Value {
                 .fold(Taint::Trusted, |t, (_, x)| Taint::join(t, x.taint())),
             Value::Exit(e) => e.taint,
             Value::Cut(c) => c.exit().map_or(c.reading.state_taint, |e| e.taint),
+            Value::Gen(g) => g.value().map_or(Taint::Untrusted, |v| v.taint()),
             Value::Stop(x) => x.taint(),
             Value::Fail(_, t) => t.taint,
             Value::Question(q) => q.taint,
@@ -1096,6 +1248,7 @@ impl Value {
             Value::Form(_) => "Form",
             Value::Reading(_) => "Reading",
             Value::Exit(_) | Value::Cut(_) => "Exit",
+            Value::Gen(_) => "List",
             Value::Duty(_) => "Unsure",
             Value::Fail(..) => "Fail",
             Value::Stop(_) => "Stop",
@@ -1146,6 +1299,10 @@ impl Value {
             Value::Cut(c) => match c.exit() {
                 Some(e) => Value::Exit(e).to_json(),
                 None => json!({"exit": "unresolved", "id": c.id, "q": c.reading.q_hash}),
+            },
+            Value::Gen(g) => match g.value() {
+                Some(v) => v.to_json(),
+                None => json!({"gen_pending": g.id}),
             },
             Value::Duty(e) => json!({"unsure": e.cause(), "duty": e.id, "q": e.q_hash}),
             Value::Fail(s, _) => json!({"fail": s.as_ref()}),
@@ -1206,6 +1363,9 @@ impl Value {
             // 运行时在运算前已把未解析出口解析掉；这里只剩已解析的
             (Value::Cut(a), _) => Value::Exit(a.exit()?).equals(other)?,
             (_, Value::Cut(b)) => self.equals(&Value::Exit(b.exit()?))?,
+            // 运行时在运算前已把生成取回；这里只剩已取回的
+            (Value::Gen(a), _) => a.value()?.equals(other)?,
+            (_, Value::Gen(b)) => self.equals(&b.value()?)?,
             // 责任按身份比：同一道题的两个未决是两份责任
             (Value::Duty(a), Value::Duty(b)) => a.id == b.id,
             (Value::Fn(a), Value::Fn(b)) => a.hash == b.hash,
@@ -1255,5 +1415,46 @@ mod form_tests {
             Question::new(Op::Test, "周一 是否早于 周二？", "k", vec![]).hash
         );
         assert!(Form::slots_of("未闭合 {a").is_err());
+    }
+
+    /// B155（步 15i）：线上状态不含 `over`；材料哈希只随 `on`/`ctx`/`ref` 变；`StateHash` 仍含 `over`、
+    /// 算法不变（钉一个现值，账本键与夹具命中靠它）。
+    #[test]
+    fn 线上形状与材料哈希() {
+        let m = |x: &str| Mat::literal(json!(x));
+        let a = State::new(
+            vec![m("材料")],
+            vec![m("语境")],
+            vec![],
+            vec![m("甲"), m("乙")],
+            false,
+        );
+        let b = State::new(
+            vec![m("材料")],
+            vec![m("语境")],
+            vec![],
+            vec![m("丙")],
+            false,
+        );
+        let c = State::new(vec![m("材料")], vec![m("语境")], vec![], vec![], false);
+        let d = State::new(
+            vec![m("别的")],
+            vec![m("语境")],
+            vec![],
+            vec![m("甲"), m("乙")],
+            false,
+        );
+        assert_eq!(a.wire_json(), json!({"on": "材料", "ctx": ["语境"]}));
+        assert_eq!(a.to_json()["over"], json!(["甲", "乙"]));
+        assert_eq!(a.mat_hash(), b.mat_hash());
+        assert_eq!(a.mat_hash(), c.mat_hash());
+        assert_ne!(a.mat_hash(), d.mat_hash());
+        assert_ne!(a.hash, b.hash, "StateHash 仍含 over");
+        assert_eq!(a.hash, hash_of(&["state", &canon(&a.to_json())]));
+        assert_eq!(
+            c.hash,
+            hash_of(&["state", &canon(&c.wire_json())]),
+            "无 over 时两者同形"
+        );
     }
 }

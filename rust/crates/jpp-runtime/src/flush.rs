@@ -1,4 +1,4 @@
-//! 刷新：按状态分组成层、同键只问一次、调用客户端、写账本、填答案（20 §2.3 `flush.rs`）。
+//! 刷新：按材料分组成层（B155 前按状态）、同键只问一次、调用客户端、写账本、填答案（20 §2.3 `flush.rs`）。
 //! 步 4a 从 `interp.rs` 机械拆出，只搬代码、不改逻辑（21 §三·3）。
 
 use super::*;
@@ -16,9 +16,13 @@ pub(crate) enum 发出前 {
     停发(Vec<(Rc<Question>, Rc<Reading>, String)>, Span, String),
 }
 
-/// 排进窗口、等发出的一组题（步 15e）
+/// 一道待发的题：题、读数句柄、账本键
+type 题项 = (Rc<Question>, Rc<Reading>, String);
+
+/// 排进窗口、等发出的一组题（步 15e）。`states[i]` 是 `items[i]` 的状态：一组按材料哈希分（B155，
+/// 步 15i），组内各题 `on`/`ctx`/`ref` 相同、`over` 可不同
 pub(crate) struct 待发 {
-    pub(crate) state: Rc<State>,
+    pub(crate) states: Vec<Rc<State>>,
     site: Span,
     pub(crate) items: Vec<(Rc<Question>, Rc<Reading>, String)>,
     同键: Vec<Vec<Rc<Reading>>>,
@@ -36,14 +40,21 @@ impl<'a> Interp<'a> {
     /// 置换测量（`perms`, `mode_share`）是读数的一部分，出口由它决定 `Pick` / `tie` / `untested`（J-15）。
     /// 只填答案、不填测量，同一条读数在首发处是 `pick`/`band`，在账本命中处（重放、续跑、推测后真站点）
     /// 就成了 `untested`。所以凡是从账本或从同键首发取答的地方，都经这里。
+    ///
+    /// 自报置信度（B154，步 20j-3）同理：它是判断器随这条答案给的第二个输出，与答案同处取回，
+    /// 否则 `stat: "confidence"` 的出口在首发处与重放处不同。
     pub(crate) fn fill_from_record(
         &self,
         r: &Reading,
         a: Answer,
         perm: Option<jpp_ledger::PermMeasure>,
+        confidence: Option<f64>,
     ) {
         if let Some(pm) = perm {
             r.set_mode_share(pm.mode_share, pm.perms);
+        }
+        if let Some(c) = confidence {
+            self.置信表.borrow_mut().insert(r.id, c);
         }
         self.fill_answer(r, a);
     }
@@ -54,18 +65,39 @@ impl<'a> Interp<'a> {
     /// 这里的分层是天然的：登记发生在求值途中，依赖前一条出口的判断只可能在前一次刷新**之后**
     /// 才登记得上（要拿到出口就得先 `cut`，而 `cut` 本身就是刷新点）。所以「一次刷新 = 一层」，
     /// 层内按状态哈希分组融合——与 Python `_calls_from_plans` 的「同状态哈希」同一条规则。
+    /// B155（步 15i）起改按材料哈希分组：`over` 随题走，同材料上候选集不同的题也在一次调用里。
     pub(crate) fn flush(&mut self, reason: &str) -> R<()> {
+        let r = self.flush_inner(reason);
+        // 层末落盘（B55，步 18b）：刷新即一层；这一层与此前登记的条目按序写出
+        if r.is_ok() {
+            self.层末落盘()?;
+        }
+        r
+    }
+
+    fn flush_inner(&mut self, reason: &str) -> R<()> {
         debug_assert!(
             refresh_point(reason).is_some(),
             "刷新点 {reason} 未登记在 readings.rs::REFRESH_POINTS"
         );
         // B93（步 22-0）：预算停机在刷新点降级。首跑发不起的组记缺席账（首因 `budget`），
         // 审计重放照账本在同一站点停发，所以这里不再补核「最近一次取答」处的预算。
+        // B160（步 15h-2）：这一层要发的还有登记以来的生成；新的一层开始前先收上一层（至多一个开着的层），
+        // 生成先交出（非阻塞），本层的判断条目记进层里，层收齐时按登记序入账
+        let 有生成 = self.有未交生成();
+        if self.pending.is_empty() && !有生成 {
+            return Ok(());
+        }
+        self.收层()?;
+        if 有生成 {
+            self.交出生成()?;
+        }
         if self.pending.is_empty() {
             return Ok(());
         }
         let pending = std::mem::take(&mut self.pending);
-        // 融合 pass（12 §4 序 2）：同状态、同层的题合成一次调用（P5 / 12 §10 G2）。
+        // 融合 pass（12 §4 序 2）：同材料、同层的题合成一次调用（P5 / 12 §10 G2；B155 起按材料哈希
+        // `hash(on, ctx, ref)`，同材料上候选集不同的 `select` 也合成一次）。
         // **关掉就逐题发**——这正是 §4 表里「不做会坏什么：E8 成本 +45%」那一栏要量的东西。
         let mut order: Vec<String> = vec![];
         let mut groups: HashMap<String, Vec<PendingJudge>> = HashMap::new();
@@ -106,8 +138,10 @@ impl<'a> Interp<'a> {
         for (idx, p) in 逐条 {
             // 不融合时逐题一组，键取账本键：同一个键的多条登记（真站点与提升、推测）合成一组、只问一次，
             // 与融合开时组内去重同口径（复核修复 8）
+            // B155（步 15i）：分组键是材料哈希，不是 `StateHash`（`over` 随题走，不分组）。
+            // 依据：B155（地基/附注/2026-09-26-批6裁定.md §三）
             let h = if fuse {
-                p.state.hash.clone()
+                p.state.mat_hash()
             } else {
                 p.items[0].2.clone()
             };
@@ -145,7 +179,7 @@ impl<'a> Interp<'a> {
             // 发出前的停：审计缺记录、缺席处置报错（`Err`），或缺席处置结束本次刷新（`结束`）
             let mut 前停: Option<R<()>> = None;
             // 预算发不起的那一组（B93）：本窗发完再停发它，队列里余下的组接着逐组核（同样停发）
-            let mut 停发组: Option<(Vec<(Rc<Question>, Rc<Reading>, String)>, Span, String)> = None;
+            let mut 停发组: Option<(Vec<题项>, Span, String)> = None;
             while 窗.len() < w {
                 let Some(h) = 队列.pop_front() else {
                     break;
@@ -171,7 +205,8 @@ impl<'a> Interp<'a> {
             let 批起 = std::time::Instant::now();
             let 首发: Vec<Result<jpp_effects::JudgeResult, EffectError>> = if 窗.len() == 1 {
                 let ask: Vec<&Question> = 窗[0].items.iter().map(|(q, _, _)| q.as_ref()).collect();
-                vec![self.call_judge(&窗[0].state, &ask)]
+                let states = 窗[0].states.clone();
+                vec![self.call_judge(&states, &ask)]
             } else if 窗.is_empty() {
                 vec![]
             } else {
@@ -255,7 +290,6 @@ impl<'a> Interp<'a> {
     /// 一组题发出前的处理（步 15e 从 `flush` 的组循环原样搬出）：同键去重、重放已记缺席、时延预算、
     /// 熔断、审计、预算核对。`已排` 是同窗此前已排队未发的调用数（串行为 0）。
     fn flush_before_send(&mut self, group: Vec<PendingJudge>, 已排: u64) -> R<发出前> {
-        let state = group[0].state.clone();
         let site = group[0].site;
         let only_speculative = group.iter().all(|p| p.speculative);
         // 审查修复 3b：真站点登记的键（预算停发只标它们；只按推测进组的键没走到，不记缺席账）
@@ -264,8 +298,14 @@ impl<'a> Interp<'a> {
             .filter(|p| !p.speculative)
             .flat_map(|p| p.items.iter().map(|(_, _, k)| k.clone()))
             .collect();
-        let items: Vec<(Rc<Question>, Rc<Reading>, String)> =
-            group.into_iter().flat_map(|p| p.items).collect();
+        // 逐题带自己的状态（B155：一组按材料分，组内 `over` 可不同）
+        let (各态, items): (Vec<Rc<State>>, Vec<题项>) = group
+            .into_iter()
+            .flat_map(|p| {
+                let st = p.state;
+                p.items.into_iter().map(move |it| (st.clone(), it))
+            })
+            .unzip();
         if items.is_empty() {
             return Ok(发出前::跳过);
         }
@@ -282,13 +322,16 @@ impl<'a> Interp<'a> {
         let mut 首见: HashMap<String, usize> = HashMap::new();
         let mut 同键: Vec<Vec<Rc<Reading>>> = vec![];
         let mut 去重: Vec<(Rc<Question>, Rc<Reading>, String)> = vec![];
-        for (q, r, k) in items.into_iter() {
+        // 同一个账本键即同一个状态（键含 `StateHash`），留首条的状态
+        let mut states: Vec<Rc<State>> = vec![];
+        for (st, (q, r, k)) in 各态.into_iter().zip(items) {
             match 首见.get(&k) {
                 Some(i) => 同键[*i].push(r),
                 None => {
                     首见.insert(k.clone(), 去重.len());
                     同键.push(vec![r.clone()]);
                     去重.push((q, r, k));
+                    states.push(st);
                 }
             }
         }
@@ -297,7 +340,7 @@ impl<'a> Interp<'a> {
         // 首跑的失败尝试按记的次数计入审计重放的预算（逐次计费，B32 裁定选项 A）。
         let 已记: Vec<Option<(String, String, u64)>> = items
             .iter()
-            .map(|(_, _, k)| match self.ledger.get(&format!("absent:{k}")) {
+            .map(|(_, _, k)| match self.账本查(&format!("absent:{k}")) {
                 Some(Entry::Absent {
                     cause,
                     detail,
@@ -391,8 +434,10 @@ impl<'a> Interp<'a> {
             let texts: Vec<&str> = items.iter().map(|(q, _, _)| q.text.as_str()).collect();
             return Err(self.replay_missing(format!("judge「{}」", texts.join("|")), site));
         }
+        // 同材料合批后的窗口核对（B155 (5)：按材料加各题 criteria 总量；画像测过窗口才核）
+        self.check_window_group(&states, &items, site);
         Ok(发出前::发出(待发 {
-            state,
+            states,
             site,
             items,
             同键,
@@ -412,7 +457,7 @@ impl<'a> Interp<'a> {
         layer_questions: &mut usize,
     ) -> R<()> {
         let 待发 {
-            state,
+            states,
             site,
             items,
             同键,
@@ -441,7 +486,7 @@ impl<'a> Interp<'a> {
                     self.预算停发(&items, site, &format!("@{}", site.start), 尝试);
                     return Ok(());
                 }
-                结果 = self.call_judge(&state, &ask);
+                结果 = self.call_judge(&states, &ask);
                 self.cost.calls += 1;
                 尝试 += 1;
             }
@@ -484,7 +529,8 @@ impl<'a> Interp<'a> {
         *layer_questions += items.len();
         let shares = res.mode_share;
         let res_perms = res.perms;
-        // 一次调用里不止一道题 = 同状态合并发出（融合），账本条目记下是谁合并的（D8.2）
+        let 置信 = res.confidence;
+        // 一次调用里不止一道题 = 同材料合并发出（融合），账本条目记下是谁合并的（D8.2）
         let merged = items.len() > 1;
         for (idx, ((q, r, key), a)) in items.iter().zip(res.answers.into_iter()).enumerate() {
             // perms 跟着读数走：改 K 产生**新键**而不是覆盖旧值，两边并存
@@ -497,11 +543,14 @@ impl<'a> Interp<'a> {
                 }),
                 _ => None,
             };
+            let confidence = 置信.get(idx).copied().flatten();
             // 测量先落到读数上：下面的运行期证据（`evidence`）从读数取 `perms`/`mode_share`
             if let Some(pm) = perm {
                 r.set_mode_share(pm.mode_share, pm.perms);
             }
-            self.validate_answer(&a, q, &state, site)?;
+            // 每题按自己的状态核（B155：同一次调用里各 `select` 的候选数可以不同）
+            let state = &states[idx];
+            self.validate_answer(&a, q, state, site)?;
             // B59（步 17a）：跳按依赖计。parents = 状态的来源读数 ∪ 题的来源出口（排序去重），
             // hop = 1 + max(父条目的 hop)，无父为 1；父条目不在账本或不是判断条目按 0 计。
             // 只数结构通道（下界），经普通值的依赖待候选 B84。
@@ -515,28 +564,32 @@ impl<'a> Interp<'a> {
                 .collect();
             let hop = 1 + parents
                 .iter()
-                .map(|p| match self.ledger.get(p) {
+                .map(|p| match self.账本查(p) {
                     Some(Entry::Judge { hop, .. }) => *hop,
                     _ => 0,
                 })
                 .max()
                 .unwrap_or(0);
-            self.ledger.put(Entry::Judge {
-                key: key.clone(),
-                jkey: self.judge_keys.get(key).cloned(),
-                answer: a.clone(),
-                tokens: res.tokens,
-                cost: res.cost,
-                model_id: self.model_id.clone(),
-                call: self.cost.calls,
-                calib_ref: Some(Box::new(CalibRef::declared(&r.calib))),
-                layer: self.layers.len() as u32 + 1,
-                merged_by: if merged { Some("fuse".into()) } else { None },
-                parents,
-                hop,
-                reused_from: None,
-                perm,
-            });
+            self.记账(
+                r.id,
+                Entry::Judge {
+                    key: key.clone(),
+                    jkey: self.judge_keys.get(key).cloned(),
+                    answer: a.clone(),
+                    tokens: res.tokens,
+                    cost: res.cost,
+                    model_id: self.model_id.clone(),
+                    call: self.cost.calls,
+                    calib_ref: Some(Box::new(CalibRef::declared(&r.calib))),
+                    layer: self.layers.len() as u32 + 1,
+                    merged_by: if merged { Some("fuse".into()) } else { None },
+                    parents,
+                    hop,
+                    reused_from: None,
+                    perm,
+                    confidence,
+                },
+            );
             self.trace.push(
                 "judge",
                 key,
@@ -567,11 +620,11 @@ impl<'a> Interp<'a> {
                     stratum: None,
                 },
             ));
-            self.fill_from_record(r, a.clone(), perm);
+            self.fill_from_record(r, a.clone(), perm, confidence);
             // 同键的其余读数（提前登记那些）也要填上，否则它们停在「没有答案」；
             // 置换测量一起填，否则它们的出口停在 `untested`
             for other in 同键[idx].iter().skip(1) {
-                self.fill_from_record(other, a.clone(), perm);
+                self.fill_from_record(other, a.clone(), perm, confidence);
             }
         }
         // **超时站点**（B32）：这一次调用把累计时延推过预算，本组题转 `Unsure(latency)`（答案已记账，但不采信）

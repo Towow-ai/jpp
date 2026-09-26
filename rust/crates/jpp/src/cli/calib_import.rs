@@ -43,6 +43,8 @@ fn 账本框(path: &std::path::Path) -> Result<(框表, String), String> {
     }
     let text = ledger.encode();
     let mut out: 框表 = BTreeMap::new();
+    // B155（步 15i）：判断条目的渲染版本不是本二进制的——读数来自旧线上形状，按 B48 须重认；只报不拒
+    let mut 旧渲染: BTreeMap<String, usize> = BTreeMap::new();
     for (i, line) in text.lines().enumerate().skip(1) {
         if line.trim().is_empty() {
             continue;
@@ -52,6 +54,12 @@ fn 账本框(path: &std::path::Path) -> Result<(框表, String), String> {
         let Some(j) = v.get("entry").and_then(|e| e.get("Judge")) else {
             continue;
         };
+        if let Some(r) = j["jkey"]["render"]
+            .as_str()
+            .filter(|r| *r != jpp::ledger::RENDER_VERSION)
+        {
+            *旧渲染.entry(r.to_string()).or_default() += 1;
+        }
         let (Some(k), Some(st), Some(q)) = (
             j["calib_ref"]["declared"].as_str(),
             j["jkey"]["state"].as_str(),
@@ -90,6 +98,13 @@ fn 账本框(path: &std::path::Path) -> Result<(框表, String), String> {
                 pick,
             });
         }
+    }
+    for (r, n) in &旧渲染 {
+        eprintln!(
+            "{}: W-render-version: {n} 条判断读数的渲染版本是 {r}，本二进制是 {}：线上形状变过，按 B48 这些读数认证出的线须重认（依据：B155）",
+            path.display(),
+            jpp::ledger::RENDER_VERSION
+        );
     }
     Ok((out, jpp::value::hash_of(&[&raw])))
 }

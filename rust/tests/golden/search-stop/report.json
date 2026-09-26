@@ -1,0 +1,151 @@
+{
+  "backend": "fixed-0",
+  "cost": {
+    "asks": 0,
+    "calls": 4,
+    "replayed": 0,
+    "tokens": 0,
+    "usd": 0.0
+  },
+  "entry": [],
+  "exits": [
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 0,
+      "item": "f5986f6e33ec",
+      "key": "search-fit",
+      "pos": 0,
+      "releases": false,
+      "site": 6100
+    },
+    {
+      "exit": "ignore",
+      "grade": "Fixture",
+      "index": 1,
+      "item": "de09a4cad917",
+      "key": "search-fit",
+      "pos": 1,
+      "releases": false,
+      "site": 6100
+    },
+    {
+      "exit": "act",
+      "grade": "Fixture",
+      "index": 2,
+      "item": "b82a14938cdb",
+      "key": "search-fit",
+      "pos": 2,
+      "releases": false,
+      "site": 6100
+    }
+  ],
+  "fixture_description": "Synthetic fixed observations for search-stop.jpp (construction check only; not model evaluation). One round of generation; two of the three names are judged fitting, which reaches width 2, so the search stops after round 0. The calibration record is hand-written to exercise routing.",
+  "local_checks": [],
+  "mode": "fixed observations; no model API requests",
+  "pending": [],
+  "questions": [
+    {
+      "kind": "attr",
+      "q": "bf77935372f7724b9117f8d3"
+    }
+  ],
+  "replay": false,
+  "resumed": false,
+  "returned_unsure": [],
+  "status": "returned",
+  "trace": {
+    "events": [
+      {
+        "cost": 0.0,
+        "key": "7ab14cd42504cf73a7cfc6b6",
+        "kind": "gen",
+        "note": "按下面的需求提出 3 个候选店名，每个候选是一个字符串；需求之后的上下文是上一轮留下的候选",
+        "replayed": false,
+        "site": {
+          "end": 743,
+          "start": 574
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "c83066bf2bf7b55d2eb7ea78",
+        "kind": "judge",
+        "note": "「这个名字适合做一家社区咖啡馆的店名吗？」",
+        "replayed": false,
+        "site": {
+          "end": 6134,
+          "start": 6100
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "8634085fc7e575345acd4fe8",
+        "kind": "judge",
+        "note": "「这个名字适合做一家社区咖啡馆的店名吗？」",
+        "replayed": false,
+        "site": {
+          "end": 6134,
+          "start": 6100
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "e10f9a3f7ae37251f0d49901",
+        "kind": "judge",
+        "note": "「这个名字适合做一家社区咖啡馆的店名吗？」",
+        "replayed": false,
+        "site": {
+          "end": 6134,
+          "start": 6100
+        }
+      }
+    ],
+    "warnings": [
+      "W-window-untested: @6100 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
+      "W-fixture-line: @6100 键 search-fit 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线",
+      "W-fixture-line: @6100 键 search-fit 的线是夹具线（宿主 put 写入或没有认证证书，n=1），出口 Act 照常路由，但按 B29 不算放行不可逆 do 的可信合取项。修法【需接线人】：用 calib-import 或 commission 从带真值样本认证这条线"
+    ]
+  },
+  "value": {
+    "duplicates": 0,
+    "found_in": [
+      0,
+      0
+    ],
+    "kept": [
+      {
+        "content": "暖巷咖啡",
+        "mat": "e28a26831d34e164fbba34b8",
+        "origin": [
+          "gen:7ab14cd42504cf73a7cfc6b6"
+        ],
+        "taint": "Trusted"
+      },
+      {
+        "content": "邻里豆",
+        "mat": "47f7334f53ef664a2ce9c328",
+        "origin": [
+          "gen:7ab14cd42504cf73a7cfc6b6"
+        ],
+        "taint": "Trusted"
+      }
+    ],
+    "measures": [
+      8
+    ],
+    "pending": [],
+    "reason": "stop",
+    "rejected": [
+      {
+        "content": "街角慢时光咖啡馆",
+        "mat": "5993de3f04a1247d390d958a",
+        "origin": [
+          "gen:7ab14cd42504cf73a7cfc6b6"
+        ],
+        "taint": "Trusted"
+      }
+    ],
+    "rounds": 1
+  }
+}

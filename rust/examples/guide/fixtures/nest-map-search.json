@@ -1,0 +1,14 @@
+{
+  "description": "map 里跑两个独立的 search（当前串行、生成不交叠）；两个 propose 的题面各自带上主题，避免夹具按题面文字匹配到同一条生成记录。",
+  "calibrations": [
+    {"key": "map-search-fit", "hi": 0.7, "lo": 0.3, "n": 1, "status": "上岗", "delta": 0.05}
+  ],
+  "generations": [
+    {"prompt": "为「二手书店」起一个不超过四个字的名字，输出 1 个候选，字符串", "retry_seq": 0, "output": ["旧页书屋"]},
+    {"prompt": "为「宠物美容店」起一个不超过四个字的名字，输出 1 个候选，字符串", "retry_seq": 0, "output": ["毛孩驿站"]}
+  ],
+  "observations": [
+    {"on": ["旧页书屋"], "op": "test", "text": "这个名字符合需求吗？", "calib": "map-search-fit", "answer": {"Noul": 0.9}},
+    {"on": ["毛孩驿站"], "op": "test", "text": "这个名字符合需求吗？", "calib": "map-search-fit", "answer": {"Noul": 0.88}}
+  ]
+}

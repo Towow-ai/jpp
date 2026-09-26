@@ -1,8 +1,4 @@
 {
- "count": 3,
- "detail": [
-  "crates/jpp-core/src/check.rs：2227 行",
-  "crates/jpp-core/src/effects.rs：1973 行",
-  "crates/jpp-core/src/interp.rs：4151 行"
- ]
+ "count": 0,
+ "detail": []
 }

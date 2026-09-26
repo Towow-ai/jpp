@@ -1,0 +1,116 @@
+{
+  "backend": "fixed-0",
+  "cost": {
+    "asks": 0,
+    "calls": 0,
+    "replayed": 3,
+    "tokens": 0,
+    "usd": 0.0
+  },
+  "entry": [],
+  "exits": [
+    {
+      "exit": "pick(1)",
+      "grade": "Form",
+      "item": "2efda5645175",
+      "key": "\u001fform\u001fe49770913911a79525896988",
+      "releases": true,
+      "site": 732
+    },
+    {
+      "exit": "pick(1)",
+      "grade": "Form",
+      "item": "d6bafd384bc8",
+      "key": "\u001fform\u001fe49770913911a79525896988",
+      "releases": true,
+      "site": 732
+    },
+    {
+      "exit": "pick(0)",
+      "grade": "Form",
+      "item": "280b52c5e97a",
+      "key": "\u001fform\u001fe49770913911a79525896988",
+      "releases": true,
+      "site": 732
+    }
+  ],
+  "fixture_description": "步 27a 题库条目 which_named 的金样夹具。三条材料取自认证集（地基/评估/27a-置换重跑/F3-提到哪一个，材料 c00、c06、c09），读数是两序真机读数的均值，perms 与 mode_share 是账本里的置换测量；线由条目目录的校准记录给出。",
+  "local_checks": [],
+  "mode": "replay; no model API requests",
+  "pending": [],
+  "questions": [
+    {
+      "fill": {
+        "kind": "国家"
+      },
+      "form_hash": "e49770913911a79525896988",
+      "kind": "class",
+      "q": "2706fc51c956aa6bc847bf8d",
+      "template": "这段话里直接写出了下列哪一个{kind}的名字？"
+    }
+  ],
+  "replay": true,
+  "resumed": false,
+  "returned_unsure": [],
+  "status": "returned",
+  "trace": {
+    "events": [
+      {
+        "cost": 0.0,
+        "key": "9d89588254ad43c41191b7a7",
+        "kind": "judge",
+        "note": "「这段话里直接写出了下列哪一个国家的名字？」",
+        "replayed": true,
+        "site": {
+          "end": 812,
+          "start": 736
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "bdb9c357ff314826afd33d8c",
+        "kind": "judge",
+        "note": "「这段话里直接写出了下列哪一个国家的名字？」",
+        "replayed": true,
+        "site": {
+          "end": 812,
+          "start": 736
+        }
+      },
+      {
+        "cost": 0.0,
+        "key": "a4d7010769d4fc8cb615e61f",
+        "kind": "judge",
+        "note": "「这段话里直接写出了下列哪一个国家的名字？」",
+        "replayed": true,
+        "site": {
+          "end": 812,
+          "start": 736
+        }
+      }
+    ],
+    "warnings": [
+      "W-window-untested: @736 画像没有测过窗口（window），对象长度不核；超窗的语境可能接管读数而无痕",
+      "W-form-line: @732 题级校准键 cls-which-mentioned 无上岗记录，用题式级线 form:e49770913911a79525896988（n=64）；出口带 line_source=题式级",
+      "W-form-line: @732 题级校准键 cls-which-mentioned 无上岗记录，用题式级线 form:e49770913911a79525896988（n=64）；出口带 line_source=题式级",
+      "W-form-line: @732 题级校准键 cls-which-mentioned 无上岗记录，用题式级线 form:e49770913911a79525896988（n=64）；出口带 line_source=题式级"
+    ]
+  },
+  "value": {
+    "named": [
+      {
+        "named": "法国",
+        "text": "他在挪威工作过一年，后来被派去了法国。"
+      },
+      {
+        "named": "法国",
+        "text": "他在法国读了两年研究生。"
+      },
+      {
+        "named": "日本",
+        "text": "新闻说日本今年的出口增长很快。"
+      }
+    ],
+    "pending": []
+  }
+}

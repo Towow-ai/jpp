@@ -20,6 +20,7 @@ fn 记账端口(每次题数: &RefCell<Vec<usize>>) -> Ports<'_> {
                 cost: 0.0,
                 mode_share: vec![],
                 perms: vec![],
+                confidence: vec![],
             })
         }))
         .with(FnPort::generate("m", |_p, _c, _n, _r| {

@@ -17,14 +17,14 @@ use jpp_value::value::{Answer, Question, State, canon, hash_of};
 pub const FIXED_MODEL: &str = "fixed-0";
 
 /// 观察键 = 状态规范 JSON 哈希 + 题（固定观察表按它命中）。
+/// 题带答案标签（B155）时追加标签分量；不带时与步 15i 前逐字节相同（现有夹具键不变）。
 pub fn obs_key(state: &State, q: &Question) -> String {
-    hash_of(&[
-        "obs",
-        &canon(&state.to_json()),
-        q.op.phys(),
-        &q.text,
-        &q.scale.join("\u{1e}"),
-    ])
+    let (st, scale) = (canon(&state.to_json()), q.scale.join("\u{1e}"));
+    let mut parts = vec!["obs", st.as_str(), q.op.phys(), &q.text, &scale];
+    if let Some(l) = &q.labels {
+        parts.extend(["labels", l.yes.as_str(), l.no.as_str()]);
+    }
+    hash_of(&parts)
 }
 
 /// 带上下文的固定生成键（步 4d）：提示、retry_seq 与 ctx 规范 JSON 的哈希。
@@ -35,20 +35,24 @@ fn gen_ctx_key(prompt: &str, retry_seq: u64, ctx: &[Json]) -> String {
     )
 }
 
-/// 固定观察的判断：逐题按观察键查表；没有一条固定过置换测量时 `perms`/`mode_share` 为空。
+/// 固定观察的判断：逐题按观察键查表；没有一条固定过置换测量时 `perms`/`mode_share` 为空，
+/// 没有一条固定过自报置信度时 `confidence` 为空（B154：只在夹具给了时报）。
 /// `log` 记每道命中的题。未命中即错（报文给出内核算出的状态与题）。
 fn fixed_judge(
     table: &HashMap<String, Answer>,
     perms: &HashMap<String, (usize, f64)>,
+    confidence: &HashMap<String, f64>,
     log: &mut Vec<(String, String)>,
-    state: &State,
-    questions: &[&Question],
+    items: &[(&State, &Question)],
 ) -> Result<JudgeResult, EffectError> {
     let mut answers = vec![];
     let mut measured = vec![];
-    for q in questions {
+    let mut 置信 = vec![];
+    // 逐题按各自的状态查（B155：同材料合批时一次调用里的题可带不同的 `over`）
+    for (state, q) in items {
         let k = obs_key(state, q);
         measured.push(perms.get(&k).copied());
+        置信.push(confidence.get(&k).copied());
         let a = table.get(&k).cloned().ok_or_else(|| {
             // **把自己算出来的那份状态与题打出来。**
             //
@@ -62,7 +66,14 @@ fn fixed_judge(
                 q.text,
                 state.hash.chars().take(8).collect::<String>(),
                 canon(&state.as_fixture_json()),
-                canon(&json!({"op": q.op.fixture_name(), "text": q.text, "calib": q.calib, "scale": q.scale})),
+                {
+                    let mut j = json!({"op": q.op.fixture_name(), "text": q.text, "calib": q.calib, "scale": q.scale});
+                    // B155：题带答案标签时观察键含它，夹具观察也要写 labels
+                    if let Some(l) = &q.labels {
+                        j["labels"] = json!({"yes": l.yes, "no": l.no});
+                    }
+                    canon(&j)
+                },
             ))
         })?;
         log.push((k, q.text.clone()));
@@ -77,12 +88,19 @@ fn fixed_judge(
             measured.iter().map(|m| m.map_or(0, |(k, _)| k)).collect(),
         )
     };
+    // 没有一条固定过自报置信度时为空向量：账本条目不带该字段，与改前逐字节相同
+    let confidence = if 置信.iter().all(Option::is_none) {
+        vec![]
+    } else {
+        置信
+    };
     Ok(JudgeResult {
         answers,
         tokens: 0,
         cost: 0.0,
         mode_share,
         perms,
+        confidence,
     })
 }
 
@@ -102,6 +120,7 @@ fn fixed_gen(
         outputs,
         tokens: 0,
         cost: 0.0,
+        ..Default::default()
     })
 }
 
@@ -146,6 +165,8 @@ pub struct FixedJudge {
     /// 观察键 → 固定下来的置换测量 `(perms, mode_share)`（步 4d，原型 K6）。
     /// 缺省 = 没测过置换，与改前相同：`select` 得不到 `Pick`。
     pub perms: HashMap<String, (usize, f64)>,
+    /// 观察键 → 夹具给的自报置信度（B154，步 20j-3）。缺省 = 没给：固定端口不报，桥按 p_max 取夹具缺省。
+    pub confidence: HashMap<String, f64>,
     pub n_calls: u64,
     pub n_questions: u64,
     pub log: Vec<(String, String)>,
@@ -160,14 +181,15 @@ impl EffectPort for FixedJudge {
         }
     }
     fn submit(&mut self, calls: Vec<EffectCall>) -> Result<Vec<Ticket>, EffectError> {
-        let (table, perms, log) = (&self.table, &self.perms, &mut self.log);
+        let (table, perms, confidence, log) =
+            (&self.table, &self.perms, &self.confidence, &mut self.log);
         let (n_calls, n_questions) = (&mut self.n_calls, &mut self.n_questions);
         Ok(self.done.submit_with(calls, |c| match c.input {
-            CallInput::StateQuestions { state, questions } => {
-                let qs: Vec<&Question> = questions.iter().collect();
-                let r = fixed_judge(table, perms, log, &state, &qs)?;
+            ref inp @ (CallInput::StateQuestions { .. } | CallInput::MaterialQuestions { .. }) => {
+                let items = inp.judge_items().expect("判断输入");
+                let r = fixed_judge(table, perms, confidence, log, &items)?;
                 *n_calls += 1;
-                *n_questions += qs.len() as u64;
+                *n_questions += items.len() as u64;
                 Ok(EffectOut::Readings(r))
             }
             _ => Err(wrong_input("固定判断端口")),
@@ -278,6 +300,10 @@ impl FixedPorts {
         self.judge
             .perms
             .insert(key.to_string(), (perms, mode_share));
+    }
+    /// 给一条观察固定判断器的自报置信度（B154，步 20j-3；夹具观察的 `confidence`）。
+    pub fn fix_confidence(&mut self, key: &str, c: f64) {
+        self.judge.confidence.insert(key.to_string(), c);
     }
     pub fn fix_ask(&mut self, state: &State, q: &Question, a: Option<Answer>) {
         self.ask.asks.insert(obs_key(state, q), a);

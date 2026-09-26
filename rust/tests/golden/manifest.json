@@ -16,6 +16,11 @@
    "fixtures": "examples/fixtures/contract.json"
   },
   {
+   "name": "env-snake",
+   "source": "examples/env-snake.jpp",
+   "fixtures": "examples/fixtures/env-snake.json"
+  },
+  {
    "name": "iterate",
    "source": "examples/iterate.jpp",
    "fixtures": "examples/fixtures/iterate.json"
@@ -65,6 +70,32 @@
    "calib": "tests/golden/_calib/b24"
   },
   {
+   "name": "gen-choose",
+   "source": "examples/gen-choose.jpp",
+   "fixtures": "examples/fixtures/gen-choose.json"
+  },
+  {
+   "name": "search-stop",
+   "source": "examples/search-stop.jpp",
+   "fixtures": "examples/fixtures/search-stop.json"
+  },
+  {
+   "name": "search-bound",
+   "source": "examples/search-bound.jpp",
+   "fixtures": "examples/fixtures/search-bound.json"
+  },
+  {
+   "name": "search-noshrink",
+   "source": "examples/search-noshrink.jpp",
+   "fixtures": "examples/fixtures/search-noshrink.json"
+  },
+  {
+   "name": "search-ground",
+   "source": "examples/search-ground.jpp",
+   "fixtures": "examples/fixtures/search-ground.json",
+   "resume_ledger": "tests/golden/search-ground/seed.ledger.jsonl"
+  },
+  {
    "name": "sieve",
    "source": "examples/sieve.jpp",
    "fixtures": "examples/fixtures/sieve.json"
@@ -84,6 +115,16 @@
    "name": "seq-wrapped-old",
    "source": "examples/seq-wrapped-old.jpp",
    "fixtures": "examples/fixtures/seq-wrapped.json"
+  },
+  {
+   "name": "graph-interval",
+   "source": "examples/graph-interval.jpp",
+   "fixtures": "examples/fixtures/graph-interval.json"
+  },
+  {
+   "name": "graph-nested",
+   "source": "examples/graph-nested.jpp",
+   "fixtures": "examples/fixtures/graph-nested.json"
   },
   {
    "name": "sieve-batch-new",
@@ -166,6 +207,24 @@
    "source": "examples/bank-amount_left.jpp",
    "fixtures": "examples/fixtures/bank-amount_left.json",
    "calib": "bank/entries/e4d4be39383a1eb88f75af2c/calib"
+  },
+  {
+   "name": "declare-refund",
+   "source": "examples/declare-refund.jpp",
+   "fixtures": "examples/fixtures/declare-refund.json",
+   "calib": "tests/golden/_calib/declare-refund"
+  },
+  {
+   "name": "declare-refund-accept",
+   "source": "examples/declare-refund.jpp",
+   "fixtures": "examples/fixtures/declare-refund-accept.json",
+   "calib": "tests/golden/_calib/declare-refund",
+   "args": ["--release-on-declared"]
+  },
+  {
+   "name": "declare-stat",
+   "source": "examples/declare-stat.jpp",
+   "fixtures": "examples/fixtures/declare-stat.json"
   },
   {
    "name": "error-missing-budget",

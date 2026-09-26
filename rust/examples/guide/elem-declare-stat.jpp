@@ -1,0 +1,28 @@
+// 统计量上的作者声明线（B153，步 20j-3）：线切在读数的哪个统计量上，由 cut 的 stat 选。
+// 一道四档 measure（工单影响）：期望档位 expect 配 {hi: 2.0} 出 act / ignore（期望档位到 2 就升级），配
+// {cuts: [0.5, 1.5, 2.5]} 分桶出 at（期望档位就近归档）。一道四候选 select（工单归哪个组）：前两个候选（前端、
+// 客户端）的概率之和 mass 配 {hi: 0.5, lo: 0.2} 出 act / ignore / unsure（端侧、服务侧、待定）。
+// 统计量线只接 declare：认证线在 p_max 上，对别的统计量无效。等级 Declared，不放行不可逆动作；
+// 报告 exits 行带 stat，账本每个站点一条 declared: 记录。
+budget {calls: 4, cost: 0.01, depth: 16};
+let levels = ["无", "轻", "中", "重"];
+let impact = measure("这段工单描述的故障影响有多大？", levels, "ticket-impact");
+let owner = select("这段工单最可能归哪个组处理？", "ticket-owner");
+
+let r = judge(state(mat("用户反馈：登录页偶尔白屏，刷新后恢复，影响部分安卓用户。")), impact);
+let 升级 = handle(cut(r, {stat: "expect", declare: {hi: 2.0}}), {
+    act: fn() { "升级" },
+    ignore: fn() { "不升级" },
+    unsure: fn(u) { consume(u, "drop"); "待定" }});
+let 档 = handle(cut(r, {stat: "expect", declare: {cuts: [0.5, 1.5, 2.5]}}), {
+    at: fn(k) { levels[k] },
+    unsure: fn(u) { consume(u, "drop"); "待定" }});
+
+let k = judge(state(mat("安卓客户端升级到 5.2 后收不到推送，服务端日志显示已发送。"),
+                    {over: [mat("前端"), mat("客户端"), mat("后端"), mat("运维")]}), owner);
+let 端侧 = handle(cut(k, {stat: {mass: [0, 1]}, declare: {hi: 0.5, lo: 0.2}}), {
+    act: fn() { "端侧" },
+    ignore: fn() { "服务侧" },
+    unsure: fn(u) { consume(u, "drop"); "待定" }});
+
+{升级: 升级, 档: 档, 端侧: 端侧}

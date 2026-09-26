@@ -57,7 +57,7 @@
     "events": [
       {
         "cost": 0.0,
-        "key": "9d89588254ad43c41191b7a7",
+        "key": "e90688967599b6263a4bb082",
         "kind": "judge",
         "note": "「这段话里直接写出了下列哪一个国家的名字？」",
         "replayed": true,
@@ -68,7 +68,7 @@
       },
       {
         "cost": 0.0,
-        "key": "bdb9c357ff314826afd33d8c",
+        "key": "90efa30672cf7282e1d70b33",
         "kind": "judge",
         "note": "「这段话里直接写出了下列哪一个国家的名字？」",
         "replayed": true,
@@ -79,7 +79,7 @@
       },
       {
         "cost": 0.0,
-        "key": "a4d7010769d4fc8cb615e61f",
+        "key": "4694e1dc7b26489f1168db8d",
         "kind": "judge",
         "note": "「这段话里直接写出了下列哪一个国家的名字？」",
         "replayed": true,

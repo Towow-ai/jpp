@@ -1,0 +1,22 @@
+// 判出来的图 + 图算法（步 25d，B148）：六项任务 × 六个人，JEV 判「这个人能接这项任务吗」，二部图匹配在判出来
+// 的图上分工。十条候选边里两条落在带内（未决）：只信已决边能分出 4 项，把未决边都当有能分出 6 项，
+// differs 恰是那两条——先问人这两条，再重跑。
+import "../lib/compose/graph.jpp";
+budget {calls: 16, cost: 0.01, depth: 64};
+
+let tasks = ["任务：写登录页", "任务：设计数据库表", "任务：写接口文档", "任务：搭部署脚本", "任务：做数据看板", "任务：写单元测试"];
+let people = ["小林：前端三年，做过登录与注册", "小周：后端，主写数据库迁移", "小吴：技术写作，维护过接口文档", "小郑：运维，写过部署流水线", "小王：数据分析，常做报表", "小陈：测试开发，熟悉单元测试框架"];
+
+// 候选对由调用者给（通常来自向量粗筛）；这里写死十对
+let cand = [[0, 0], [1, 1], [2, 2], [3, 3], [4, 0], [5, 1], [0, 4], [1, 5], [4, 4], [5, 5]];
+let can_do = test("a 描述的这项任务，b 这个人能接下来吗？", "graph-can-do");
+
+let g = judged_bipartite(tasks, people, can_do, {prune: fn(l, r) { cand }});
+let t = interval(g, "matching", {});
+
+{assigned: map(t.lo.value, fn(p) { p.nodes }),
+ if_all_yes: map(concat(t.hi.value, t.hi.pending), fn(p) { p.nodes }),
+ ask_first: map(t.differs, fn(e) { [e.left, e.right] }),
+ same: t.same, complete: t.complete, alpha_bound: t.alpha_bound, n_unknown: t.n_unknown,
+ edges: {yes: len(g.edges), no: len(g.rejected), open: len(g.pending)},
+ pending: concat(t.hi.pending, g.pending)}

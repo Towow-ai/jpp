@@ -35,6 +35,8 @@ pub struct CertView {
     pub alpha_eff: f64,
     /// 有效 α 超过试用 α（B89 解读 (b)，步 20c）：等级 `Provisional`（路由、不放行），此时 `trial` 为假
     pub provisional: bool,
+    /// 认证用的标注集指纹：上侧证书与下侧证书同一次两侧认证产生时相同（步 20j-1 `alpha` 选证书时配对用）
+    pub label_fp: String,
 }
 
 /// 一条校准记录的只读视图：`cut` 判序与告警需要的全部字段（步 11b 定全，`20` §2.3）。
@@ -59,6 +61,9 @@ pub struct Lookup {
     pub certs: Vec<CertView>,
     /// 选中的那张证书（α 最小；同 α 取线更高者），见 `jpp-calib` 的 `选中的证书`
     pub selected: Option<CertView>,
+    /// 下侧证书（两侧认证时与某张上侧证书同 α、同标注集产生；`None` = 单侧）。步 20j-1 `alpha`
+    /// 选证书时，线的 hi 与 lo 取自同一次认证的这一对，不拿记录的 lo 拼别的证书
+    pub lower: Option<CertView>,
     /// 重跑分歧检验：`Some(true)` = 错误独立，`band → 重跑` 可启用（B9/B28）
     pub rerun_independent: Option<bool>,
     /// 认证范围的材料指纹（B68）；`None` = 不核范围
@@ -115,6 +120,11 @@ pub trait CalibView {
     /// 这道读数的查找链（B44：题键 → 题式键 → 类键 → 冷；模式键不在链上）。键由校准侧构造。
     /// `key` 是 `cut` 用的有效校准键，同时是类别标签（B34）。
     fn chain(&self, key: &str, form_hash: Option<&str>) -> Chain;
+    /// 该键记录里带标注且有读数的样本 `(p, 对错)`（只读；步 20j-1 声明线的 `evidence` 用：按作者的线
+    /// 切这些样本错几条）。K 元划分的「对」是 argmax 等于真值（B63）。没有记录或没有标注为空
+    fn labelled(&self, _key: &str) -> Vec<(f64, bool)> {
+        vec![]
+    }
 }
 
 /// 查找链上的一级：键与记录（无记录时是冷记录）。

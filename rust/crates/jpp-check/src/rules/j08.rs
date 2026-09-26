@@ -17,6 +17,11 @@
 //!
 //! 依据：B108（地基/附注/2026-09-25-批量裁定.md §二）；`12` §3 J-08 行静态子面；B33 第 3、4、8 条与
 //! B105 补（报文按来源分情形）；过程记录 `地基/过程记录/工程-步24-0.md`。
+//!
+//! 步 20j-2（B128）加一种根：`cut` 的实参里有**字面记录且带 `declare` 字段**（作者声明线，含 20j-3 的 `stat` 线），
+//! 而宿主没有接受作者线放行（`Program.entry.accept_declared` 为假，CLI `--release-on-declared`）——这个出口的
+//! `releases()` 恒假，运行期不作可信合取项。读数确定不可信时仍记不可信根（开关救不了材料）。传播与上面同一套；
+//! 声明记录不是字面量的一律按可放行计。过程记录 `地基/过程记录/工程-步20j-2.md`。
 
 use std::collections::HashMap;
 
@@ -48,6 +53,8 @@ enum Root {
     EntryValue(String),
     EntryMat(String),
     Action(String),
+    /// 宿主未接受的作者声明线（B128，步 20j-2）：站点与字面线，如 `@812 hi=0.7 lo=0.3`
+    Declared(String),
 }
 
 /// 一条确定不可信的来源。`direct`：材料就是根本身（入口材料条目、动作输出），没有经过读出再造。
@@ -348,8 +355,18 @@ impl W<'_, '_> {
                 }
                 found.map(|s| (Class::State, s))
             }
-            Node::Cut { reading, .. } => match self.val(reading)? {
-                (Class::Reading, s) => Some((Class::Exit, s)),
+            Node::Cut { reading, rest, .. } => match self.val(reading) {
+                Some((Class::Reading, s)) => Some((Class::Exit, s)),
+                // 依据：B128（宿主未接受的作者声明线不放行；步 20j-2）
+                _ if !self.cx.p.entry.accept_declared => 字面声明(rest).map(|线| {
+                    (
+                        Class::Exit,
+                        Src {
+                            root: Root::Declared(format!("@{} {线}", e.span.start)),
+                            direct: false,
+                        },
+                    )
+                }),
                 _ => None,
             },
             _ => None,
@@ -479,7 +496,7 @@ impl W<'_, '_> {
                     && inputs.iter().all(|(_, x)| self.scan_guard(x, srcs))
             }
             Node::Cut { reading, rest, .. } => {
-                let Some((Class::Reading, s)) = self.val(reading) else {
+                let Some((Class::Exit, s)) = self.val(e) else {
                     return false;
                 };
                 srcs.push(s);
@@ -569,8 +586,22 @@ impl W<'_, '_> {
         if self.guards.is_empty() || self.guards.iter().any(|g| g.is_none()) {
             return;
         }
-        // 最内层守卫的来源用于报文
-        let src = self.guards.last().cloned().flatten().expect("上面已核");
+        // 报文：不可信材料的来源取最内层一个不可信根；声明线另列（步 20j-2，全部层的站点）
+        let 层: Vec<Src> = self.guards.iter().flatten().cloned().collect();
+        let src = Why {
+            untrusted: 层
+                .iter()
+                .rev()
+                .find(|s| !matches!(s.root, Root::Declared(_)))
+                .cloned(),
+            declared: 层
+                .iter()
+                .filter_map(|s| match &s.root {
+                    Root::Declared(d) => Some(d.clone()),
+                    _ => None,
+                })
+                .collect(),
+        };
         let name = action_name(inputs);
         // 依据：B108（有动作表且不可逆 → J-08；没有动作表 → W-guard-untrusted）
         match self.cx.actions {
@@ -605,7 +636,7 @@ fn builtin_callee<'e>(w: &W, callee: &'e Expr) -> Option<&'e str> {
 }
 
 /// 动作名：动作效应的名字槽（`SlotKind::Name`）上的字面文本
-fn action_name(inputs: &[(String, Expr)]) -> Option<&str> {
+pub(crate) fn action_name(inputs: &[(String, Expr)]) -> Option<&str> {
     let slot = jpp_effects::ALL
         .iter()
         .map(|id| spec(*id))
@@ -620,6 +651,51 @@ fn action_name(inputs: &[(String, Expr)]) -> Option<&str> {
     })
 }
 
+/// `cut` 的实参里有字面记录且带 `declare` 字段（作者声明线，B128；`stat` 线同样要 `declare`，B153）时，给出线的
+/// 文字（`hi=0.7 lo=0.3`、`cuts=[…]`，数不是字面量的写 `…`；带字面 `stat` 附上），与运行期拒绝报文同形。
+fn 字面声明(rest: &[Expr]) -> Option<String> {
+    let 数 = |e: Option<&Expr>| -> Option<String> {
+        match &e?.node {
+            Node::Host(Host::Decimal(x)) => Some(format!("{x}")),
+            Node::Host(Host::Integer(i)) => Some(format!("{i}")),
+            _ => None,
+        }
+    };
+    rest.iter().find_map(|a| {
+        let Node::Host(Host::Record(fs)) = &a.node else {
+            return None;
+        };
+        let (_, d) = fs.iter().find(|(k, _)| k == "declare")?;
+        let 取 = |名: &str| match &d.node {
+            Node::Host(Host::Record(df)) => df.iter().find(|(k, _)| k == 名).map(|(_, v)| v),
+            _ => None,
+        };
+        let mut 线 = match (取("hi"), 取("cuts")) {
+            (_, Some(_)) => "cuts=[…]".to_string(),
+            (hi, None) => {
+                let h = 数(hi).unwrap_or_else(|| "…".into());
+                let l = match 取("lo") {
+                    Some(v) => 数(Some(v)).unwrap_or_else(|| "…".into()),
+                    None => h.clone(),
+                };
+                format!("hi={h} lo={l}")
+            }
+        };
+        if let Some((_, s)) = fs.iter().find(|(k, _)| k == "stat")
+            && let Node::Host(Host::Text(t)) = &s.node
+        {
+            线 += &format!(" stat={t}");
+        }
+        Some(线)
+    })
+}
+
+/// 报文用的守卫来源：最内层一个不可信材料根（若有），与各层宿主未接受的声明线（站点与线）
+struct Why {
+    untrusted: Option<Src>,
+    declared: Vec<String>,
+}
+
 fn conjuncts<'e>(e: &'e Expr, out: &mut Vec<&'e Expr>) {
     match &e.node {
         Node::Host(Host::Binary { op, left, right }) if op == "&&" => {
@@ -630,7 +706,26 @@ fn conjuncts<'e>(e: &'e Expr, out: &mut Vec<&'e Expr>) {
     }
 }
 
-fn message(action: &str, s: &Src, known_irreversible: bool) -> String {
+fn message(action: &str, why: &Why, known_irreversible: bool) -> String {
+    let 动作 = if known_irreversible {
+        format!("不可逆动作 {action}")
+    } else {
+        format!("动作 {action}（检查时不知动作表；若它不可逆）")
+    };
+    let 声明 = if why.declared.is_empty() {
+        String::new()
+    } else {
+        format!(
+            "守卫出口来自作者声明线（{}），宿主未声明接受作者线放行（CLI：--release-on-declared，B128）",
+            why.declared.join("、")
+        )
+    };
+    let Some(s) = &why.untrusted else {
+        // 全部守卫层都是宿主未接受的声明线（步 20j-2）
+        return format!(
+            "（静态子面）{动作}的每一层守卫都只来自作者声明线的出口，路径上没有 ask：声明线按你写的数切、不作错误率保证，宿主未接受时不得放行不可逆动作，运行期 J-08 走到这里必拒，之前的调用白花。修法：确认这些线由你担责后带 --release-on-declared 运行（库宿主：EntryArgs.accept.declared_lines），或在条件里再合取一个认证线上的判断，或改走 ask 让人拍板，或把这个动作登记成可逆。{声明}（依据：B128、B108）"
+        );
+    };
     // 步 14b-1（B108）：两处「宿主未声明可信」都点出 CLI 开关名字，不止笼统说「由宿主声明入口可信」
     let 来源 = match (&s.root, s.direct) {
         (Root::EntryMat(n), true) => {
@@ -645,13 +740,15 @@ fn message(action: &str, s: &Src, known_irreversible: bool) -> String {
         (Root::Action(n), false) => {
             format!("该材料由计算值构成，成分含不可信内容（来自动作 {n} 的输出，登记为不可信）")
         }
+        (Root::Declared(_), _) => unreachable!("声明线根不进这一支"),
     };
-    let 动作 = if known_irreversible {
-        format!("不可逆动作 {action}")
-    } else {
-        format!("动作 {action}（检查时不知动作表；若它不可逆）")
-    };
+    if 声明.is_empty() {
+        return format!(
+            "（静态子面）{动作}的每一层守卫都只来自不可信状态上的判断，路径上没有 ask：不可信材料上的判断不得**单独**放行不可逆动作，运行期 J-08 走到这里必拒，之前的调用白花。修法：在条件里再合取一个来自 trusted 状态的判断，或改走 ask 让人拍板，或由宿主声明入口可信，或把这个动作登记成可逆。{来源}（依据：B108）"
+        );
+    }
+    // 两种都有（步 20j-2）：有的层是不可信材料上的判断，有的层是宿主未接受的声明线
     format!(
-        "（静态子面）{动作}的每一层守卫都只来自不可信状态上的判断，路径上没有 ask：不可信材料上的判断不得**单独**放行不可逆动作，运行期 J-08 走到这里必拒，之前的调用白花。修法：在条件里再合取一个来自 trusted 状态的判断，或改走 ask 让人拍板，或由宿主声明入口可信，或把这个动作登记成可逆。{来源}（依据：B108）"
+        "（静态子面）{动作}的每一层守卫都不作放行证据，路径上没有 ask：有的来自不可信状态上的判断，有的来自宿主未接受的作者声明线，运行期 J-08 走到这里必拒，之前的调用白花。修法：在条件里再合取一个 trusted 状态上、认证线上的判断，或改走 ask 让人拍板，或把这个动作登记成可逆；只带 --release-on-declared 不够。{来源}。{声明}（依据：B108、B128）"
     )
 }

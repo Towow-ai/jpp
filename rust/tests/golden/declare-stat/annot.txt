@@ -1,0 +1,189 @@
+ir v1
+budget calls=4 cost=0.01 depth=16 escalate=- unsure=- latency_p95=- absent=-
+block 730..1920
+  let levels : -
+    #0 list 785..813
+      #1 text "无"
+      #2 text "轻"
+      #3 text "中"
+      #4 text "重"
+  let impact : -
+    #5 construct measure @0 828..909
+      #6 text "这段工单描述的故障影响有多大？"
+      #7 name levels
+      #8 text "ticket-impact"
+  let owner : -
+    #9 construct select @1 923..991
+      #10 text "这段工单最可能归哪个组处理？"
+      #11 text "ticket-owner"
+  let r : -
+    #12 effect judge @2 1002..1115 ; {"effect":{"known":["judge"],"open":false},"summary":null,"duty_kind":null,"refresh_point":false}
+      state:
+        #13 state @3 1008..1106
+          on:
+            #14 call 1014..1105
+              callee:
+                #15 name mat
+              #16 text "用户反馈：登录页偶尔白屏，刷新后恢复，影响部分安卓用户。"
+      questions:
+        #17 name impact
+  let 升级 : -
+    #18 handle @4 1130..1299
+      exit:
+        #19 cut @5 1137..1181
+          reading:
+            #20 name r
+          #21 record 1144..1180
+            stat:
+              #22 text "expect"
+            declare:
+              #23 record 1170..1179
+                hi:
+                  #24 dec 2.0
+      arms:
+        #25 record 1183..1298
+          act:
+            #27 fn () -> - effects=-
+              block 1199..1211
+                result
+                  #28 text "升级"
+          ignore:
+            #30 fn () -> - effects=-
+              block 1230..1245
+                result
+                  #31 text "不升级"
+          unsure:
+            #33 fn (u:-) -> - effects=-
+              block 1265..1297
+                #34 consume @6 1267..1285
+                  #35 name u
+                  #36 text "drop"
+                result
+                  #37 text "待定"
+  let 档 : -
+    #38 handle @7 1311..1461
+      exit:
+        #39 cut @8 1318..1376
+          reading:
+            #40 name r
+          #41 record 1325..1375
+            stat:
+              #42 text "expect"
+            declare:
+              #43 record 1351..1374
+                cuts:
+                  #44 list 1358..1373
+                    #45 dec 0.5
+                    #46 dec 1.5
+                    #47 dec 2.5
+      arms:
+        #48 record 1378..1460
+          at:
+            #50 fn (k:-) -> - effects=-
+              block 1394..1407
+                result
+                  #51 index
+                    #52 name levels
+                    #53 name k
+          unsure:
+            #55 fn (u:-) -> - effects=-
+              block 1427..1459
+                #56 consume @9 1429..1447
+                  #57 name u
+                  #58 text "drop"
+                result
+                  #59 text "待定"
+  let k : -
+    #60 effect judge @10 1472..1676 ; {"effect":{"known":["judge"],"open":false},"summary":null,"duty_kind":null,"refresh_point":false}
+      state:
+        #61 state @11 1478..1668
+          on:
+            #62 call 1484..1574
+              callee:
+                #63 name mat
+              #64 text "安卓客户端升级到 5.2 后收不到推送，服务端日志显示已发送。"
+          opts:
+            #65 record 1596..1667
+              over:
+                #66 list 1603..1666
+                  #67 call 1604..1617
+                    callee:
+                      #68 name mat
+                    #69 text "前端"
+                  #70 call 1619..1635
+                    callee:
+                      #71 name mat
+                    #72 text "客户端"
+                  #73 call 1637..1650
+                    callee:
+                      #74 name mat
+                    #75 text "后端"
+                  #76 call 1652..1665
+                    callee:
+                      #77 name mat
+                    #78 text "运维"
+      questions:
+        #79 name owner
+  let 端侧 : -
+    #80 handle @12 1691..1875
+      exit:
+        #81 cut @13 1698..1757
+          reading:
+            #82 name k
+          #83 record 1705..1756
+            stat:
+              #84 record 1712..1726
+                mass:
+                  #85 list 1719..1725
+                    #86 int 0
+                    #87 int 1
+            declare:
+              #88 record 1737..1755
+                hi:
+                  #89 dec 0.5
+                lo:
+                  #90 dec 0.2
+      arms:
+        #91 record 1759..1874
+          act:
+            #93 fn () -> - effects=-
+              block 1775..1787
+                result
+                  #94 text "端侧"
+          ignore:
+            #96 fn () -> - effects=-
+              block 1806..1821
+                result
+                  #97 text "服务侧"
+          unsure:
+            #99 fn (u:-) -> - effects=-
+              block 1841..1873
+                #100 consume @14 1843..1861
+                  #101 name u
+                  #102 text "drop"
+                result
+                  #103 text "待定"
+  result
+    #104 record 1878..1920
+      升级:
+        #105 name 升级
+      档:
+        #106 name 档
+      端侧:
+        #107 name 端侧
+sites 15
+  @0 #5 construct:measure 828..909 fn=- in=-
+  @1 #9 construct:select 923..991 fn=- in=-
+  @2 #12 effect:judge 1002..1115 fn=- in=-
+  @3 #13 state 1008..1106 fn=- in=-
+  @4 #18 handle 1130..1299 fn=- in=-
+  @5 #19 cut 1137..1181 fn=- in=-
+  @6 #34 consume:consume 1267..1285 fn=#33 in=-
+  @7 #38 handle 1311..1461 fn=- in=-
+  @8 #39 cut 1318..1376 fn=- in=-
+  @9 #56 consume:consume 1429..1447 fn=#55 in=-
+  @10 #60 effect:judge 1472..1676 fn=- in=-
+  @11 #61 state 1478..1668 fn=- in=-
+  @12 #80 handle 1691..1875 fn=- in=-
+  @13 #81 cut 1698..1757 fn=- in=-
+  @14 #100 consume:consume 1843..1861 fn=#99 in=-

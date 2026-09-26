@@ -35,10 +35,17 @@ pub fn argmax_index(v: &[f64]) -> usize {
 /// `gen` 的返回：**带实际费用与 token**。以前只返回 `Vec<Json>`，于是 `budget.cost`
 /// 对 gen 整条路失效——一个只 gen 不 judge 的程序花多少钱都不会被拦住。
 /// 形状与 `JudgeResult` 对齐，理由是同一条纪律（`13` §5：后端返回即记事实，再决定下一步）。
+#[derive(Default)]
 pub struct GenResult {
     pub outputs: Vec<Json>,
     pub tokens: u64,
     pub cost: f64,
+    /// 生成器报的失败（类型与说明，如 `timeout: …`、`malformed: …`）：运行时产出 `Fail` 值、照记账本，
+    /// 不当运行期错误（步 15h-1；B149「失败类型进失败位」）。`None` = 成功。
+    pub failure: Option<String>,
+    /// 端口声明的输出 taint（B149：生成器端口画像 `taint_out` 缺省 `untrusted`）。`None` = 不声明，
+    /// 按 B37 缺省 `inherit`（∨ ctx），夹具与确定性枚举器照旧。
+    pub taint_out: Option<jpp_value::value::Taint>,
 }
 
 pub struct JudgeResult {
@@ -65,6 +72,10 @@ pub struct JudgeResult {
     /// 而那些地方（渲染、验证形状、合并）跟置换无关——**改动面比它该有的大**。
     #[allow(clippy::type_complexity)]
     pub mode_share: Vec<Option<f64>>,
+    /// 每条答案随附的**自报置信度**（B154：判断器对本题答案的自报量，`cut` 的 `stat: "confidence"` 读它）。
+    /// 空 = 这次调用没报（与 `perms`/`mode_share` 同约定）；逐条 `None` = 这一条没报。不进 `Answer`，理由同
+    /// `mode_share`。固定观察端口只在夹具给了时报；真机端口读返回体随 18a 追加项。
+    pub confidence: Vec<Option<f64>>,
 }
 
 /// 一次效应调用的输入，按 `EffectSpec.input_schema` 的槽形状分三种（不按效应名）。
@@ -86,6 +97,29 @@ pub enum CallInput {
     },
     /// 一个状态、一道题（槽 `state`、`question`）
     StateQuestion { state: State, question: Question },
+    /// 一份材料、一组题，每题带自己的状态（B155，步 15i）：`states[i]` 是 `questions[i]` 的状态，
+    /// 各状态材料哈希（`on`/`ctx`/`ref`）相等、`over` 可不同——同材料上候选集不同的题合成一次调用。
+    /// 运行时只在一组题跨多个 `StateHash` 时发它；全组同一状态仍发 [`CallInput::StateQuestions`]。
+    /// 依据：B155（地基/附注/2026-09-26-批6裁定.md §三）
+    MaterialQuestions {
+        states: Vec<State>,
+        questions: Vec<Question>,
+    },
+}
+
+impl CallInput {
+    /// 判断输入的逐题 `(状态, 题)`（B155）：两种判断输入都转成这一形；不是判断输入为 `None`。
+    pub fn judge_items(&self) -> Option<Vec<(&State, &Question)>> {
+        match self {
+            CallInput::StateQuestions { state, questions } => {
+                Some(questions.iter().map(|q| (state, q)).collect())
+            }
+            CallInput::MaterialQuestions { states, questions } => {
+                Some(states.iter().zip(questions).collect())
+            }
+            _ => None,
+        }
+    }
 }
 
 /// 一次效应调用：发给哪个实例，带什么输入。
@@ -221,6 +255,13 @@ impl<'a> Ports<'a> {
         self
     }
 
+    /// 换掉服务同一效应的端口（没有就注册）。宿主用它把占位的 `gen` 实例换成生成器端口（步 15h-1）。
+    pub fn replace(&mut self, port: Box<dyn EffectPort + 'a>) {
+        let inst = port.instance();
+        self.ports.retain(|k, _| k.effect != inst.effect);
+        self.ports.insert(inst, port);
+    }
+
     /// 已注册的实例（按实例序）。
     pub fn instances(&self) -> Vec<EffectInstance> {
         self.ports.keys().cloned().collect()
@@ -268,7 +309,8 @@ impl<'a> Ports<'a> {
                     if let Poll::Ready(r) = port.poll(t) {
                         break r;
                     }
-                    std::thread::yield_now();
+                    // 非阻塞端口（步 15h-1 生成器）要等几秒：让出 CPU，不空转
+                    std::thread::sleep(std::time::Duration::from_millis(2));
                 }
             })
             .collect())
@@ -295,7 +337,8 @@ impl<'a> Ports<'a> {
             if let Poll::Ready(r) = port.poll(&t) {
                 return r;
             }
-            std::thread::yield_now();
+            // 非阻塞端口（步 15h-1 生成器）要等几秒：让出 CPU，不空转
+            std::thread::sleep(std::time::Duration::from_millis(2));
         }
     }
 }

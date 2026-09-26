@@ -38,6 +38,10 @@ pub const RT_CODES: &[(&str, &str)] = &[
     ("E-rt-client", "外部组件报错（判断器客户端、gen、ask）"),
     ("E-rt-answer", "判断器答案的形状或条数与题不符"),
     ("E-rt-absent", "判断器缺席且缺席策略为 fail"),
+    (
+        "E-rt-regex",
+        "regex_match / regex_find 的正则表达式编译失败（B157）",
+    ),
 ];
 
 /// 编号的类型说明；不是运行期编号返回 `None`。

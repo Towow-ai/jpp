@@ -1,0 +1,10 @@
+{
+  "description": "触发运行期 J-05：sieve 的 pending 被悄悄丢弃。",
+  "calibrations": [
+    {"key": "j05-demo", "hi": 0.7, "lo": 0.3, "n": 1, "status": "上岗", "delta": 0.05}
+  ],
+  "observations": [
+    {"on": ["候选一"], "op": "test", "text": "这个候选是否满足约束？", "calib": "j05-demo", "answer": {"Noul": 0.9}},
+    {"on": ["候选二"], "op": "test", "text": "这个候选是否满足约束？", "calib": "j05-demo", "answer": {"Noul": 0.5}}
+  ]
+}

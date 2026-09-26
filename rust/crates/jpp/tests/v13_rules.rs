@@ -26,6 +26,7 @@ fn costly_ports<'a>(p: f64, cost_each: f64, calls: &'a RefCell<u64>) -> Ports<'a
                 cost: cost_each,
                 perms: vec![],
                 mode_share: vec![],
+                confidence: vec![],
             })
         }))
         .with(FnPort::generate("fixed-0", |_p, _c, _n, _r| {

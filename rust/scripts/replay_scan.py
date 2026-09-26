@@ -35,10 +35,12 @@ def groups() -> list:
     covered = set()
     for c in m["cases"]:
         covered.add(c["source"])
-        if c.get("expect") == "error" or c.get("resume_from") or not c.get("fixtures"):
+        if c.get("expect") == "error" or c.get("resume_from") or c.get("resume_ledger") or not c.get("fixtures"):
             continue
+        # 步 20j-2：清单项的 `args`（如 --release-on-declared）首跑与重放都带
         out.append({"name": c["name"], "cwd": None, "source": ROOT / c["source"], "fixtures": ROOT / c["fixtures"],
-                    "calib": ROOT / c["calib"] if c.get("calib") else None, "files": c.get("files", {})})
+                    "calib": ROOT / c["calib"] if c.get("calib") else None, "files": c.get("files", {}),
+                    "args": c.get("args", [])})
     for src in sorted((ROOT / "examples").glob("*.jpp")):
         rel = str(src.relative_to(ROOT))
         fx = ROOT / "examples/fixtures" / (src.stem + ".json")
@@ -95,7 +97,7 @@ def scan_one(g: dict) -> dict:
         for k, v in g["files"].items():
             (tmp / k).write_text(v, encoding="utf-8")
         led, r1, r2 = tmp / "ledger.jsonl", tmp / "first.json", tmp / "replay.json"
-        inp = ["--input", g["input"]] if g.get("input") else []
+        inp = (["--input", g["input"]] if g.get("input") else []) + list(g.get("args", []))
         a = [g["source"], "--fixtures", g["fixtures"], "--ledger-out", led, "--output", r1, *inp]
         if g["calib"]:
             a += ["--calib", g["calib"]]

@@ -81,7 +81,7 @@
       },
       {
         "cost": 0.0,
-        "key": "6b94d17c3d790cf40b4fa224",
+        "key": "4dce9b54298449810a42a07e",
         "kind": "judge",
         "note": "「这条评审意见是否指出了安全问题？」",
         "replayed": true,
@@ -92,7 +92,7 @@
       },
       {
         "cost": 0.0,
-        "key": "50b6d185ea6b7b5f766ac7bc",
+        "key": "077549c3971ec212c026617c",
         "kind": "judge",
         "note": "「这条评审意见是否指出了安全问题？」",
         "replayed": true,

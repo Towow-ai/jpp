@@ -1,0 +1,5 @@
+import "../../lib/outcome.jpp";
+budget {calls: 4, cost: 0.01, depth: 8};
+let ok = test("这个候选是否满足约束？", "j05-demo");
+let r = sieve([mat("候选一"), mat("候选二")], ok);
+{solutions: map(accepted(r), fn(e) { e.item })}

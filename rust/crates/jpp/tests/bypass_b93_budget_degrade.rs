@@ -43,6 +43,7 @@ fn 端口<'a>(calls: &'a Cell<u64>) -> Ports<'a> {
                     .iter()
                     .map(|q| if q.op == Op::Select { 5 } else { 0 })
                     .collect(),
+                confidence: vec![],
             })
         }))
         .with(FnPort::generate("fixed-0", move |_p, _c, n, _r| {
@@ -52,6 +53,7 @@ fn 端口<'a>(calls: &'a Cell<u64>) -> Ports<'a> {
                     .collect(),
                 tokens: 0,
                 cost: 0.0,
+                ..Default::default()
             })
         }))
 }

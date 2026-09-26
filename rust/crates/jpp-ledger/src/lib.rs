@@ -25,6 +25,8 @@ use jpp_value::value::{Answer, Taint, hash_of};
 
 mod aggregate;
 pub use aggregate::{Observation, depth_profile, observations};
+mod port;
+pub use port::{Durability, LedgerError, LedgerPort};
 
 pub use jpp_ir::key::{
     CacheKey, CalibRef, EffectKey, JudgeKey, RENDER_VERSION, effect_key, judge_key,
@@ -104,6 +106,11 @@ pub enum Entry {
         /// 修复记录 `过程记录/工程-修复-folio重放.md`。没测时不序列化，旧账本与金样逐字节不变。
         #[serde(default, skip_serializing_if = "Option::is_none")]
         perm: Option<PermMeasure>,
+        /// 判断器随答案给的自报置信度（B154；`cut` 的 `stat: "confidence"` 读它）。与 `perm` 同理，它是这条读数的
+        /// 一部分：重放与同键复用只从这里取回。判断器没报时不序列化，旧账本与金样逐字节不变。
+        /// 依据：B154 (1)（地基/附注/2026-09-26-批6裁定.md §二；`21` 18a 追加项，账本字段提前到步 20j-3）
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        confidence: Option<f64>,
     },
     Effect {
         key: String,
@@ -171,6 +178,7 @@ impl Entry {
             hop: 0,
             reused_from: None,
             perm: None,
+            confidence: None,
         }
     }
     /// 一条效应记录（`output_mat` 取缺省）。
@@ -206,6 +214,10 @@ impl Entry {
         }
     }
 }
+
+/// 作者声明线（B128）在 `CalibUsed` 里的键前缀（B142，步 20j-1）：`declared:<校准键>@<站点>`，记录
+/// `{line: "declared", hi, lo, site}`。它不是校准记录：比对、补回校准库、导出夹具都跳过它，由运行时在站点比。
+pub const DECLARED_PREFIX: &str = "declared:";
 
 /// 账本头里记录但不比对的预算（B61：续接时预算变大不报 `W-header`）。
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -414,8 +426,29 @@ impl Truncated {
     }
 }
 
-fn line_hash(line: &str) -> String {
+/// 账本一行文本的链哈希：下一行的 `prev` 就是它。
+pub fn line_hash(line: &str) -> String {
     hash_of(&["ledger-line", line])
+}
+
+/// 头行文本（不含换行）。与 [`encode_entry`] 一起是账本唯一的序列化路径：[`Ledger::encode`] 与
+/// 逐行落盘的文件后端（`jpp::store::LedgerFile`，步 18b）都经这两个函数。
+pub fn encode_head(header: &Option<Header>) -> String {
+    serde_json::to_string(&HeadLine {
+        version: LEDGER_VERSION,
+        header: header.clone(),
+    })
+    .expect("账本头可序列化")
+}
+
+/// 第 `seq` 条（从 1 起）的行文本（不含换行）；`prev` 是上一行的 [`line_hash`]（首条对头行）。
+pub fn encode_entry(seq: u64, prev: &str, e: &Entry) -> String {
+    serde_json::to_string(&EntryLine {
+        seq,
+        prev: prev.to_string(),
+        entry: e.clone(),
+    })
+    .expect("账本条目可序列化")
 }
 
 impl Ledger {
@@ -442,13 +475,7 @@ impl Ledger {
     /// 否则追加一条。首跑每键首次命中一条；同一账本再跑一趟命中同一记录不追加（账本逐字节不变）；
     /// 续接时记录换了才追加，重放按键取最后一条即那一趟的线。
     pub fn note_calib_used(&mut self, key: &str, hash: &str, record: Json) {
-        let same = self
-            .calib_used
-            .get(key)
-            .and_then(|v| v.get("hash"))
-            .and_then(|h| h.as_str())
-            == Some(hash);
-        if same {
+        if self.calib_used_same(key, hash) {
             return;
         }
         self.put(Entry::CalibUsed {
@@ -456,6 +483,14 @@ impl Ledger {
             hash: hash.to_string(),
             record,
         });
+    }
+    /// 该键最后一条 `CalibUsed` 的哈希是否就是 `hash`（是则不必再追加，B124）。
+    pub fn calib_used_same(&self, key: &str, hash: &str) -> bool {
+        self.calib_used
+            .get(key)
+            .and_then(|v| v.get("hash"))
+            .and_then(|h| h.as_str())
+            == Some(hash)
     }
     /// 换头并比对（B77、B124；比对只在这里）：十字段按场合比，另把 `calib_used`（`CalibUsed` 条目按键取
     /// 最后一条）与当前校准视图逐键比——某键视图里的记录哈希与条目不同，或视图里没有该键，即为变化。
@@ -477,14 +512,18 @@ impl Ledger {
                 .collect(),
             None => vec![],
         };
+        // B142（步 20j-1）：`declared:` 键是作者声明线，不在校准视图里；它由运行时在 `cut` 站点比（不在这里比）
+        let 记录键 = |k: &&String| !k.starts_with(DECLARED_PREFIX);
         let 现: Vec<(String, Json)> = self
             .calib_used
             .keys()
+            .filter(记录键)
             .filter_map(|k| 视图(k).map(|j| (k.clone(), j)))
             .collect();
         let 变化的键: Vec<String> = self
             .calib_used
             .iter()
+            .filter(|(k, _)| 记录键(k))
             .filter(|(k, v)| {
                 let 现哈希 = 视图(k).map(|j| hash_of(&[&j.to_string()]));
                 现哈希.as_deref() != v.get("hash").and_then(|h| h.as_str())
@@ -495,6 +534,7 @@ impl Ledger {
             let 旧 = calib_used_hash(
                 self.calib_used
                     .iter()
+                    .filter(|(k, _)| 记录键(k))
                     .map(|(k, v)| (k.as_str(), v.get("record").unwrap_or(&Json::Null))),
             );
             let 新 = calib_used_hash(现.iter().map(|(k, j)| (k.as_str(), j)));
@@ -592,27 +632,29 @@ impl Ledger {
 
     /// v3 编码：JSONL 链式（见模块文档）。确定性：同一内容逐字节相同。
     pub fn encode(&self) -> String {
-        let head = serde_json::to_string(&HeadLine {
-            version: LEDGER_VERSION,
-            header: self.header.clone(),
-        })
-        .expect("账本头可序列化");
+        let head = encode_head(&self.header);
         let mut out = String::new();
-        let mut prev = line_hash(&head);
+        let prev = line_hash(&head);
         out.push_str(&head);
         out.push('\n');
-        for (i, e) in self.entries.iter().enumerate() {
-            let line = serde_json::to_string(&EntryLine {
-                seq: i as u64 + 1,
-                prev: prev.clone(),
-                entry: e.clone(),
-            })
-            .expect("账本条目可序列化");
-            prev = line_hash(&line);
+        for line in self.encode_from(0, &prev).0 {
             out.push_str(&line);
             out.push('\n');
         }
         out
+    }
+
+    /// 从第 `start` 条（0 起）编到末尾：返回各行文本与最后一行的链哈希（没有条目时即 `prev`）。
+    /// 逐行落盘的文件后端用它续写；[`Ledger::encode`] 用它写全部条目。
+    pub fn encode_from(&self, start: usize, prev: &str) -> (Vec<String>, String) {
+        let mut prev = prev.to_string();
+        let mut lines = vec![];
+        for (i, e) in self.entries.iter().enumerate().skip(start) {
+            let line = encode_entry(i as u64 + 1, &prev, e);
+            prev = line_hash(&line);
+            lines.push(line);
+        }
+        (lines, prev)
     }
 
     /// v3 解码。返回账本与截断报告（末行半写时）。v1 报 `E-ledger-archived`；v2 报 `E-ledger-v2`
@@ -828,5 +870,72 @@ mod b77_tests {
         let (back, _) = Ledger::decode(&l.encode()).unwrap();
         assert_eq!(back.calib_used, l.calib_used);
         assert_eq!(back.encode(), l.encode());
+    }
+}
+
+#[cfg(test)]
+mod b55_tests {
+    //! 步 18b（B55）：逐行编码与整份编码是同一条路径；内存账本作为端口。
+    use super::*;
+
+    fn 样本() -> Ledger {
+        let mut l = Ledger::new();
+        l.set_header(Header::new(1, 1.0, "m", "r1", "h"));
+        l.put(Entry::judge("k1", Answer::Noul(0.9), 0, 0.0, "m", 1));
+        l.put(Entry::Intent {
+            key: "intent:e1".into(),
+            at: 1,
+        });
+        l.put(Entry::effect_keyed("e1".into(), "do", Json::from(1), 0.0));
+        l
+    }
+
+    #[test]
+    fn 分两段逐行编码与整份编码逐字节相同() {
+        let l = 样本();
+        let head = encode_head(&l.header);
+        let (全部, 末) = l.encode_from(0, &line_hash(&head));
+        // 先写前两条，再从第 3 条续写：续写接上的链与一次写完相同
+        let (后段, 末2) = l.encode_from(2, &line_hash(&全部[1]));
+        assert_eq!(后段, 全部[2..].to_vec());
+        assert_eq!(末2, 末);
+        let mut s = format!("{head}\n");
+        for x in &全部 {
+            s.push_str(x);
+            s.push('\n');
+        }
+        assert_eq!(s, l.encode());
+        let (d, t) = Ledger::decode(&s).unwrap();
+        assert!(t.is_none());
+        assert_eq!(d.len(), 3);
+    }
+
+    #[test]
+    fn 内存账本作端口_答案另起一条_命中记录同哈希不追加() {
+        let mut l = Ledger::new();
+        let p: &mut dyn LedgerPort = &mut l;
+        p.append(
+            Entry::Ask {
+                key: "a".into(),
+                ekey: None,
+                answer: None,
+            },
+            Durability::Layer,
+        )
+        .unwrap();
+        p.append(
+            Entry::Ask {
+                key: "a".into(),
+                ekey: None,
+                answer: Some(Answer::Noul(1.0)),
+            },
+            Durability::Now,
+        )
+        .unwrap();
+        p.append_calib_used("k", "h1", Json::Null).unwrap();
+        p.append_calib_used("k", "h1", Json::Null).unwrap();
+        p.append_calib_used("k", "h2", Json::Null).unwrap();
+        assert!(p.end_layer().is_ok());
+        assert_eq!(l.len(), 4, "未答、已答、两条命中记录");
     }
 }

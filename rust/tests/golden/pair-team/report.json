@@ -175,7 +175,7 @@
     "events": [
       {
         "cost": 0.0,
-        "key": "7c51c8355e389a0380356589",
+        "key": "faf5623a76405fabbbb19bf7",
         "kind": "judge",
         "note": "「成员 b 的技能能完成需求 a 吗？」",
         "replayed": false,
@@ -186,7 +186,7 @@
       },
       {
         "cost": 0.0,
-        "key": "64b58f62e6949622832a4389",
+        "key": "9eb1e434915ef34eff44e3f2",
         "kind": "judge",
         "note": "「成员 b 的技能能完成需求 a 吗？」",
         "replayed": false,
@@ -197,7 +197,7 @@
       },
       {
         "cost": 0.0,
-        "key": "9295a09154654d9143a398ee",
+        "key": "00ec4f5ee03ad534f79faedc",
         "kind": "judge",
         "note": "「成员 b 的技能能完成需求 a 吗？」",
         "replayed": false,
@@ -208,7 +208,7 @@
       },
       {
         "cost": 0.0,
-        "key": "4620cfef1f99403ce7ab9694",
+        "key": "46346ba59841dc0de01cdd6b",
         "kind": "judge",
         "note": "「成员 b 的技能能完成需求 a 吗？」",
         "replayed": false,
@@ -219,7 +219,7 @@
       },
       {
         "cost": 0.0,
-        "key": "399371969a379ee20b6c257a",
+        "key": "953cd58330bbd6a68946ab5a",
         "kind": "judge",
         "note": "「成员 b 的技能能完成需求 a 吗？」",
         "replayed": false,
@@ -230,7 +230,7 @@
       },
       {
         "cost": 0.0,
-        "key": "d3d126912c9f847ea4748db8",
+        "key": "53fd120bf9a7eed2f58fae65",
         "kind": "judge",
         "note": "「成员 b 的技能能完成需求 a 吗？」",
         "replayed": false,
@@ -241,7 +241,7 @@
       },
       {
         "cost": 0.0,
-        "key": "4d5a2fd1e083bc804a622614",
+        "key": "de4df95d21b87e0898f8861c",
         "kind": "judge",
         "note": "「成员 b 的技能能完成需求 a 吗？」",
         "replayed": false,
@@ -252,7 +252,7 @@
       },
       {
         "cost": 0.0,
-        "key": "2b52f42185a9c60daa618582",
+        "key": "7946bade98e8eebbff03cf27",
         "kind": "judge",
         "note": "「成员 b 的技能能完成需求 a 吗？」",
         "replayed": false,
@@ -263,7 +263,7 @@
       },
       {
         "cost": 0.0,
-        "key": "53877261ce12ae21c37e4c75",
+        "key": "1dd5f4f730561e4aec905b28",
         "kind": "judge",
         "note": "「成员 b 的技能能完成需求 a 吗？」",
         "replayed": false,
@@ -274,7 +274,7 @@
       },
       {
         "cost": 0.0,
-        "key": "136790a2a30e0c03740b8543",
+        "key": "a1a8f9d63d22fe24dfc31c4a",
         "kind": "judge",
         "note": "「成员 b 的技能能完成需求 a 吗？」",
         "replayed": false,
@@ -285,7 +285,7 @@
       },
       {
         "cost": 0.0,
-        "key": "1232515f0a8954b6d23b0f00",
+        "key": "8f3d0d183e79d52c456fe49a",
         "kind": "judge",
         "note": "「成员 b 的技能能完成需求 a 吗？」",
         "replayed": false,
@@ -296,7 +296,7 @@
       },
       {
         "cost": 0.0,
-        "key": "d6f7c4abbbfa746d7d070b16",
+        "key": "0ef309ae869abe5cc6f8d41c",
         "kind": "judge",
         "note": "「成员 b 的技能能完成需求 a 吗？」",
         "replayed": false,
@@ -307,7 +307,7 @@
       },
       {
         "cost": 0.0,
-        "key": "ffe5d1072c8ff89de3ba2d75",
+        "key": "b5faef63058d9cd6c0fdf5e4",
         "kind": "judge",
         "note": "「已有组合 a（需求 a.a 与承接成员 a.b）加入新成员 b 后，这个组合整体能更好地完成该需求吗？」",
         "replayed": false,
@@ -318,7 +318,7 @@
       },
       {
         "cost": 0.0,
-        "key": "2eed966eac2fbf3a388db7bb",
+        "key": "f3882d1b87f07b37d815431d",
         "kind": "judge",
         "note": "「已有组合 a（需求 a.a 与承接成员 a.b）加入新成员 b 后，这个组合整体能更好地完成该需求吗？」",
         "replayed": false,
@@ -363,7 +363,7 @@
               ]
             }
           },
-          "key": "64b58f62e6949622832a4389",
+          "key": "9eb1e434915ef34eff44e3f2",
           "left": "做一个带登录的网页后台",
           "pos": 1,
           "q": {
@@ -404,7 +404,7 @@
               ]
             }
           },
-          "key": "136790a2a30e0c03740b8543",
+          "key": "a1a8f9d63d22fe24dfc31c4a",
           "left": "给安卓应用做界面",
           "pos": 9,
           "q": {

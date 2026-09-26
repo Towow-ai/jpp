@@ -14,8 +14,8 @@ use jpp_effects::views::{CalibView, Lookup};
 use jpp_effects::views::{FitRecord, FitView};
 use jpp_ir::ir::{Block, Budget, Expr, Function, Program, Span, Stmt};
 use jpp_ledger::{
-    CalibRef, EffectKey, Entry, Header, HeaderCompare, JudgeKey, Ledger, MatMeta, RENDER_VERSION,
-    SourceEdge, Trace,
+    CalibRef, Durability, EffectKey, Entry, Header, HeaderCompare, JudgeKey, LedgerError,
+    LedgerPort, MatMeta, RENDER_VERSION, SourceEdge, Trace,
 };
 use jpp_value::value::*;
 
@@ -199,6 +199,9 @@ pub struct Outcome {
     pub cost: Cost,
     /// 最外层带出的未消费 Unsure（v0.1.1：允许并记）
     pub returned_unsure: Vec<String>,
+    /// B162（步 25d）：带回的未决责任按账本键列持有者 `{key, exit, holders: [路径…]}`；只在有键被两个及以上
+    /// 持有者带回时非空（单一持有者由 `returned_unsure` 说清）
+    pub duties: Vec<serde_json::Value>,
     /// 每次刷新发出的一层（12 §2.2 的分层结果）；层数是 lift / fuse 的量具
     pub layers: Vec<Layer>,
     /// **这一趟跑出来的证据**（`12`:347 的「运行期写入口」）：`(校准键, 观察)`。
@@ -260,12 +263,15 @@ struct LoopCtx {
 pub struct Interp<'a> {
     /// 按效应实例索引的端口表（步 15b，`20` §2.3 `Ports.effects`）：判断、生成、问人只经它发调用
     ports: Ports<'a>,
-    ledger: &'a mut Ledger,
+    ledger: &'a mut dyn LedgerPort,
     /// 校准只经只读视图读（步 11b，`20` §2.3：运行时不依赖 `CalibStore` 具体类型）
     calib: &'a dyn CalibView,
     /// 私有读数表：读数是句柄，答案只在这里（步 11b-3）。写只经 `flush.rs::fill_answer`，
     /// 读只经 `readings.rs::answer_of`。
     answers: std::cell::RefCell<AnswerTable>,
+    /// 读数 id → 判断器随答案报的自报置信度（B154，步 20j-3）。与答案同处写（`flush.rs::fill_from_record`），
+    /// 没报的读数不在表里。`Reading` 不带它：读数是句柄，读数的内容只在持有者的表里。
+    置信表: std::cell::RefCell<HashMap<u64, f64>>,
     next_reading: std::cell::Cell<u64>,
     actions: &'a ActionRegistry,
     fits: Fits<'a>,
@@ -280,6 +286,8 @@ pub struct Interp<'a> {
     model_id: String,
     /// 已登记但还没发出的判断（`12` §2.2「登记后不发」）
     pending: Vec<PendingJudge>,
+    /// 交出去还没取回的生成与生成缓存（B149，步 15h-2：`gen_pending.rs`）
+    生成: gen_pending::GenState,
     /// **审计重放**（B35；21 步 3）：只凭账本重现首跑。账本里记过的调用照记录计入预算，
     /// 使首跑在哪里预算停机，重放就在哪里停；账本缺的记录报 `E-replay`（致命，不进 cause）。
     /// 续跑（`--resume`）不开：已记录的不付费、继续往下。依据：12 §2.3 B35 注；21 §三·2 步 3。
@@ -326,6 +334,9 @@ pub struct Interp<'a> {
     consecutive_absent: u32,
     /// 本趟算出的判断键：账本键 → 结构化键（账本 v2 条目记结构化键，步 7）
     judge_keys: HashMap<String, JudgeKey>,
+    /// 判断键的渲染分量（B155，步 15i）：缺省 `RENDER_VERSION`；只凭账本重放时取账本头记的版本，
+    /// 旧渲染的账本照样命中（重放不发请求，不违反 B48）。续接遇到旧渲染在 `run` 入口拒绝。
+    render: String,
     /// 本趟算出的效应键：账本键 → 结构化键（步 7）
     effect_keys: HashMap<String, EffectKey>,
     /// 本趟判断调用累计耗时（秒，B32 时延预算）
@@ -349,6 +360,8 @@ pub struct Interp<'a> {
     /// 本趟已记下命中的校准键（`note_calib` 去重；账本 v3 起 `calib_used` 是账本条目的派生视图，
     /// 跨趟保留，不再在入口清空）
     本趟已记校准: HashSet<String>,
+    /// 层末条目追加时账本端口报的错（B55，步 18b）：先记下，下一次层末落盘时报 `E-ledger-io`
+    账本错: Option<LedgerError>,
     /// 谱系放行（B72-4，步 17b）：本趟切过的出口，按账本键记「是否全部已决且放行」与第一个不放行者的说明。
     /// 同一键切多次时须全部放行（17b 解释登记 (c)）。
     出口放行表: HashMap<String, (bool, String)>,
@@ -358,12 +371,20 @@ pub struct Interp<'a> {
     fn1_of: HashMap<usize, String>,
     /// B95（步 21）：本趟显式 drop 过的未决出口（返回前核 `W-drop-then-return` 用）
     dropped: Vec<Rc<Exit>>,
+    /// B162（步 25d）：已解除的未决责任，按账本键：键 → 首次解除的方式与站点。同一键的多个持有者是一份
+    /// 责任的多个视图，任一处消费即解除；再次消费报 `W-duty-twice`
+    解除: HashMap<String, String>,
     /// 已报过 `W-lineage-unknown` 的祖先键（每键报一次）
     谱系缺键已报: HashSet<String>,
     /// 这次运行已经报过漂移的键：**一条天天响的告警等于没有告警**
     drift_reported: HashSet<String>,
     /// B104：`W-delta-unknown` / `W-scope-unknown` 每键每趟只报一次（值为「告警码\u{1f}键」）
     unknown_reported: HashSet<String>,
+    /// 本趟各校准键切过的读数的统计量值（B128 `near_line` 的分母，步 20j-1）。按（键，统计量）分组：
+    /// `max` 组的键就是校准键（与 20j-1 同），其他统计量的组键为「校准键\u{1f}统计量规范 JSON」（步 20j-3）
+    键读数: HashMap<String, Vec<f64>>,
+    /// 声明线出口的说明（出口 id → 「@站点 hi lo，标注 n 条」），J-08 拒绝报文用（B128）
+    声明出口: HashMap<usize, String>,
     evidence: Vec<(String, jpp_effects::views::Sample)>,
     /// 逐 `cut` 出口的线等级（步 20f，报告 `exits`；出口不进账本，重放时重算）
     exit_grades: Vec<Json>,
@@ -413,6 +434,7 @@ pub const BUILTINS: &[&str] = &[
     "iterate",
     "outcome",
     "key_of",
+    "element",
     "cut",
     "handle",
     "consume",
@@ -431,6 +453,8 @@ pub const BUILTINS: &[&str] = &[
     "unsure_cause",
     "untested",
     "line_source",
+    "cert",
+    "compose",
     "taint",
     "escalate",
     "literalize",
@@ -462,6 +486,30 @@ pub const BUILTINS: &[&str] = &[
     "abs",
     "floor",
     "exit_kind",
+    // 文本与数据内置（B157，步 7t）
+    "split",
+    "lower",
+    "upper",
+    "trim",
+    "replace",
+    "starts_with",
+    "ends_with",
+    "index_of",
+    "chars",
+    "regex_match",
+    "regex_find",
+    "sort",
+    "sort_by",
+    "parse_json",
+    "to_json",
+    "hash",
+    "date_parse",
+    "date_format",
+    "date_add",
+    // 带种子伪随机（B158，步 7t）
+    "rand",
+    "rand_int",
+    "shuffle",
 ];
 
 pub fn root_env() -> Env {
@@ -522,6 +570,7 @@ impl jpp_ir::plan::PlanHooks for Unplanned {
 
 mod bridge;
 mod budget;
+mod builtins_text;
 mod caps;
 mod constructs;
 mod duty;
@@ -529,6 +578,7 @@ mod effects_exec;
 mod entry;
 mod eval;
 mod flush;
+mod gen_pending;
 mod guard;
 mod host_builtins;
 mod outcome;
@@ -537,9 +587,11 @@ mod readings;
 mod register;
 mod schedule;
 pub mod strength;
+pub use builtins_text::RAND_VERSION;
 use caps::Caps;
 pub use caps::{ConstructSpec, Privilege, construct_specs};
-pub use entry::{EntryArgs, EntryMat, EntryValue};
+pub use entry::{EntryArgs, EntryMat, EntryValue, HostAccept};
+pub use gen_pending::{GenCache, GenCacheEntry};
 
 use readings::refresh_point;
 
@@ -549,7 +601,7 @@ impl<'a> Interp<'a> {
     /// 程序不用 fit），要用 fit 走 `with_fits`。
     pub fn new(
         ports: Ports<'a>,
-        ledger: &'a mut Ledger,
+        ledger: &'a mut dyn LedgerPort,
         calib: &'a dyn CalibView,
         actions: &'a ActionRegistry,
         budget: Budget,
@@ -561,7 +613,7 @@ impl<'a> Interp<'a> {
     /// 取第一个已注册实例的模型（这时任何判断调用都会报没有端口）。
     pub fn with_fits(
         ports: Ports<'a>,
-        ledger: &'a mut Ledger,
+        ledger: &'a mut dyn LedgerPort,
         calib: &'a dyn CalibView,
         actions: &'a ActionRegistry,
         fits: Fits<'a>,
@@ -577,6 +629,7 @@ impl<'a> Interp<'a> {
             ledger,
             calib,
             answers: Default::default(),
+            置信表: Default::default(),
             next_reading: Default::default(),
             actions,
             fits,
@@ -590,6 +643,7 @@ impl<'a> Interp<'a> {
             run_seq: 0,
             model_id,
             pending: vec![],
+            生成: Default::default(),
             layers: vec![],
             plan: jpp_ir::plan::Plan::empty(),
             hooks: &Unplanned,
@@ -600,13 +654,17 @@ impl<'a> Interp<'a> {
             computed_untrusted_states: std::cell::RefCell::new(HashSet::new()),
             input_untrusted_states: std::cell::RefCell::new(HashMap::new()),
             本趟已记校准: HashSet::new(),
+            账本错: None,
             出口放行表: HashMap::new(),
             谱系断: std::cell::RefCell::new(HashMap::new()),
             fn1_of: HashMap::new(),
             dropped: vec![],
+            解除: HashMap::new(),
             谱系缺键已报: HashSet::new(),
             drift_reported: HashSet::new(),
             unknown_reported: HashSet::new(),
+            键读数: HashMap::new(),
+            声明出口: HashMap::new(),
             exit_grades: vec![],
             exit_rows: HashMap::new(),
             reading_kinds: HashMap::new(),
@@ -615,6 +673,7 @@ impl<'a> Interp<'a> {
             absent_marks: HashMap::new(),
             consecutive_absent: 0,
             judge_keys: HashMap::new(),
+            render: RENDER_VERSION.to_string(),
             effect_keys: HashMap::new(),
             latency_spent: 0.0,
             c_max: None,
@@ -684,15 +743,14 @@ fn referenced_names(f: &Function) -> BTreeSet<String> {
     out
 }
 
-/// 读数用来排序的那个值；`None` = 失败或没答（J-12，排最后）
+/// 读数的 p（`test`）或 p_max（K 元题），`fit` 的特征值；`None` = 失败或没答（J-12）
 fn rank_value(ans: &dyn Answers, r: &Reading) -> Option<f64> {
     if r.fail.is_some() {
         return None;
     }
-    match ans.answer_of(r)? {
-        Answer::Noul(p) => Some(p),
-        Answer::Choice(v) | Answer::Score(v) => Some(argmax(&v).1),
-    }
+    // 步 15k（B167 (1)）：统计量全仓只在 `stat_of` 算。`fit` 要的是特征概率（p、p_max），取 `max`，
+    // 值与改前逐位相同；`order` 的排序键不再经这里（`bridge.rs::order_tiers`）
+    jpp_value::stat::stat_of(&ans.answer_of(r)?, &jpp_value::stat::Stat::Max, None).ok()
 }
 
 /// 同题跨运行合并：noul / score 取均值，choice 取众数（`12`:134）
@@ -780,6 +838,10 @@ fn missing_evidence(state: &State, q: &Question) -> Vec<String> {
                 "on" => &state.on,
                 "ctx" => &state.ctx,
                 "ref" => &state.r#ref,
+                // B155（步 15i）：`over` 只随 `select` 题作 `criteria` 发出，是非题与打分题线上看不到它——
+                // 声明 `over` 为决定性证据的非 `select` 题按缺证据处理（不信任 p），不因状态里有 `over` 放行。
+                // 依据：B155、J-09
+                "over" if q.op != Op::Select => return true,
                 "over" => &state.over,
                 _ => return false,
             };
@@ -985,6 +1047,43 @@ fn permute_of(v: Option<&Value>, op: Op, sp: Span) -> R<bool> {
     Ok(declared)
 }
 
+/// 是非题的答案标签 `{labels: {yes: Text, no: Text}}`（B155，步 15i）：线上作 `criteria: {true, false}`，
+/// 进题哈希与题式哈希。只用于 `test`（`select` 的候选标签写在候选材料上：`{label, text}`）。
+/// 依据：B155（地基/附注/2026-09-26-批6裁定.md §三）
+fn labels_of(v: Option<&Value>, op: Op, sp: Span) -> R<Option<jpp_value::value::TestLabels>> {
+    let l = match v.and_then(|v| v.get("labels")) {
+        None | Some(Value::Unit) => return Ok(None),
+        Some(l) => l,
+    };
+    if op != Op::Test {
+        return err(
+            Some("E-rt-question"),
+            format!(
+                "labels 只用于 test（是非题的答案标签）：{} 题的候选标签写在候选材料上 {{label, text}}（依据：B155）",
+                op.fixture_name()
+            ),
+            sp,
+        );
+    }
+    let (yes, no) = (l.get("yes"), l.get("no"));
+    match (&l, yes, no) {
+        (Value::Record(fs), Some(Value::Text(y, _)), Some(Value::Text(n, _))) if fs.len() == 2 => {
+            Ok(Some(jpp_value::value::TestLabels {
+                yes: y.to_string(),
+                no: n.to_string(),
+            }))
+        }
+        _ => err(
+            Some("E-rt-question"),
+            format!(
+                "labels 要是 {{yes: Text, no: Text}}，收到 {}（依据：B155）",
+                l.type_name()
+            ),
+            sp,
+        ),
+    }
+}
+
 /// 题的声明项：前提（可选文本）与请求（本版只接受各题型的缺省请求，见下）。
 fn question_decl_of(v: Option<&Value>, op: Op, sp: Span) -> R<(Option<String>, Option<String>)> {
     let Some(v) = v else { return Ok((None, None)) };
@@ -1125,6 +1224,9 @@ const 不做数据流合取的内置: &[&str] = &[
     "unsure_bound",
     "fit",
     "order",
+    // 步 25-8a：元素构造自带来源规则（item 只加选择边，B92）；整体 ∨ 会给 item 加出口的值依赖边，
+    // 把「读数只选中了它」变成「内容派生自这道题」（J-02 会误拦同题再问）
+    "element",
     "escalate",
     "literalize",
     "unsure",

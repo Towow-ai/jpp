@@ -19,7 +19,8 @@ for name, src, fx in cases:
     fx2 = HERE / f"fixture-{name}.json"
     json.dump(d, open(fx2, "w"), ensure_ascii=False, indent=1)
     rep = HERE / f"report-{name}.json"
-    p = subprocess.run([str(JPP), "run", str(src), "--fixtures", str(fx2), "--calib", str(CALIB), "--output", str(rep)],
+    p = subprocess.run([str(JPP), "run", str(src), "--fixtures", str(fx2), "--calib", str(CALIB), "--output", str(rep),
+                        "--ledger-out", str(HERE / f"ledger-{name}.jsonl")],
                        capture_output=True, text=True, cwd=src.parent if name != "topic-relevance" else R)
     r = json.load(open(rep)) if rep.exists() else {}
     w = r.get("trace", {}).get("warnings", [])

@@ -1,0 +1,15 @@
+{
+  "description": "Synthetic fixed observations for gen-choose.jpp (construction check only; not model evaluation). The generator output is fixed; the calibration record is hand-written to exercise routing. The third name is set to 0.5 on purpose to show a pending element.",
+  "calibrations": [
+    {"key": "gen-choose-fit", "hi": 0.75, "lo": 0.25, "n": 1, "status": "上岗", "delta": 0.05}
+  ],
+  "generations": [
+    {"prompt": "按下面的需求提出 3 个候选店名，每个候选是一个字符串", "retry_seq": 0,
+     "output": ["暖巷咖啡", "街角慢时光咖啡馆", "邻里豆"]}
+  ],
+  "observations": [
+    {"on": ["暖巷咖啡"], "op": "test", "text": "这个名字适合做一家社区咖啡馆的店名吗？", "calib": "gen-choose-fit", "answer": {"Noul": 0.95}},
+    {"on": ["街角慢时光咖啡馆"], "op": "test", "text": "这个名字适合做一家社区咖啡馆的店名吗？", "calib": "gen-choose-fit", "answer": {"Noul": 0.04}},
+    {"on": ["邻里豆"], "op": "test", "text": "这个名字适合做一家社区咖啡馆的店名吗？", "calib": "gen-choose-fit", "answer": {"Noul": 0.5}}
+  ]
+}

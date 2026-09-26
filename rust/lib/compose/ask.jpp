@@ -1,0 +1,13 @@
+// 未决交人（B148 unsure_to 的 ask 一路，步 25c）：search 的 opts.unsure_to 给 ask_human，本轮未决逐个
+// escalate 给人，用它未决时的那道题问；交出的元素出口换成人的回答，并进 pending。
+// 单独成文件：J-07 按全程序静态查 ask / escalate，引了本文件的程序要在 budget 里写 escalate: N；
+// 只用 carry / refine 的程序不引它，也就不必为问人留次数。没人答时程序挂起（B31）。
+fn ask_human(pending, question) {
+    map(pending, fn(p) {
+        handle(p.exit, {
+            act: fn() { p },
+            ignore: fn() { p },
+            unsure: fn(u) { with(p, "exit", escalate(u, state(p.item), question)) }
+        })
+    })
+}

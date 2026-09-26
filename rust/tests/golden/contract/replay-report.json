@@ -153,7 +153,7 @@
     "events": [
       {
         "cost": 0.0,
-        "key": "a54eab31e5c5df8a2b004a32",
+        "key": "c1728dd1551180886de02355",
         "kind": "judge",
         "note": "「这个人的技能里有软件开发方面的技能吗？」",
         "replayed": true,
@@ -164,7 +164,7 @@
       },
       {
         "cost": 0.0,
-        "key": "98b9803aa5f2140340d5e018",
+        "key": "7acfa79fed83a7bf6740b4ac",
         "kind": "judge",
         "note": "「这个人的技能里有软件开发方面的技能吗？」",
         "replayed": true,
@@ -175,7 +175,7 @@
       },
       {
         "cost": 0.0,
-        "key": "00cb64f031b37bf562909472",
+        "key": "49003c2c2c6f9be38978ef3d",
         "kind": "judge",
         "note": "「这个人的技能里有软件开发方面的技能吗？」",
         "replayed": true,
@@ -186,7 +186,7 @@
       },
       {
         "cost": 0.0,
-        "key": "eaa55a81e3e0349b8d3faeb3",
+        "key": "11e7bae3e26026fc3779fc87",
         "kind": "judge",
         "note": "「这个人的技能里有软件开发方面的技能吗？」",
         "replayed": true,
@@ -197,7 +197,7 @@
       },
       {
         "cost": 0.0,
-        "key": "981b180871cc596f27788f5f",
+        "key": "8dff65f2f7a76fef35f188fb",
         "kind": "judge",
         "note": "「成员 b 的技能能完成需求 a 吗？」",
         "replayed": true,
@@ -208,7 +208,7 @@
       },
       {
         "cost": 0.0,
-        "key": "d7181e1ae3081ea55b77cbfb",
+        "key": "8eeaae78138e763131f2f0ee",
         "kind": "judge",
         "note": "「成员 b 的技能能完成需求 a 吗？」",
         "replayed": true,
@@ -219,7 +219,7 @@
       },
       {
         "cost": 0.0,
-        "key": "81109a928a2061c84e081eda",
+        "key": "4b0073b70b0f9b8916e022d2",
         "kind": "judge",
         "note": "「成员 b 的技能能完成需求 a 吗？」",
         "replayed": true,
@@ -230,7 +230,7 @@
       },
       {
         "cost": 0.0,
-        "key": "749e43ade070d5d4976a8d7e",
+        "key": "bcb6b7bce94568b3065e4fd3",
         "kind": "judge",
         "note": "「成员 b 的技能能完成需求 a 吗？」",
         "replayed": true,
@@ -241,7 +241,7 @@
       },
       {
         "cost": 0.0,
-        "key": "7febf7f229e58b63656bc1cd",
+        "key": "58e1c7ff1781423bc79fc753",
         "kind": "judge",
         "note": "「已有组合 a（需求 a.a 与承接成员 a.b）加入新成员 b 后，这个组合整体能更好地完成该需求吗？」",
         "replayed": true,
@@ -252,7 +252,7 @@
       },
       {
         "cost": 0.0,
-        "key": "6af848ca59ae88ad01942cdf",
+        "key": "f675873858307d2230d55dfb",
         "kind": "judge",
         "note": "「已有组合 a（需求 a.a 与承接成员 a.b）加入新成员 b 后，这个组合整体能更好地完成该需求吗？」",
         "replayed": true,
@@ -263,7 +263,7 @@
       },
       {
         "cost": 0.0,
-        "key": "5f58332c9c4936b84a9f3fee",
+        "key": "a486d63c07a940fd9bbdc0f2",
         "kind": "judge",
         "note": "「只看成员 b 列出的技能，他能独立完成需求 a 的主要工作吗？」",
         "replayed": true,
@@ -325,7 +325,7 @@
               ]
             }
           },
-          "key": "d7181e1ae3081ea55b77cbfb",
+          "key": "8eeaae78138e763131f2f0ee",
           "left": "做一个带登录的网页后台",
           "pos": 1,
           "q": {
@@ -351,7 +351,7 @@
                 "后端"
               ]
             },
-            "key": "98b9803aa5f2140340d5e018",
+            "key": "7acfa79fed83a7bf6740b4ac",
             "pos": 1,
             "q": {
               "calib": "c-tech",
@@ -379,7 +379,7 @@
               "UI 设计"
             ]
           },
-          "key": "eaa55a81e3e0349b8d3faeb3",
+          "key": "11e7bae3e26026fc3779fc87",
           "pos": 3,
           "q": {
             "calib": "c-tech",

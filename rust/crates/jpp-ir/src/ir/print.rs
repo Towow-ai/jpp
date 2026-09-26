@@ -43,6 +43,10 @@ pub fn print(p: &Program, annot: Option<&AnnotTable>) -> String {
             .collect();
         let _ = writeln!(w.out, "entry {}", ps.join(" "));
     }
+    // 宿主接受声明（B128，步 20j-2）：只在接受时打印
+    if p.entry.accept_declared {
+        let _ = writeln!(w.out, "accept declared_lines");
+    }
     w.block(&p.body, 0);
     let _ = writeln!(w.out, "sites {}", p.sites.sites.len());
     for s in &p.sites.sites {

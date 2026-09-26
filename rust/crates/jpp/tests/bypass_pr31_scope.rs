@@ -146,6 +146,7 @@ fn 桩端口() -> jpp::effects::Ports<'static> {
                 cost: 0.0,
                 mode_share: vec![],
                 perms: vec![],
+                confidence: vec![],
             })
         }))
         .with(jpp::effects::FnPort::generate("m", |_p, _c, _n, _r| {

@@ -1,0 +1,9 @@
+// 组合原语：element（步 25-8a，B133）。sieve、search、ground 内部都用它把「材料 + 出口」造成
+// 一条元素记录；库作者自己搭新的搭配（不是套现成的 sieve/search/graph）时才需要直接用它。
+// element(输入, 出口, {pos, q, qi?, fill?, key?}) 做 .jpp 做不到的两件事：item 只加「选择依赖边」
+// （读数只是选中了这份材料，不代表内容由这道题派生，B92），以及在报告 exits 表里补上这一行的 index/pos。
+budget {calls: 4, cost: 0.01, depth: 8};
+let q = test("这份材料是否合格？", "elem-ok");
+let e = cut(judge(state(mat("样品 A")), q));
+let el = element(mat("样品 A"), e, {pos: 0, q: q, key: "elem-ok"});
+{item: content(el.item), exit: exit_kind(el.exit), pos: el.pos, cause: el.cause}

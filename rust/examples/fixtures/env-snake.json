@@ -1,0 +1,17 @@
+{
+  "description": "env-snake：3 轮固定观察，头 (0,0) 走向食物 (2,1)，第 3 轮吃到即 stop（步 7t）",
+  "calibrations": [
+    {"key": "env-snake", "hi": 0.65, "lo": 0.35, "n": 1, "status": "上岗", "delta": 0.05}
+  ],
+  "observations": [
+    {"on": ["dx=2 dy=1"], "op": "test", "text": "食物在头部右边（x 更大）吗？", "calib": "env-snake", "answer": {"Noul": 0.9}},
+    {"on": ["dx=2 dy=1"], "op": "test", "text": "食物在头部下边（y 更大）吗？", "calib": "env-snake", "answer": {"Noul": 0.9}},
+    {"on": ["dx=2 dy=1"], "op": "test", "text": "水平距离是否大于等于垂直距离？", "calib": "env-snake", "answer": {"Noul": 0.9}},
+    {"on": ["dx=1 dy=1"], "op": "test", "text": "食物在头部右边（x 更大）吗？", "calib": "env-snake", "answer": {"Noul": 0.9}},
+    {"on": ["dx=1 dy=1"], "op": "test", "text": "食物在头部下边（y 更大）吗？", "calib": "env-snake", "answer": {"Noul": 0.9}},
+    {"on": ["dx=1 dy=1"], "op": "test", "text": "水平距离是否大于等于垂直距离？", "calib": "env-snake", "answer": {"Noul": 0.9}},
+    {"on": ["dx=0 dy=1"], "op": "test", "text": "食物在头部右边（x 更大）吗？", "calib": "env-snake", "answer": {"Noul": 0.1}},
+    {"on": ["dx=0 dy=1"], "op": "test", "text": "食物在头部下边（y 更大）吗？", "calib": "env-snake", "answer": {"Noul": 0.9}},
+    {"on": ["dx=0 dy=1"], "op": "test", "text": "水平距离是否大于等于垂直距离？", "calib": "env-snake", "answer": {"Noul": 0.1}}
+  ]
+}
