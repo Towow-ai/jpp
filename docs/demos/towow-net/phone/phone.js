@@ -391,7 +391,14 @@ $('me-go').addEventListener('click', () => {
 
 // ---------- 启动 ----------
 (async function start() {
-  await api.probe();
+  // 公网演示版（GitHub Pages）没有服务：不探测接口，直接用样例数据，并改掉「会发给模型」的提示
+  const publicDemo = /\.github\.io$/.test(location.hostname) && !qs.get('api');
+  if (publicDemo) {
+    api.mode = 'offline';
+    $('privacy').textContent = '这是演示版，表单不会发送；现场版会接上服务。';
+    const c = document.querySelector('.consent span');
+    if (c) c.textContent = '演示版：勾选只是看看样子，内容不会发出，也不会出现在大屏上。';
+  } else await api.probe();
   renderConn();
   if (api.mode !== 'server' && !meId) meId = null;
   const hash = location.hash.replace('#', '');
