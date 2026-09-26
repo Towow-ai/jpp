@@ -15,6 +15,14 @@ export function exitClass(exit) {
 //   节点带 live:true 或 source=="live"；id 以 live 开头；tags 含「现场」；
 //   synthetic:false、没有 source、也不是 demo_only（template.md：服务端填 synthetic 与 source，
 //   新闻里的真人带 source，现场的人没有）。
+// 几方：以引擎给的 config.parties 为准；网外的转介对象（id 形如 x:p001:1）在 members 里但不算一方。
+// 旧数据没有 parties 时数网内成员。
+export function partiesOf(cfg, ids) {
+  const n = cfg && Number(cfg.parties);
+  if (Number.isFinite(n) && n > 0) return n;
+  return (ids || (cfg && cfg.members) || []).filter((id) => !String(id).startsWith('x:')).length;
+}
+
 export function isLiveParticipant(node) {
   if (!node) return false;
   // B2b 的现场加入：node.participant === true（source 是 {title: "现场参与者自述", url: null}）

@@ -794,7 +794,7 @@ function cardHtml(s, m) {
   return `<article class="card${m.fallback ? ' fallback' : ''}" tabindex="0" data-plan="${esc(m.id)}" data-size="${m.size}" data-relay="${m.hasRelay ? 1 : 0}" aria-label="方案 ${esc(planTitle(s, m))}">
     ${ringSvg(s, m, { labels: true })}
     <div class="card-foot">
-      <h3 class="ptitle" title="${esc(planTitle(s, m))}">${m.fallback ? '<span class="fb-tag" title="大模型出方案失败，这是按模板补的兜底版，给什么、得什么常是空的或由模板拼出">兜底</span>' : ''}${esc(planTitle(s, m))}</h3>
+      <h3 class="ptitle" title="${esc(planTitle(s, m))}">${m.fallback ? '<span class="fb-tag" title="大模型出方案失败，这是按模板补的兜底版，给什么、得什么由模板拼出，部分成员为空">兜底</span>' : ''}${esc(planTitle(s, m))}</h3>
       <div class="ratio${allOk ? ' ok' : ''}" title="环上各边：成立 ${m.ex.act}，拿不准 ${m.ex.unsure}，不成立 ${m.ex.other}"><b>${tot ? m.ex.act : '—'}</b>${tot ? `<i>/${tot}</i>` : ''}</div>
     </div>
   </article>`;
@@ -838,7 +838,7 @@ function drawerHtml(s, m) {
         </div>
         <div style="margin-top:12px">${readBarsSvg(s, m.keyJudges, 300, 54)}</div>
         <div class="fold">关键判断读数（关系判断 + 环上判边），颜色是出口</div>
-        ${m.fallback ? '<p class="fb-note">兜底版：大模型出方案失败，这里按模板补了一份，「给什么、得什么」是空的。</p>' : ''}
+        ${m.fallback ? '<p class="fb-note">兜底版：大模型出方案失败，这里按模板补了一份，内容由模板拼出（可能被截断），部分成员的「给什么、得什么」为空。</p>' : ''}
         ${m.plan.text ? `<p class="planline">${esc(m.plan.text)}</p>` : ''}
       </div>
     </div>
@@ -1444,6 +1444,9 @@ async function boot() {
     MAIN.url = SRC;
     MAIN.ok = true;
   }
+  // 页面里写死的「花费」与「正式结论」只属于主运行：换了事件源或报告、或默认报告没加载成功时不显示
+  const isMain = !SSE && isDefault && !qs.get('report') && !!REPORT && MAIN.store.aug.run === 'main';
+  for (const el of document.querySelectorAll('[data-main-only]')) el.hidden = !isMain;
   setTab(state.tab);
   if (state.open) openPlan(state.open);
 }

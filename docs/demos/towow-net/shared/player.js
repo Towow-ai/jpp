@@ -6,7 +6,7 @@
 import { parseJsonl } from './store.js';
 
 const KNOWN_TYPES = ['node_join', 'node_leave', 'coord', 'intent', 'route', 'judge', 'enrich', 'relation',
-  'config', 'ring', 'plan', 'feedback', 'metric', 'baseline', 'batch', 'anchors', 'discovery', 'node_status', 'compile'];
+  'config', 'ring', 'plan', 'feedback', 'metric', 'baseline', 'batch', 'anchors', 'discovery', 'node_status', 'compile', 'task'];
 
 export class Player {
   constructor(store) {

@@ -51,11 +51,11 @@
     <div class="headline">
       <div id="ov-line" class="line"></div>
       <div id="ov-sub" class="subline"></div>
-      <div class="cost-note">花费 1/74：大模型一路走订阅，按标价折算 16.13 美元，非实付</div>
+      <div class="cost-note" data-main-only hidden>花费 1/74：大模型一路走订阅，按标价折算 16.13 美元，非实付</div>
     </div>
     <div class="tiles" id="ov-tiles"></div>
-    <section class="verdicts" aria-label="正式结论">
-      <h2>正式结论（预注册判定，照实）</h2>
+    <section class="verdicts" data-main-only hidden aria-label="正式结论">
+      <h2>正式结论（主运行 · 预注册判定，照实）</h2>
       <table>
         <tr><th>假设</th><th>结果</th><th>判定</th></tr>
         <tr class="bad"><td>H3 方案质量不弱于大模型一次读完</td><td>有价值方案：大模型 21 / 22（Opus / Sonnet 评），J++ 3 / 2</td><td>不成立</td></tr>
@@ -64,7 +64,7 @@
         <tr class="ok"><td>H1 名次（预注册）</td><td>痕迹组降 61.5%，对照组 −19.7%，规模比 1.04</td><td>成立</td></tr>
         <tr class="bad"><td>H1 命中预埋目标（冒烟后改定）</td><td>痕迹组降 33.9%，对照组 −8.0%，规模比 1.12</td><td>不成立，预测未达</td></tr>
         <tr class="bad"><td>H4 预埋结构召回（工程读数）</td><td>7 / 64 = 10.9%，预测 ≥ 60%</td><td>不成立</td></tr>
-        <tr><td>方案里的兜底版</td><td>54 个方案中 24 个为生成失败的兜底版（其中 15 个的「给什么、得什么」为空）；方案一览不放，方案列表里带「兜底」标记排在后面</td><td>照实</td></tr>
+        <tr><td>方案里的兜底版</td><td>54 个方案中 24 个为生成失败后由模板兜底（按方数不含网外转介人）：14 个有成员的「给什么、得什么」为空，10 个每个成员都有内容，没有一个是全员为空；这些内容由模板拼出，有的被截断；方案一览不放，方案列表里带「兜底」标记排在后面</td><td>照实</td></tr>
         <tr><td>老城区街道办</td><td>出现在 33 个组合里</td><td>集中</td></tr>
         <tr><td>拿不准的关系</td><td>628 条里 357 条卡在「身边谁能帮上」这道选择题上</td><td>照实</td></tr>
         <tr class="ok"><td>花费</td><td>J++ 主运行 $0.219，大模型一次读完 $16.13（订阅按标价折算，非实付），约 1/74</td><td>成立</td></tr>

@@ -5,7 +5,7 @@
 // 地址参数：?api=..（默认，相对本页）&id=p001 &mock=../run/events.jsonl
 // 没连上服务时：加入不提交；「跟我有关」用本地事件流算出的样例；反馈提示稍后再试。
 
-import { roleOf } from '../shared/store.js';
+import { roleOf, partiesOf } from '../shared/store.js';
 
 const qs = new URLSearchParams(location.search);
 const API = (qs.get('api') ?? '..').replace(/\/$/, '');
@@ -288,8 +288,9 @@ function planCard(v, p) {
   const mine = (p.members || []).find((m) => m.id === meId) || {};
   const others = (p.members || []).filter((m) => m.id !== meId);
   const withNames = (mine.with || []).map((x) => esc(nameOf(v, x))).join('、') || others.map((m) => esc(nameOf(v, m.id))).join('、');
+  const n = partiesOf(v.configs.find((c) => c.id === p.config), (p.members || []).map((m) => m.id));
   return `<article class="card plan">
-    <h3><span class="kind cfg">${(p.members || []).length} 方方案</span>跟 ${withNames}</h3>
+    <h3><span class="kind cfg">${n} 方方案</span>跟 ${withNames}</h3>
     <dl class="mine">
       <dt>你做什么</dt><dd>${esc(mine.do || '—')}</dd>
       <dt>你给</dt><dd>${esc(mine.give || '—')}</dd>
@@ -308,7 +309,7 @@ function cfgCard(v, c) {
   const st = { forming: '形成中', stable: '稳定' }[c.status] || c.status;
   const others = (c.members || []).filter((m) => m !== meId).map((m) => esc(nameOf(v, m)));
   return `<article class="card">
-    <h3><span class="kind cfg">${(c.members || []).length} 方 · ${esc(st)}</span>你和 ${others.join('、')}</h3>
+    <h3><span class="kind cfg">${partiesOf(c)} 方 · ${esc(st)}</span>你和 ${others.join('、')}</h3>
     <p class="who">${esc(c.summary || '')}</p>
     ${actions(c.id)}
   </article>`;

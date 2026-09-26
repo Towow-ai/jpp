@@ -3,7 +3,7 @@
 //   ?sse=../events%3Frun%3Ddemo         SSE 直播或服务端重放（GET /events）
 //   &speed=4 &autoplay=0 &compress=0 &seek=end &bloom=1 &color=kind &compare=1 &select=node:p001
 
-import { Store, exitClass, roleOf } from '../shared/store.js';
+import { Store, exitClass, roleOf, partiesOf } from '../shared/store.js';
 import { Player } from '../shared/player.js';
 import { NetScene, COLORS } from './scene.js';
 
@@ -41,7 +41,7 @@ function aboutText(about) {
   const it = store.intents.get(about);
   if (it) return `意图 ${it.id}「${it.text}」`;
   const c = store.configs.get(about);
-  if (c) return `构型 ${c.id}（${c.members.length} 方）`;
+  if (c) return `构型 ${c.id}（${partiesOf(c)} 方）`;
   return String(about ?? '');
 }
 function aboutLink(about) {
@@ -177,14 +177,14 @@ store.on((ev, ctx) => {
     case 'config':
       if (!ctx.prevStatus || (ev.status === 'stable' && ctx.prevStatus !== 'stable')) {
         const st = { forming: '构型长出', stable: '构型稳定', dropped: '构型散了' }[ev.status] || ev.status;
-        pushFeed({ tag: st, color: COLORS.config, text: `${ev.members.length} 方：${ev.members.map(nodeName).join('、')}`, sel: `config:${ev.id}` });
+        pushFeed({ tag: st, color: COLORS.config, text: `${partiesOf(ev)} 方：${ev.members.map(nodeName).join('、')}`, sel: `config:${ev.id}` });
       }
       break;
     case 'ring':
       pushFeed({ tag: ctx.closed ? '环闭合' : '环未闭合', color: ctx.closed ? COLORS.act : COLORS.unsure, text: (ev.cycle || []).map(nodeName).join(' → '), sel: `config:${ev.config}` });
       break;
     case 'plan':
-      pushFeed({ tag: '方案', color: '#ffffff', text: `${(ev.members || []).length} 方方案已翻译给每个人`, sel: `config:${ev.config}` });
+      pushFeed({ tag: '方案', color: '#ffffff', text: `${partiesOf(store.configs.get(ev.config), (ev.members || []).map((m) => m.id))} 方方案已翻译给每个人`, sel: `config:${ev.config}` });
       break;
     case 'node_join':
       if (ctx.node && (ctx.node.lateJoin || ctx.node.live)) {
@@ -464,7 +464,7 @@ function renderDetail(sel, soft = false) {
     const ring = c.ring;
     const plan = c.plan;
     const fbs = store.feedback.filter((f) => f.target === c.id || (plan && f.target === plan.id));
-    html = `<h3>构型 ${esc(c.id)} · ${c.members.length} 方</h3>
+    html = `<h3>构型 ${esc(c.id)} · ${partiesOf(c)} 方</h3>
       <div class="chips"><span class="chip ex" style="--c:${COLORS.config}">${esc(st)}</span>${c.parent ? `<a class="chip link" data-sel="config:${esc(c.parent)}">由 ${esc(c.parent)} 再传而来</a>` : ''}</div>
       <p>${esc(c.summary)}</p>
       <dl class="kv"><dt>成员</dt><dd>${c.members.map(nodeLink).join('、')}</dd><dt>关于</dt><dd>${aboutLink(c.about)}</dd><dt>状态变化</dt><dd>${c.history.map((h) => esc(h.status)).join(' → ')}</dd></dl>
@@ -545,17 +545,17 @@ function renderCompare(force) {
   $('cmp-intent').innerHTML = `「${esc(it.text)}」<small>${esc(it.id)} · 来自 ${esc(nodeName(it.from))}</small>`;
   const b = it.baselines;
   const cfgs = [...it.configs].map((id) => store.configs.get(id)).filter((c) => c && c.status !== 'dropped')
-    .sort((a, c) => c.members.length - a.members.length);
+    .sort((a, c) => partiesOf(c) - partiesOf(a));
   const rels = it.relations.map((id) => store.relations.get(id)).filter(Boolean);
   const relay = rels.filter((r) => r.kind === 'relay').length;
-  const multi = cfgs.filter((c) => c.members.length >= 3).length;
+  const multi = cfgs.filter((c) => partiesOf(c) >= 3).length;
   const disc = it.discovery;
   const firstCfg = disc && disc.ms_at != null ? `${(disc.ms_at / 1000).toFixed(1)}s` : it.firstConfigT != null ? `${((it.firstConfigT - it.t) / 1000).toFixed(1)}s` : '—';
   const toFirst = disc && disc.judgments_at != null ? disc.judgments_at : it.judgesToFirstConfig;
   const jppCol = `<div class="col jpp"><h3>J++ 网络</h3><div class="sub">接收方用自己的世界判断，构型再传、环清算</div>
     <div class="nums"><span>判断 <b>${fmtN(it.judges)}</b></span><span>花费 <b>${fmtUsd(it.usd)}</b></span><span>首个构型 <b>${firstCfg}</b></span><span>到首个构型用了 <b>${toFirst ?? '—'}</b> 次判断</span></div>
     <div class="nums"><span>关系 <b>${rels.length}</b></span><span>转介 <b>${relay}</b></span><span>三方以上构型 <b>${multi}</b></span><span>方案 <b>${it.plans.length}</b></span></div>
-    ${cfgs.slice(0, 5).map((c) => `<div class="cfg-item" data-sel="config:${esc(c.id)}"><span class="who">${c.members.length} 方 · ${esc(c.status)}</span>　${c.members.map((m) => esc(nodeName(m))).join('、')}</div>`).join('') || '<p class="empty">还没有构型</p>'}
+    ${cfgs.slice(0, 5).map((c) => `<div class="cfg-item" data-sel="config:${esc(c.id)}"><span class="who">${partiesOf(c)} 方 · ${esc(c.status)}</span>　${c.members.map((m) => esc(nodeName(m))).join('、')}</div>`).join('') || '<p class="empty">还没有构型</p>'}
     </div>`;
   $('cmp-cols').innerHTML = `
     <div class="col"><h3>检索</h3><div class="sub">BM25 关键词 / 向量相似度</div>
