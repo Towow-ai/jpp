@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>通爻网络 · 结果</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="ar-act" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3ef0b0"/></marker>
+    <marker id="ar-unsure" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ffb547"/></marker>
+    <marker id="ar-ignore" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff5b6e"/></marker>
+    <marker id="ar-none" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6c7a96"/></marker>
+  </defs>
+</svg>
+
+<header class="top">
+  <div class="brand">
+    <h1>通爻网络</h1><span class="sub">结果</span>
+    <button id="method-info" class="info" aria-label="方法说明" title="方法说明">i</button>
+    <span id="src-badge" class="badge" hidden></span>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="glance" class="tab">方案一览</button>
+    <button role="tab" data-tab="overview" class="tab">总览</button>
+    <button role="tab" data-tab="plans" class="tab">方案</button>
+    <button role="tab" data-tab="data" class="tab">数据</button>
+  </nav>
+  <a id="to-screen" class="back" href="../screen/" title="回到实时计算大屏">← 大屏</a>
+</header>
+
+<main>
+  <!-- 方案一览：一屏一个方案，自动轮播 -->
+  <section id="tab-glance" class="tab-page glance" hidden>
+    <div id="g-title" class="g-title"></div>
+    <div id="g-stage" class="g-stage">
+      <svg id="g-svg" class="g-svg" role="img" aria-label="方案角色环"></svg>
+      <div id="g-nums" class="g-nums"></div>
+    </div>
+    <div id="g-thumbs" class="g-thumbs" role="group" aria-label="切换方案"></div>
+  </section>
+  <!-- 总览：一屏 -->
+  <section id="tab-overview" class="tab-page overview" hidden>
+    <div class="headline">
+      <div id="ov-line" class="line"></div>
+      <div id="ov-sub" class="subline"></div>
+    </div>
+    <div class="tiles" id="ov-tiles"></div>
+    <div class="chart-card">
+      <div class="legend" id="ov-legend"></div>
+      <div id="ov-chart" class="ov-chart"></div>
+    </div>
+  </section>
+
+  <!-- 方案：卡片可滚动 -->
+  <section id="tab-plans" class="tab-page plans" hidden>
+    <div class="filters" id="pl-filters">
+      <select id="f-intent" class="ctl" aria-label="按意图筛选"></select>
+      <div class="seg" id="f-size" role="group" aria-label="按方数筛选">
+        <button data-size="all" class="ctl on">全部</button>
+        <button data-size="2" class="ctl">2 方</button>
+        <button data-size="3" class="ctl">3 方</button>
+        <button data-size="4" class="ctl">4+</button>
+      </div>
+      <button id="f-relay" class="ctl" aria-pressed="false" title="只看依据链里有转介关系的方案"><i class="dot relay"></i>含转介</button>
+      <span id="f-count" class="count"></span>
+      <div class="plan-legend" aria-hidden="true">
+        <span><i class="ln act"></i>成立</span><span><i class="ln unsure"></i>拿不准</span>
+      </div>
+    </div>
+    <div id="pl-grid" class="grid"></div>
+  </section>
+
+  <!-- 数据 -->
+  <section id="tab-data" class="tab-page data" hidden>
+    <div class="dgrid">
+      <div class="dcard wide">
+        <div class="dhead"><h2>越算越快</h2><button class="info" data-info="h1" aria-label="口径">i</button></div>
+        <div id="d-h1" class="dchart"></div>
+      </div>
+      <div class="dcard">
+        <div class="dhead"><h2>三路对照</h2><button class="info" data-info="cmp" aria-label="口径">i</button></div>
+        <div id="d-cmp" class="dchart"></div>
+      </div>
+      <div class="dcard">
+        <div class="dhead"><h2>判断次数分布</h2><button class="info" data-info="hj" aria-label="口径">i</button></div>
+        <div id="d-hj" class="dchart"></div>
+      </div>
+      <div class="dcard">
+        <div class="dhead"><h2>花费分布</h2><button class="info" data-info="hu" aria-label="口径">i</button></div>
+        <div id="d-hu" class="dchart"></div>
+      </div>
+    </div>
+    <div id="d-foot" class="dfoot"></div>
+  </section>
+</main>
+
+<!-- 方案详情与依据链 -->
+<div id="drawer" class="drawer" hidden role="dialog" aria-modal="true" aria-label="方案详情">
+  <div class="drawer-scrim" data-close="1"></div>
+  <aside class="drawer-panel">
+    <button class="close" data-close="1" aria-label="关闭">×</button>
+    <div id="drawer-body"></div>
+  </aside>
+</div>
+
+<button id="g-menu" class="g-menu" type="button" aria-label="显示页签" title="页签与返回大屏"><i></i><i></i><i></i></button>
+<div id="g-pop" class="g-pop" hidden role="dialog" aria-label="这一步的依据"></div>
+<div id="tip" class="tip" hidden></div>
+<div id="err" class="err" hidden></div>
+<script type="module" src="./app.js"></script>
+<div style="position:fixed;left:8px;top:6px;z-index:9999;font:12px/1.2 system-ui,-apple-system,sans-serif;color:rgba(255,255,255,.55);background:rgba(0,0,0,.35);padding:2px 6px;border-radius:4px;pointer-events:none">假结果 · mock data</div>
+</body>
+</html>

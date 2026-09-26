@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070a12">
+<title>通爻网络 · 我的</title>
+<link rel="stylesheet" href="./phone.css">
+</head>
+<body>
+<header class="top">
+  <p class="privacy" id="privacy">你填的信息会发给 TypeSafe 的语义判断模型 JEV 和 Anthropic 的生成模型 Claude 计算，名字和一句话摘要会出现在现场大屏上；可以用化名。</p>
+  <div class="bar">
+    <h1>通爻网络</h1>
+    <span id="conn" class="conn">检查连接…</span>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="tab-join" aria-selected="true" data-view="join">加入</button>
+    <button role="tab" id="tab-me" aria-selected="false" data-view="me">跟我有关</button>
+  </nav>
+</header>
+
+<main>
+  <!-- 加入 -->
+  <section id="view-join" class="view" role="tabpanel" aria-labelledby="tab-join">
+    <p class="lead">写你<b>真实的处境</b>，不用写简历。具体的数字、地点、身边的人最有用；可以含糊，网络拿不准时会回来问你。</p>
+
+    <details class="paste">
+      <summary>让 agent 帮你填：粘贴它写好的 JSON</summary>
+      <textarea id="paste" rows="6" placeholder='{"alias": "阿杰", "kind": "person", "city": "杭州·拱墅", "profile": {...}}'></textarea>
+      <button type="button" class="btn ghost" id="paste-apply">填进表单</button>
+      <p class="hint" id="paste-msg"></p>
+    </details>
+
+    <form id="join" novalidate>
+      <label class="f"><span>显示名 <em>必填</em><small>可以用化名，最多 20 字</small></span>
+        <input name="alias" maxlength="20" required autocomplete="nickname"></label>
+      <fieldset class="f"><legend>你是 <em>必填</em></legend>
+        <div class="seg">
+          <label><input type="radio" name="kind" value="person" checked><span>个人</span></label>
+          <label><input type="radio" name="kind" value="company"><span>公司</span></label>
+          <label><input type="radio" name="kind" value="org"><span>机构</span></label>
+        </div>
+      </fieldset>
+      <label class="f"><span>城市 <em>必填</em><small>最好到区，如「杭州·滨江」</small></span>
+        <input name="city" required></label>
+      <label class="f"><span>标签<small>行业、身份，用逗号或空格隔开，最多 5 个</small></span>
+        <input name="tags" placeholder="餐饮 小店主"></label>
+      <label class="f"><span>你是谁、做什么 <em>必填</em><small>公司或机构写清规模、谁拿主意</small></span>
+        <textarea name="identity" maxlength="200" rows="3" required></textarea></label>
+      <label class="f"><span>你想要什么 <em>必填</em><small>用自己的话说</small></span>
+        <textarea name="wants" maxlength="300" rows="3" required></textarea></label>
+      <label class="f"><span>你能给别人什么</span>
+        <textarea name="offers" maxlength="300" rows="3"></textarea></label>
+      <label class="f"><span>手里有什么<small>技能、设备、场地、闲着的时间、认识的某类人</small></span>
+        <textarea name="resources" maxlength="300" rows="3"></textarea></label>
+      <label class="f"><span>最近在烦什么</span>
+        <textarea name="recent" maxlength="300" rows="3"></textarea></label>
+      <label class="f"><span>过去的经历</span>
+        <textarea name="experience" maxlength="400" rows="3"></textarea></label>
+      <fieldset class="f"><legend>身边的人<small>家人、同事、老客户；写他们会什么、在做什么。很多连接是转介出来的</small></legend>
+        <div id="people"></div>
+        <button type="button" class="btn ghost" id="add-person">再加一个人</button>
+      </fieldset>
+      <label class="consent"><input type="checkbox" name="consent" id="consent">
+        <span>我同意：以上内容发给 JEV（TypeSafe）和 Claude 计算，名字和摘要出现在现场大屏上。</span></label>
+      <button type="submit" class="btn primary" id="submit" disabled>加入网络</button>
+      <p class="msg" id="join-msg" role="status"></p>
+    </form>
+  </section>
+
+  <!-- 跟我有关 -->
+  <section id="view-me" class="view" role="tabpanel" aria-labelledby="tab-me" hidden>
+    <div id="me-head" class="me-head"></div>
+    <div id="me-pick" class="me-pick" hidden>
+      <label class="f"><span>看谁的（演示用，填主体 id）</span>
+        <div class="row"><input id="me-id" placeholder="p001"><button class="btn ghost" id="me-go">查看</button></div></label>
+    </div>
+    <div id="me-body"></div>
+  </section>
+</main>
+<script type="module" src="./phone.js"></script>
+<div style="position:fixed;left:8px;bottom:6px;z-index:9999;font:12px/1.2 system-ui,-apple-system,sans-serif;color:rgba(255,255,255,.55);background:rgba(0,0,0,.35);padding:2px 6px;border-radius:4px;pointer-events:none">假结果 · mock data</div>
+</body>
+</html>

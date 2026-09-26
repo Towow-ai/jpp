@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>通爻网络 · 实时计算</title>
+<link rel="stylesheet" href="./style.css">
+<script type="importmap">
+{ "imports": {
+  "three": "../vendor/three/three.module.min.js",
+  "three/addons/": "../vendor/three/addons/"
+} }
+</script>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div id="labels" aria-hidden="true"></div>
+
+<header class="brand">
+  <div class="brand-row">
+    <h1>通爻网络</h1>
+    <span id="src-badge" class="badge">读取中</span>
+  </div>
+  <p class="tagline">一句模糊的话在网里传开，每个接收方用自己的世界把关系算出来；算出来的构型又成为别人的材料。</p>
+</header>
+
+<section id="intent" class="intent" hidden>
+  <div class="intent-meta"><span id="intent-id"></span><span id="intent-from"></span></div>
+  <div id="intent-text" class="intent-text"></div>
+  <div id="intent-stats" class="intent-stats"></div>
+</section>
+
+<aside class="hud" aria-label="实时计数">
+  <div class="hud-big">
+    <div class="stat stat-xl"><span class="k">语义判断</span><span class="v" id="c-judge">0</span><span class="u">次</span></div>
+    <div class="stat-grid">
+      <div class="stat"><span class="k">花费</span><span class="v" id="c-usd">$0</span></div>
+      <div class="stat"><span class="k">运行时间</span><span class="v" id="c-time">0:00.0</span></div>
+      <div class="stat"><span class="k">构型</span><span class="v" id="c-cfg">0</span><span class="u" id="c-cfg-stable"></span></div>
+      <div class="stat"><span class="k">关系</span><span class="v" id="c-rel">0</span></div>
+    </div>
+  </div>
+  <div class="rate">
+    <div class="rate-head"><span>每秒判断</span><span><b id="c-rate">0</b> · 峰值 <b id="c-peak">0</b></span></div>
+    <canvas id="spark" width="600" height="80"></canvas>
+  </div>
+  <div class="exits">
+    <div class="exit-bar" id="exit-bar"></div>
+    <div class="exit-legend" id="exit-legend"></div>
+  </div>
+  <dl class="minor">
+    <div><dt>环清算</dt><dd id="c-ring">0</dd></div>
+    <div><dt>方案</dt><dd id="c-plan">0</dd></div>
+    <div><dt>意图</dt><dd id="c-intent">0</dd></div>
+    <div><dt>在网主体</dt><dd id="c-alive">0</dd></div>
+    <div><dt>补信息</dt><dd id="c-enrich">0</dd></div>
+    <div><dt>现场反馈</dt><dd id="c-fb">0</dd></div>
+    <div title="只有 metric 事件带这个数"><dt>生成调用</dt><dd id="c-gen">—</dd></div>
+    <div title="瞬时效果的渲染比例；计数不受影响"><dt>渲染抽样</dt><dd id="c-sample">100%</dd></div>
+  </dl>
+</aside>
+
+<section class="feed" aria-label="最近发生">
+  <h2>最近发生</h2>
+  <ol id="feed"></ol>
+</section>
+
+<section class="legend" id="legend" aria-label="图例">
+  <div class="lg-row">
+    <span class="lg"><i style="--c:var(--act)"></i>判断·成立</span>
+    <span class="lg"><i style="--c:var(--unsure)"></i>判断·拿不准</span>
+    <span class="lg"><i style="--c:var(--ignore)"></i>判断·无关</span>
+    <span class="lg"><i style="--c:var(--pick)"></i>判断·选项</span>
+  </div>
+  <div class="lg-row">
+    <span class="lg line"><i style="--c:var(--direct)"></i>直接关系</span>
+    <span class="lg line"><i style="--c:var(--relay)"></i>转介</span>
+    <span class="lg line"><i style="--c:var(--config)"></i>构型</span>
+    <span class="lg"><i style="--c:var(--coarse)"></i>粗筛信号</span>
+    <span class="lg"><i style="--c:var(--trace)"></i>痕迹路由</span>
+    <span class="lg"><i style="--c:var(--live)"></i>现场参与者</span>
+  </div>
+  <div class="lg-row lg-ind" id="legend-ind"></div>
+</section>
+
+<nav class="player" aria-label="播放控制">
+  <button id="btn-play" class="btn btn-play" aria-label="播放或暂停">播放</button>
+  <div class="speeds" id="speeds" role="group" aria-label="倍速"></div>
+  <div class="progress" id="progress" title="点击跳转"><div class="bar" id="progress-bar"></div></div>
+  <button id="btn-end" class="btn" title="跳到末尾（只算数，不放动画）">到末尾</button>
+  <label class="chk"><input type="checkbox" id="chk-compress" checked>跳过空闲</label>
+  <select id="sel-color" class="btn" aria-label="节点着色">
+    <option value="industry">按行业着色</option>
+    <option value="kind">按类型着色</option>
+  </select>
+  <button id="btn-compare" class="btn btn-accent">三路对照</button>
+  <a id="btn-glance" class="btn btn-accent" href="../results/#glance" title="方案一览：一屏一个方案，谁和谁凑成了什么事" style="text-decoration:none">方案一览 →</a>
+  <a id="btn-results" class="btn" href="../results/#overview" title="计算结果：构型、方案、依据链与数据" style="text-decoration:none">结果 →</a>
+  <script>
+    // 结果页入口：带上同一份数据（src 或 sse）
+    (function () {
+      var q = new URLSearchParams(location.search), o = new URLSearchParams();
+      if (q.get('sse')) o.set('sse', q.get('sse')); else if (q.get('src')) o.set('src', q.get('src'));
+      ['ctl', 'groups'].forEach(function (k) { if (q.get(k)) o.set(k, q.get(k)); });
+      if (o.toString()) {
+        document.getElementById('btn-results').href = '../results/?' + o.toString() + '#overview';
+        document.getElementById('btn-glance').href = '../results/?' + o.toString() + '#glance';
+      }
+    })();
+  </script>
+</nav>
+
+<aside id="detail" class="detail" hidden aria-live="polite">
+  <button class="close" id="detail-close" aria-label="关闭">×</button>
+  <div id="detail-body"></div>
+</aside>
+
+<section id="compare" class="compare" hidden aria-label="三路对照">
+  <div class="cmp-head">
+    <div>
+      <h2>同一句话，三路结果</h2>
+      <p class="muted">检索、生成模型一次读完全部主体、J++ 网络。数字全部来自事件流。</p>
+    </div>
+    <div class="cmp-nav">
+      <button class="btn" id="cmp-prev" aria-label="上一条意图">‹</button>
+      <select id="cmp-sel" class="btn"></select>
+      <button class="btn" id="cmp-next" aria-label="下一条意图">›</button>
+      <label class="chk"><input type="checkbox" id="cmp-follow" checked>跟随当前</label>
+      <button class="close" id="cmp-close" aria-label="关闭">×</button>
+    </div>
+  </div>
+  <div class="cmp-intent" id="cmp-intent"></div>
+  <div class="cmp-cols" id="cmp-cols"></div>
+  <div class="cmp-chart">
+    <div class="cmp-chart-head"><span>每条意图用掉的判断次数（按进入顺序）</span><span class="muted" id="cmp-chart-note"></span></div>
+    <canvas id="cmp-bars" width="1600" height="120"></canvas>
+  </div>
+</section>
+
+<div id="err" class="err" hidden></div>
+<script type="module" src="./app.js"></script>
+<div style="position:fixed;left:8px;bottom:6px;z-index:9999;font:12px/1.2 system-ui,-apple-system,sans-serif;color:rgba(255,255,255,.55);background:rgba(0,0,0,.35);padding:2px 6px;border-radius:4px;pointer-events:none">假结果 · mock data</div>
+</body>
+</html>

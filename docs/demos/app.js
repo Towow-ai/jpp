@@ -955,6 +955,43 @@
     return { steps, layout, render };
   }
 
+
+  // =====================================================================
+  // 05 通爻网络（只做首页缩略图）：一句话从中心发出，信号一波波传开，最后几个角色连成环
+  // =====================================================================
+  function scene05(svg) {
+    const N = 46, steps = [{ title: "", dur: 1000 }];
+    const gE = sv("g"), gN = sv("g"), gR = sv("g");
+    svg.append(gE, gN, gR);
+    // 固定的伪随机布点（与数据无关，只是缩略画面）
+    let s = 7; const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+    const pts = Array.from({ length: N }, (_, i) => ({ a: rnd() * Math.PI * 2, r: 0.18 + 0.8 * Math.sqrt(rnd()), wave: 0 }));
+    pts.forEach((p) => { p.wave = p.r < 0.45 ? 1 : p.r < 0.75 ? 2 : 3; });
+    const ring = [3, 11, 19, 27].map((i) => pts[i]);
+    const dots = pts.map(() => { const d = sv("circle", {}); gN.append(d); return d; });
+    const rays = pts.map(() => { const l = sv("line", {}); gE.append(l); return l; });
+    const center = sv("circle", {}), ringPath = sv("path", {});
+    gR.append(ringPath, center);
+    let L = null;
+    function layout(W, H) { L = { cx: W / 2, cy: H / 2, R: Math.min(W, H) * 0.44 }; }
+    const pos = (p) => [L.cx + Math.cos(p.a) * p.r * L.R * 1.25, L.cy + Math.sin(p.a) * p.r * L.R];
+    function render(_, t) {
+      if (!L) return;
+      at(center, { cx: L.cx, cy: L.cy, r: 4 + 2 * Math.sin(t * Math.PI * 6), fill: rgb(COL.accent), opacity: 0.95 });
+      const front = seg(t, 0.05, 0.6) * 3.2, close = ease(seg(t, 0.62, 0.85));
+      pts.forEach((p, i) => {
+        const [x, y] = pos(p), hit = clamp(front - p.wave + 1), inRing = ring.includes(p);
+        at(rays[i], { x1: L.cx, y1: L.cy, x2: lerp(L.cx, x, hit), y2: lerp(L.cy, y, hit), stroke: rgb(COL.accent), "stroke-opacity": 0.18 * (1 - close), "stroke-width": 1 });
+        const lit = inRing ? mix(COL.unsure, COL.ok, close) : COL["ink-2"];
+        at(dots[i], { cx: x, cy: y, r: inRing ? lerp(2.4, 5.5, close) : 2.1, fill: rgb(hit > 0.9 ? lit : COL["ink-2"]), opacity: inRing ? 0.95 : lerp(0.35, 0.85, hit) * (1 - 0.6 * close) });
+      });
+      const rp = ring.map(pos);
+      const d = "M" + rp.map((q) => q.join(" ")).join("L") + "Z";
+      at(ringPath, { d, fill: rgb(COL.ok), "fill-opacity": 0.08 * close, stroke: rgb(COL.ok), "stroke-width": 1.8, "stroke-opacity": close, "stroke-dasharray": `${600 * close} 600` });
+    }
+    return { steps, layout, render };
+  }
+
   // ---------- 页面 ----------
   function fit(stage, scene, after) {
     const ro = new ResizeObserver(() => { const r = stage.getBoundingClientRect(); if (r.width && r.height) { scene.layout(r.width, r.height); after && after(); } });
@@ -967,6 +1004,7 @@
       { href: "./dinner/", no: "02", t: "杭州聚餐", s: D.c02 ? `${D.c02.points.length} 家餐厅筛到一家` : "餐厅筛到一家", mk: (g) => scene02(g) },
       { href: "#/03", no: "03", t: "最短书单", s: `${D.c03.articles.length} 篇条目收成书单`, mk: (g) => scene03(g, true) },
       { href: "#/04", no: "04", t: "合租分配", s: `${D.c04.hosts.length + D.c04.seekers.length} 人配成稳定合租`, mk: (g) => scene04(g, true) },
+      { href: "./towow-net/", no: "05", t: "通爻网络", s: "一句话长出多方方案", tag: "假结果", mk: (g) => scene05(g) },
     ];
     const grid = el("div", { class: "home" });
     main.append(grid);
@@ -974,10 +1012,10 @@
     cards.forEach((cd) => {
       const svg = sv("svg", { "aria-hidden": "true" });
       const thumb = el("div", { class: "thumb" }, svg);
-      grid.append(el("a", { class: "card", href: cd.href }, thumb, el("p", {}, el("span", { class: "no" }, cd.no), el("b", {}, cd.t), el("span", { class: "sub" }, cd.s))));
+      grid.append(el("a", { class: "card", href: cd.href }, thumb, el("p", {}, el("span", { class: "no" }, cd.no), el("b", {}, cd.t), el("span", { class: "sub" }, cd.s), cd.tag ? el("span", { class: "sub", style: "font-size:12px;opacity:.6;margin-left:6px" }, cd.tag) : "")));
       const sc = cd.mk(svg);
-      const total = cd.no === "02" ? 9000 : 10000;
-      const loop = Loop(cd.no === "02" ? { steps: [{ dur: 1 }], render: (_, t) => sc.render(0, t) } : sc, total);
+      const total = cd.no === "02" || cd.no === "05" ? 9000 : 10000;
+      const loop = Loop(cd.no === "02" || cd.no === "05" ? { steps: [{ dur: 1 }], render: (_, t) => sc.render(0, t) } : sc, total);
       loops.push(loop);
       obs.push(fit(thumb, sc, loop.redraw));
     });
