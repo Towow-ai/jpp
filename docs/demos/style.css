@@ -245,7 +245,7 @@ main { flex: 1 1 auto; min-height: 0; position: relative; }
 .home {
   height: 100%;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   grid-template-rows: 1fr 1fr;
   gap: 16px;
   padding: 6px 28px 24px;

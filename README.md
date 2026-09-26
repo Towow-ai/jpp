@@ -12,14 +12,15 @@ J++ is an experimental programming-language project exploring semantic judgment 
 
 ## Demos / 演示
 
-All demos live on one page: **[towow-ai.github.io/jpp/demos/](https://towow-ai.github.io/jpp/demos/)**. Each card replays one real run; every number comes from that run's report and ledger. None of the cases is fully settled, and the pages say so.
+All demos live on one page: **[towow-ai.github.io/jpp/demos/](https://towow-ai.github.io/jpp/demos/)**. Cards 01–04 replay real runs; every number comes from that run's report and ledger. Card 05 is the exception (see below). None of the cases is fully settled, and the pages say so.
 
-所有演示都在这一页：**[towow-ai.github.io/jpp/demos/](https://towow-ai.github.io/jpp/demos/)**。每张卡片回放一次真机运行，数字来自该次运行的报告与账本。没有一个案子完全定案，页面照实写出。
+所有演示都在这一页：**[towow-ai.github.io/jpp/demos/](https://towow-ai.github.io/jpp/demos/)**。01–04 回放真机运行，数字来自该次运行的报告与账本；05 例外（见下）。没有一个案子完全定案，页面照实写出。
 
 - **01 Who is lying / 谁在说谎**: eight testimonies compared pair by pair. Cases A and B circle two people that include the culprit; in case C the program names Zhou Lin while the case design says Han Mei; some pairs stay uncertain in all three. / 八份证词两两对质。A、B 两案圈出的两人含真凶，C 案程序认定周琳而出题设定是韩梅，三案都仍有拿不准的证词对。
 - **02 Hangzhou dinner / 杭州聚餐**: five people, 576 real OpenStreetMap restaurants; the program filters venues, seats guests and splits groups, about 270–305 judgments and $0.006–0.007 per group. After the relations are filled in, one pair turns red in groups A and C while group B stays uncertain. / 五个人、576 家 OpenStreetMap 真实餐厅，程序筛店、排座、分组，每组约 270–305 次判断、$0.006–0.007。关系补完信息后，甲组、丙组各有一对变红，乙组仍拿不准。
 - **03 Shortest reading list / 最短书单**: 30 Wikipedia articles reduced to a list of 6, with 5 concepts still unexplained by any of them. / 30 篇维基百科条目收成 6 篇书单，仍有 5 个概念没有一篇讲清。
 - **04 Flat-share matching / 合租分配**: 12 people matched; 8 tie-break orderings give 4 different stable matchings. / 12 人配对，同分时换 8 种排序，得到 4 种稳定匹配。
+- **05 Towow network / 通爻网络**: one sentence grows into multi-party plans on a 3D screen, a results page and a phone page. This is demo data, not a real-backend run; every page is marked "假结果 · mock data", and real results will replace it. / 一句话长出多方方案，含 3D 大屏、结果页和手机页。这是演示数据，不是真机运行结果，每页都标了「假结果 · mock data」，真机结果出来后会替换。
 
 ## Why we are doing this
 

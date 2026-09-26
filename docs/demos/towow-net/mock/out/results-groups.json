@@ -1,0 +1,242 @@
+{
+ "mock": true,
+ "source": "society/intents.json 的 group 字段（评估元数据）",
+ "intents": [
+  {
+   "id": "i01",
+   "group": null
+  },
+  {
+   "id": "i02",
+   "group": "g1"
+  },
+  {
+   "id": "i03",
+   "group": null
+  },
+  {
+   "id": "i04",
+   "group": "g2"
+  },
+  {
+   "id": "i05",
+   "group": null
+  },
+  {
+   "id": "i06",
+   "group": "g3"
+  },
+  {
+   "id": "i07",
+   "group": null
+  },
+  {
+   "id": "i08",
+   "group": "g4"
+  },
+  {
+   "id": "i09",
+   "group": null
+  },
+  {
+   "id": "i10",
+   "group": "g5"
+  },
+  {
+   "id": "i11",
+   "group": null
+  },
+  {
+   "id": "i12",
+   "group": null
+  },
+  {
+   "id": "i13",
+   "group": "g1"
+  },
+  {
+   "id": "i14",
+   "group": null
+  },
+  {
+   "id": "i15",
+   "group": "g2"
+  },
+  {
+   "id": "i16",
+   "group": null
+  },
+  {
+   "id": "i17",
+   "group": "g3"
+  },
+  {
+   "id": "i18",
+   "group": null
+  },
+  {
+   "id": "i19",
+   "group": "g4"
+  },
+  {
+   "id": "i20",
+   "group": null
+  },
+  {
+   "id": "i21",
+   "group": "g5"
+  },
+  {
+   "id": "i22",
+   "group": null
+  },
+  {
+   "id": "i23",
+   "group": null
+  },
+  {
+   "id": "i24",
+   "group": "g1"
+  },
+  {
+   "id": "i25",
+   "group": null
+  },
+  {
+   "id": "i26",
+   "group": "g2"
+  },
+  {
+   "id": "i27",
+   "group": null
+  },
+  {
+   "id": "i28",
+   "group": "g3"
+  },
+  {
+   "id": "i29",
+   "group": null
+  },
+  {
+   "id": "i30",
+   "group": "g4"
+  },
+  {
+   "id": "i31",
+   "group": null
+  },
+  {
+   "id": "i32",
+   "group": "g5"
+  },
+  {
+   "id": "i33",
+   "group": null
+  },
+  {
+   "id": "i34",
+   "group": null
+  },
+  {
+   "id": "i35",
+   "group": "g1"
+  },
+  {
+   "id": "i36",
+   "group": null
+  },
+  {
+   "id": "i37",
+   "group": "g2"
+  },
+  {
+   "id": "i38",
+   "group": null
+  },
+  {
+   "id": "i39",
+   "group": "g3"
+  },
+  {
+   "id": "i40",
+   "group": null
+  },
+  {
+   "id": "i41",
+   "group": "g4"
+  },
+  {
+   "id": "i42",
+   "group": null
+  },
+  {
+   "id": "i43",
+   "group": "g5"
+  },
+  {
+   "id": "i44",
+   "group": null
+  },
+  {
+   "id": "i45",
+   "group": null
+  },
+  {
+   "id": "i46",
+   "group": "g1"
+  },
+  {
+   "id": "i47",
+   "group": null
+  },
+  {
+   "id": "i48",
+   "group": "g2"
+  },
+  {
+   "id": "i49",
+   "group": null
+  },
+  {
+   "id": "i50",
+   "group": "g3"
+  },
+  {
+   "id": "i51",
+   "group": null
+  },
+  {
+   "id": "i52",
+   "group": "g4"
+  },
+  {
+   "id": "i53",
+   "group": null
+  },
+  {
+   "id": "i54",
+   "group": "g5"
+  },
+  {
+   "id": "i55",
+   "group": null
+  },
+  {
+   "id": "i56",
+   "group": null
+  },
+  {
+   "id": "i57",
+   "group": null
+  },
+  {
+   "id": "i58",
+   "group": null
+  },
+  {
+   "id": "i59",
+   "group": null
+  }
+ ]
+}
