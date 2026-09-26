@@ -380,7 +380,7 @@ function drawToneLegend(x, y, items, a = 1, align = "left") {
 }
 function strikeT(G) { return .44; }
 STEPS.push({
-  dur: 10,
+  dur: 10, map: true,
   title: p => { const G = prep(); const bad = G.cand.filter(c => c.撞.length).length; if (p < JT[1] + .04) return "每家店、每个人，判一次"; if (p < .62) return bad ? `${bad} 家有人撞忌口，划掉` : "没有店撞忌口"; const c = G.chosen; return c.撞.length ? "选中：撞忌口的人最少" : c.营业 === "营业" ? "选中：没人撞忌口、确定开门" : "选中：没人撞忌口、拿不准最少"; },
   nums: p => { const G = prep(); const n = Math.floor(judgedAt(p, G.cand.length * 5)); let bad = 0, may = 0; G.cand.forEach((c, i) => c.判.forEach((j, k) => { if (i * 5 + k < n) { const t = tone(j.出口, -1); if (t === "bad") bad++; if (t === "maybe") may++; } })); return [[n, "次判断"], [bad, "撞忌口", "bad"], [may, "拿不准", "small"]]; },
   draw(p) {
@@ -732,7 +732,7 @@ function buildPoster() {
   }));
 }
 STEPS.push({
-  dur: 10, poster: true,
+  dur: 10, poster: true, map: true,
   title: () => "安排好了",
   nums: () => [],
   draw(p) {
@@ -758,7 +758,7 @@ const groupLabel = g => (D.组[g].人物.组 || g).split("·").pop();
 function renderGroups() {
   $("gbtn").textContent = groupLabel(S.g) + " ▾";
   $("gmenu").innerHTML = G_NAMES.map(g => `<button data-g="${esc(g)}" aria-pressed="${g === S.g}">${esc(groupLabel(g))}</button>`).join("");
-  $("gmenu").querySelectorAll("button").forEach(b => b.onclick = () => { S.g = b.dataset.g; $("gmenu").hidden = true; renderGroups(); lastTitle = ""; frame(); });
+  $("gmenu").querySelectorAll("button").forEach(b => b.onclick = () => { hidePop(); S.g = b.dataset.g; $("gmenu").hidden = true; renderGroups(); lastTitle = ""; frame(); });
 }
 $("gbtn").onclick = () => { const m = $("gmenu"); m.hidden = !m.hidden; $("gbtn").setAttribute("aria-expanded", String(!m.hidden)); };
 document.addEventListener("pointerdown", e => { if (!e.target.closest(".gsel")) $("gmenu").hidden = true; });

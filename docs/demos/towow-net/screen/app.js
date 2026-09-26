@@ -98,6 +98,7 @@ player.onBulk = (start) => {
 };
 player.onSeek = () => {
   scene.syncAll();
+  if (selected && !selectionExists(selected)) closeDetail();
   feedItems.length = 0;
   renderFeed();
   lastIntentShown = null;
@@ -336,6 +337,12 @@ function select(key) {
   renderDetail(selected);
   if (type === 'node') labels.set('sel', { id, cls: '', text: nodeName(id), role: '已选中', until: Infinity });
   else labels.delete('sel');
+}
+function selectionExists(sel) {
+  if (sel.type === 'node') { const n = store.nodes.get(sel.id); return !!n && !n.placeholder; }
+  if (sel.type === 'relation') return store.relations.has(sel.id);
+  if (sel.type === 'config') return store.configs.has(sel.id);
+  return true;
 }
 function closeDetail() {
   selected = null;
