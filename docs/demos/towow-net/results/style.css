@@ -343,3 +343,8 @@ body.g-mode.g-peek .g-menu { top: calc(var(--top) + 10px); }
 .verdicts tr.ok td:last-child { color: #3ddc97; }
 .verdicts p { margin: 8px 0 0; font-size: 12px; color: #8a93a6; }
 @media (max-width: 640px) { .verdicts { padding: 12px; } .verdicts table, .verdicts tbody, .verdicts tr, .verdicts td { display: block; width: auto; } .verdicts tr { border-top: 1px solid rgba(255,255,255,0.07); padding: 6px 0; } .verdicts th, .verdicts tr:first-child { display: none; } .verdicts td { border: 0; padding: 1px 0; } .verdicts td:last-child { white-space: normal; } }
+
+.card.fallback { opacity: 0.6; border-style: dashed; }
+.fb-tag { display: inline-block; margin-right: 6px; padding: 0 6px; font-size: 11px; font-weight: 500; color: #ffb547; border: 1px solid rgba(255,181,71,0.5); border-radius: 4px; vertical-align: 1px; }
+.fb-note { color: #ffb547; font-size: 13px; }
+.verdicts tr:not(.bad):not(.ok) td:last-child { color: #cfd6e4; }

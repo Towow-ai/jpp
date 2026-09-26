@@ -385,7 +385,8 @@ function h1Series(src) {
 function planModels(store) {
   const out = [];
   for (const plan of store.plans.values()) out.push(planModel(store, plan));
-  out.sort((a, b) => b.size - a.size || a.seq - b.seq);
+  // 兜底版（大模型出方案失败后按模板补的）排在正常方案后面
+  out.sort((a, b) => (a.fallback - b.fallback) || b.size - a.size || a.seq - b.seq);
   return out;
 }
 
@@ -435,7 +436,7 @@ function planModel(store, plan) {
   const missing = [...new Set(rows.map((m) => m.missing).filter((x) => x && String(x).trim()))];
   const demo = ids.some((id) => { const n = store.nodes.get(id); return n && n.demo_only; });
   return {
-    id: plan.id, seq: plan.seq ?? 0, plan, cfg, rows, ids, root, chain, rels, ring, edges, edgeJudges, cycle,
+    id: plan.id, seq: plan.seq ?? 0, plan, fallback: plan.source === 'template' && !!plan.error, cfg, rows, ids, root, chain, rels, ring, edges, edgeJudges, cycle,
     title: String(plan.title || '').trim(), judgeN: judgesBefore(store, root, plan.seq ?? Infinity),
     keyJudges, ex, size: partiesOf(cfg, ids), members: ids.length,
     // 环上成立的边有没有经过发信人（有的环只在中间人和他自己的熟人之间闭合，不经过发信人）
@@ -790,10 +791,10 @@ function planTitle(s, m) {
 function cardHtml(s, m) {
   const tot = m.ex.act + m.ex.unsure + m.ex.other;
   const allOk = tot > 0 && m.ex.act === tot;
-  return `<article class="card" tabindex="0" data-plan="${esc(m.id)}" data-size="${m.size}" data-relay="${m.hasRelay ? 1 : 0}" aria-label="方案 ${esc(planTitle(s, m))}">
+  return `<article class="card${m.fallback ? ' fallback' : ''}" tabindex="0" data-plan="${esc(m.id)}" data-size="${m.size}" data-relay="${m.hasRelay ? 1 : 0}" aria-label="方案 ${esc(planTitle(s, m))}">
     ${ringSvg(s, m, { labels: true })}
     <div class="card-foot">
-      <h3 class="ptitle" title="${esc(planTitle(s, m))}">${esc(planTitle(s, m))}</h3>
+      <h3 class="ptitle" title="${esc(planTitle(s, m))}">${m.fallback ? '<span class="fb-tag" title="大模型出方案失败，这是按模板补的兜底版，给什么、得什么是空的">兜底</span>' : ''}${esc(planTitle(s, m))}</h3>
       <div class="ratio${allOk ? ' ok' : ''}" title="环上各边：成立 ${m.ex.act}，拿不准 ${m.ex.unsure}，不成立 ${m.ex.other}"><b>${tot ? m.ex.act : '—'}</b>${tot ? `<i>/${tot}</i>` : ''}</div>
     </div>
   </article>`;
@@ -837,6 +838,7 @@ function drawerHtml(s, m) {
         </div>
         <div style="margin-top:12px">${readBarsSvg(s, m.keyJudges, 300, 54)}</div>
         <div class="fold">关键判断读数（关系判断 + 环上判边），颜色是出口</div>
+        ${m.fallback ? '<p class="fb-note">兜底版：大模型出方案失败，这里按模板补了一份，「给什么、得什么」是空的。</p>' : ''}
         ${m.plan.text ? `<p class="planline">${esc(m.plan.text)}</p>` : ''}
       </div>
     </div>
@@ -1321,7 +1323,7 @@ const GLANCE = createGlance({
   $, esc, COLORS, readingCell, exitChip, openPlan, chromeCjk,
   isBusy: () => !$('drawer').hidden,
   getStore: () => MAIN.store,
-  getModels: () => planModels(MAIN.store),
+  getModels: () => planModels(MAIN.store).filter((m) => !m.fallback),
 });
 
 // ---------------- 事件绑定 ----------------
