@@ -4,677 +4,148 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>杭州聚餐</title>
-<meta name="description" content="五个杭州朋友聚餐：一屏一个画面，自动播放一次真机运行的十二步。数据全部取自真机报告与账本。">
+<meta name="description" content="一次真机运行：代码、语义判断模型、生成模型一起，给五个杭州朋友安排一顿饭。">
 <style>
 :root{
-  --bg:#0d0f13; --stage:#12151b; --panel:#1a1e26; --line:#2a303b;
-  --ink:#eef1f5; --ink2:#a3acba; --ink3:#626b7a; --dim:#2c323d;
-  --good:#3ddc97; --bad:#ff5d5d; --maybe:#ffb547; --hi:#ffffff;
-  --lake:#16303a; --lake-ink:#2d5866; --road:#1c2129;
-  --sans:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",sans-serif;
-  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --bg:#04060c; --panel:rgba(8,12,22,.86); --line:rgba(140,170,220,.16); --line2:rgba(160,190,240,.32);
+  --fg:#e8eefb; --fg2:#a9b6cf; --fg3:#6c7a96;
+  --good:#3ef0b0; --maybe:#ffb547; --bad:#ff5b6e; --warm:#ff9150; --info:#9fe6ff;
+  --sans:"PingFang SC","Hiragino Sans GB","Noto Sans CJK SC","Source Han Sans SC","Microsoft YaHei",system-ui,sans-serif;
+  --mono:"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
 }
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
-button{font:inherit;color:inherit}
-.app{height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
-/* 顶部：组切换 + 一句标题 + 至多三个大数字 */
-.top{flex:0 0 auto;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:12px 32px;padding:14px 28px 10px}
-.meta{grid-column:1/-1;display:flex;align-items:center;gap:6px;min-height:28px}
-.gbtn{border:1px solid var(--line);background:transparent;color:var(--ink2);padding:3px 12px;border-radius:999px;cursor:pointer;font-size:13px}
-.gbtn[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.stepno{margin-left:auto;font:600 13px var(--mono);color:var(--ink3)}
-.info{border:1px solid var(--line);background:transparent;color:var(--ink2);width:26px;height:26px;border-radius:50%;cursor:pointer;font:600 13px/1 Georgia,serif}
-h1{margin:0;font-size:clamp(26px,3.1vw,50px);line-height:1.12;font-weight:700;letter-spacing:.02em;min-width:0}
-h1 .in{display:inline-block;animation:rise .5s cubic-bezier(.2,.8,.2,1)}
-@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.nums{display:flex;gap:28px;align-items:flex-end}
-.num{text-align:right;min-width:64px}
-.num b{display:block;font:700 clamp(26px,2.9vw,46px)/1 var(--mono);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.num span{display:block;font-size:12px;color:var(--ink2);margin-top:4px;white-space:nowrap}
-.num.maybe b{color:var(--maybe)} .num.good b{color:var(--good)} .num.bad b{color:var(--bad)}
-/* 主画面 */
-.stage{flex:1 1 auto;position:relative;min-height:0;margin:0 16px;border-radius:16px;background:var(--stage);overflow:hidden}
-.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
-.legend{position:absolute;left:12px;bottom:10px;display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11px;color:var(--ink2);pointer-events:none;max-width:calc(100% - 24px);background:rgba(13,15,19,.55);padding:4px 8px;border-radius:8px}
-.legend span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
-.legend svg{position:static;width:auto;height:auto;display:inline}
-.credit{position:absolute;right:12px;bottom:10px;font-size:10px;color:var(--ink3);pointer-events:none}
-/* 底部：播放 + 细进度条 */
-.bottom{flex:0 0 auto;display:flex;align-items:center;gap:14px;padding:10px 28px 14px}
-.pp{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--panel);cursor:pointer;display:grid;place-items:center;flex:0 0 auto}
-.pp svg{width:14px;height:14px}
-.track{flex:1;position:relative;height:22px;cursor:pointer;touch-action:none}
-.rail{position:absolute;left:0;right:0;top:9px;height:4px;border-radius:2px;background:var(--dim);overflow:hidden}
-.fill{position:absolute;left:0;top:0;bottom:0;background:var(--ink)}
-.tick{position:absolute;top:6px;width:2px;height:10px;background:var(--bg)}
-.knob{position:absolute;top:4px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:var(--ink);box-shadow:0 0 0 4px rgba(255,255,255,.08)}
-/* 浮层 */
-.pop{position:fixed;z-index:20;max-width:340px;max-height:62vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.6;color:var(--ink2);box-shadow:0 16px 40px -12px rgba(0,0,0,.7);display:none}
-.pop.show{display:block}
-.pop h4{margin:0 0 6px;font-size:14px;color:var(--ink)}
-.pop .q{color:var(--ink);margin:0 0 8px}
-.pop .mat{font-size:12px;color:var(--ink2);border-left:2px solid var(--line);padding-left:8px;margin:8px 0 0}
-.pop .row{display:flex;justify-content:space-between;gap:10px}
-.pop .x{position:sticky;top:0;float:right;border:none;background:none;color:var(--ink3);cursor:pointer;font-size:16px;line-height:1;margin:-4px -6px 0 0}
-.pop .note{font-size:12px;color:var(--ink3)}
-.gauge{position:relative;height:10px;border-radius:5px;background:var(--dim);margin:8px 0 4px}
-.gauge .band{position:absolute;left:30%;width:40%;top:0;bottom:0;background:rgba(255,181,71,.28)}
-.gauge .nd{position:absolute;top:-4px;width:3px;height:18px;border-radius:2px;background:var(--ink)}
-.chip{display:inline-block;padding:0 8px;border-radius:999px;font-size:12px;font-weight:600}
-.chip.good{background:rgba(61,220,151,.16);color:var(--good)} .chip.bad{background:rgba(255,93,93,.16);color:var(--bad)} .chip.maybe{background:rgba(255,181,71,.16);color:var(--maybe)} .chip.none{background:var(--dim);color:var(--ink2)}
-.dist{display:grid;grid-template-columns:auto 1fr auto;gap:2px 8px;align-items:center;font-size:12px;margin-top:6px}
-.dist i{display:block;height:8px;border-radius:4px;background:var(--ink2)}
-/* SVG 语法：颜色只表示判断结果；亮度表示在不在场；动作表示变化 */
-svg text{font-family:var(--sans)}
-.hit{cursor:pointer}
-.fade{opacity:0;transition:opacity .5s}
-.fade.on{opacity:1}
-.pop-in{opacity:0;transform:scale(.3);transform-box:fill-box;transform-origin:center;transition:opacity .4s,transform .5s cubic-bezier(.2,1.4,.4,1)}
-.pop-in.on{opacity:1;transform:none}
-.e{stroke:var(--dim);transition:stroke .45s,opacity .45s,stroke-width .45s}
-.e.on{stroke:var(--c1)} .e.on2{stroke:var(--c2)}
-.e.maybe1.on:not(.on2),.e.maybe2.on2{stroke-dasharray:9 7}
-.f{fill:var(--dim);transition:fill .4s,opacity .4s}
-.f.on{fill:var(--c1)} .f.on2{fill:var(--c2)}
-.glow{opacity:0;transition:opacity .5s}
-.glow.on{opacity:1;animation:pulse 1.6s ease-in-out infinite}
-@keyframes pulse{50%{opacity:.35}}
-.mv{transition:transform .9s cubic-bezier(.2,.8,.2,1)}
-.dimmable{transition:opacity .5s}
-.dimmable.off{opacity:.14}
-.pk{opacity:0;transition:transform .9s cubic-bezier(.5,0,.2,1),opacity .3s}
-.pk.on{opacity:1}
-.pk.on2{opacity:0;transition:opacity .4s}
-.ring{opacity:0}
-.ring.on{animation:ring 1s ease-out 1 forwards}
-@keyframes ring{0%{opacity:.9;transform:scale(.6)}100%{opacity:0;transform:scale(2.2)}}
-.dots .d{transition:opacity .6s}
-html.freeze *,html.freeze *::before,html.freeze *::after{transition:none!important;animation:none!important}
-html.freeze .glow.on{opacity:1}
-/* 手机竖屏：可纵向滚动，不横向滚动 */
-@media (max-width:700px){
-  .app{height:auto;min-height:100dvh;overflow:visible}
-  .top{grid-template-columns:minmax(0,1fr);padding:10px 16px 8px;gap:8px}
-  .meta{flex-wrap:nowrap;overflow:hidden}
-  .gbtn{padding:2px 9px;font-size:12px}
-  h1{font-size:23px}
-  .nums{justify-content:flex-start;gap:20px}
-  .num{text-align:left;min-width:0}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:var(--sans);overflow:hidden;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+#cv{position:fixed;inset:0;width:100vw;height:100vh;display:block}
+#app{position:fixed;inset:0;display:grid;grid-template-rows:auto 1fr auto;pointer-events:none}
+#app > *{pointer-events:none}
+#top{display:grid;grid-template-columns:1fr auto;grid-template-areas:"bar nums" "title nums";column-gap:24px;padding:14px 28px 0}
+.bar{grid-area:bar;display:flex;align-items:center;gap:12px;pointer-events:auto}
+#gbtn{background:rgba(255,255,255,.06);border:1px solid var(--line2);border-radius:999px;padding:4px 14px;font-size:14px;color:var(--fg)}
+#gbtn:hover{border-color:var(--fg2)}
+#gmenu{position:absolute;margin-top:6px;background:var(--panel);border:1px solid var(--line2);border-radius:12px;padding:6px;display:flex;flex-direction:column;z-index:30;backdrop-filter:blur(8px)}
+#gmenu button{background:none;border:0;text-align:left;padding:8px 14px;border-radius:8px;font-size:15px}
+#gmenu button:hover,#gmenu button[aria-pressed=true]{background:rgba(255,255,255,.08)}
+.gsel{position:relative}
+#gmenu[hidden]{display:none}
+#stepno{font-family:var(--mono);color:var(--fg3);font-size:14px;letter-spacing:.08em}
+#info{width:26px;height:26px;border-radius:50%;border:1px solid var(--line2);background:none;font-family:var(--mono);font-size:14px;color:var(--fg2);padding:0}
+#info:hover{color:var(--fg);border-color:var(--fg2)}
+#title{grid-area:title;margin:6px 0 0;font-size:clamp(26px,3.1vw,54px);font-weight:600;line-height:1.18;letter-spacing:.02em;text-shadow:0 0 28px rgba(122,167,255,.45);min-height:1.18em}
+#title span{display:inline-block}
+#title span.in{animation:tin .7s cubic-bezier(.2,.9,.25,1)}
+@keyframes tin{from{opacity:0;transform:translateY(10px);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+#nums{grid-area:nums;display:flex;gap:28px;align-items:flex-end;justify-content:flex-end;align-self:center;pointer-events:auto}
+.num{display:flex;flex-direction:column;align-items:flex-end;cursor:default}
+.num b{font-family:var(--mono);font-weight:600;font-size:clamp(28px,3vw,52px);line-height:1;font-variant-numeric:tabular-nums;color:#fff;text-shadow:0 0 22px rgba(62,240,176,.35)}
+.num span{margin-top:6px;color:var(--fg2);font-size:15px;letter-spacing:.06em}
+.num.small b{font-size:clamp(22px,1.9vw,32px);color:var(--fg2);text-shadow:none}
+.num.good b{color:var(--good);text-shadow:0 0 22px rgba(62,240,176,.5)}
+.num.bad b{color:var(--bad);text-shadow:0 0 22px rgba(255,91,110,.5)}
+.num.maybe b{color:var(--maybe);text-shadow:0 0 18px rgba(255,181,71,.35)}
+.num.warm b{color:#ffc49a;text-shadow:0 0 22px rgba(255,145,80,.5)}
+#stage{position:relative}
+#ctrl{display:flex;align-items:center;gap:16px;padding:10px 28px 16px;pointer-events:auto}
+#pp{width:40px;height:40px;border-radius:50%;border:1px solid var(--line2);background:rgba(255,255,255,.05);display:grid;place-items:center;padding:0;flex:none}
+#pp svg{width:14px;height:14px}
+#track{position:relative;flex:1;height:28px;cursor:pointer;touch-action:none}
+.rail{position:absolute;left:0;right:0;top:12px;height:4px;border-radius:2px;background:rgba(255,255,255,.12)}
+#fill{position:absolute;left:0;top:0;bottom:0;border-radius:2px;background:linear-gradient(90deg,#3ef0b0,#57d4ff);box-shadow:0 0 12px rgba(87,212,255,.6)}
+.tick{position:absolute;top:-4px;width:2px;height:12px;background:rgba(255,255,255,.28);border-radius:1px}
+#knob{position:absolute;top:6px;width:16px;height:16px;margin-left:-8px;border-radius:50%;background:#fff;box-shadow:0 0 14px rgba(87,212,255,.9)}
+#credit{position:fixed;right:28px;bottom:62px;font-size:14px;color:var(--fg3);font-family:var(--mono);pointer-events:none;transition:opacity .4s}
+#pop{position:fixed;z-index:50;max-width:min(460px,calc(100vw - 24px));max-height:calc(100vh - 24px);overflow:auto;background:rgba(10,15,28,.96);border:1px solid var(--line2);border-radius:14px;padding:16px 18px 14px;font-size:15px;line-height:1.6;box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 40px rgba(87,212,255,.08);display:none;pointer-events:auto}
+#pop.show{display:block;animation:tin .25s ease-out}
+#pop h4{margin:0 30px 8px 0;font-size:17px}
+#pop p{margin:6px 0}
+#pop .q{color:var(--fg)}
+#pop .note{color:var(--fg3);font-size:14px}
+#pop .x{position:absolute;right:10px;top:8px;width:28px;height:28px;border:0;background:none;color:var(--fg2);font-size:20px}
+#pop details{margin-top:8px;color:var(--fg2);font-size:14px}
+#pop summary{cursor:pointer;color:var(--info)}
+#pop table{border-collapse:collapse;width:100%;font-size:14px;margin-top:6px}
+#pop td,#pop th{padding:3px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+#pop th{color:var(--fg3);font-weight:400}
+.chip{display:inline-block;padding:0 8px;border-radius:999px;font-size:14px;border:1px solid currentColor;line-height:1.6}
+.chip.good{color:var(--good)} .chip.bad{color:var(--bad)} .chip.maybe{color:var(--maybe)} .chip.none{color:var(--fg3)}
+.gauge{position:relative;height:10px;border-radius:5px;margin:10px 0 2px;background:linear-gradient(90deg,rgba(255,255,255,.1) 0 30%,rgba(255,181,71,.35) 30% 70%,rgba(255,255,255,.1) 70%)}
+.gauge i{position:absolute;top:-4px;width:3px;height:18px;margin-left:-1px;background:#fff;border-radius:2px;box-shadow:0 0 8px #fff}
+.grow{display:flex;justify-content:space-between;color:var(--fg3);font-size:14px;font-family:var(--mono)}
+.dist{display:grid;grid-template-columns:auto 1fr auto;gap:4px 8px;align-items:center;margin-top:8px;font-size:14px}
+.dist i{display:block;height:8px;border-radius:4px;background:var(--info)}
+/* 海报 */
+#poster{position:absolute;inset:0;display:none;pointer-events:auto}
+#poster.show{display:block}
+.pgrid{position:absolute;inset:4px 28px 8px;display:grid;grid-template-columns:1.3fr 1fr 1fr;grid-template-rows:1fr auto;gap:18px}
+.pcard{background:rgba(8,13,26,.86);border:1px solid var(--line);border-radius:18px;padding:26px 28px;position:relative;overflow:hidden;cursor:pointer;opacity:0;transform:translateY(14px);transition:opacity .6s, transform .6s, border-color .2s;display:flex;flex-direction:column;justify-content:center}
+.pcard.on{opacity:1;transform:none}
+.pcard:hover{border-color:var(--line2)}
+.ptime{font-size:clamp(26px,2.9vw,56px);white-space:nowrap;font-weight:600;line-height:1.1;letter-spacing:.01em}
+.pplace{font-size:clamp(22px,2.4vw,44px);font-weight:600;margin-top:18px;line-height:1.15;color:#ffd2b0;text-shadow:0 0 24px rgba(255,145,80,.45)}
+.pdish{margin-top:22px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.pdish span{border:1px solid rgba(255,181,71,.4);border-radius:999px;padding:4px 14px;font-size:clamp(16px,1.35vw,24px);color:#ffe2c4;background:rgba(255,145,80,.06)}
+.pdish em{font-style:normal;color:var(--fg3);font-size:15px;font-family:var(--mono)}
+.ptag{align-self:flex-start;margin-top:14px;font-size:14px;color:var(--maybe);border:1px dashed rgba(255,181,71,.6);border-radius:6px;padding:1px 8px}
+.pbig{grid-column:1 / -1;display:flex;gap:18px}
+.pbig .pcard{flex:1;flex-direction:row;align-items:baseline;justify-content:flex-start;gap:14px;padding:14px 28px}
+.pbig b{font-family:var(--mono);font-size:clamp(38px,4.6vw,84px);font-weight:600;line-height:1;text-shadow:0 0 30px rgba(87,212,255,.55)}
+.pbig span{color:var(--fg2);font-size:clamp(15px,1.3vw,22px)}
+.pact{display:flex;flex-direction:column;gap:30px}
+.pact div{font-size:clamp(20px,2vw,36px);font-weight:600;line-height:1.3}
+.pact i{display:inline-block;width:16px;height:16px;border-radius:50%;margin-right:8px;box-shadow:0 0 12px currentColor;vertical-align:middle}
+.pseat{padding:10px}
+.pseat svg{width:100%;height:100%}
+@media (max-width: 720px){
+  #top{grid-template-columns:1fr;grid-template-areas:"bar" "title" "nums";padding:10px 16px 0}
+  #title{font-size:24px;margin-top:6px}
+  #nums{justify-content:flex-start;gap:22px;margin-top:8px;align-self:start}
+  .num{align-items:flex-start}
   .num b{font-size:26px}
-  .stage{flex:1 1 auto;min-height:440px;margin:0 16px}
-  .bottom{padding:10px 16px 14px;position:sticky;bottom:0;background:var(--bg)}
-  .pop{max-width:calc(100vw - 32px)}
+  .num.small b{font-size:20px}
+  .num span{font-size:14px;margin-top:3px}
+  #ctrl{padding:6px 16px 12px;gap:12px}
+  #credit{right:16px;bottom:56px;font-size:14px}
+  .pgrid{inset:0 16px 6px;grid-template-columns:1fr;grid-template-rows:auto 1fr auto auto;gap:10px}
+  .pact{flex-direction:row;gap:14px}
+  .pact div{flex:1}
+  .pcard{padding:14px 16px;border-radius:14px}
+  .ptime{font-size:26px}
+  .pplace{font-size:21px;margin-top:8px}
+  .pbig{gap:10px}
+  .pbig .pcard{flex-direction:column;gap:4px;padding:10px 14px}
+  .pbig b{font-size:30px}
+  .pdish{margin-top:10px;gap:6px}
+  .pdish span{font-size:14px;padding:2px 9px}
+  .ptag{margin-top:8px}
+  .pact{gap:16px}
+  .pact div{font-size:17px}
+  .pact i{width:12px;height:12px;margin-right:4px}
 }
+@media (prefers-reduced-motion: reduce){ #title span.in{animation:none} }
 </style>
 </head>
 <body>
-<div class="app">
-  <header class="top">
-    <div class="meta">
-      <div id="groups" role="group" aria-label="切换人物组" style="display:flex;gap:6px"></div>
-      <span class="stepno" id="stepno"></span>
-      <button class="info" id="info" aria-label="数据来源与说明">i</button>
+<canvas id="cv" aria-hidden="true"></canvas>
+<div id="app">
+  <header id="top">
+    <div class="bar">
+      <div class="gsel"><button id="gbtn" aria-haspopup="true" aria-expanded="false"></button><div id="gmenu" hidden></div></div>
+      <span id="stepno"></span>
+      <button id="info" aria-label="说明与数据来源">i</button>
     </div>
-    <h1 id="title"></h1>
-    <div class="nums" id="nums"></div>
+    <h1 id="title" aria-live="polite"></h1>
+    <div id="nums"></div>
   </header>
-  <main class="stage" id="stage" aria-live="polite">
-    <svg id="svg" xmlns="http://www.w3.org/2000/svg" role="img"></svg>
-    <div class="legend" id="legend"></div>
-    <div class="credit" id="credit"></div>
-  </main>
-  <footer class="bottom">
-    <button class="pp" id="pp" aria-label="暂停"></button>
-    <div class="track" id="track" role="slider" aria-label="播放进度" tabindex="0"><div class="rail"><div class="fill" id="fill"></div><div id="ticks"></div></div><div class="knob" id="knob"></div></div>
+  <main id="stage"><div id="poster"></div></main>
+  <footer id="ctrl">
+    <button id="pp" aria-label="暂停"></button>
+    <div id="track" role="slider" aria-label="播放进度" tabindex="0"><div class="rail"><div id="fill"></div><div id="ticks"></div></div><div id="knob"></div></div>
   </footer>
 </div>
-<div class="pop" id="pop" role="dialog"></div>
-<pre id="check" hidden></pre>
-<script>window.__errs = []; window.addEventListener("error", e => window.__errs.push(String(e.message || e))); window.addEventListener("unhandledrejection", e => window.__errs.push("promise: " + String(e.reason)));</script>
+<div id="credit">© OpenStreetMap contributors</div>
+<div id="pop" role="dialog"></div>
+<script>window.__errs=[];addEventListener("error",e=>window.__errs.push(String(e.message||e)));addEventListener("unhandledrejection",e=>window.__errs.push("promise: "+String(e.reason)));</script>
 <script src="data.js"></script>
-<script>
-"use strict";
-const D = window.DINNER;
-const G_NAMES = Object.keys(D.组);
-const $ = id => document.getElementById(id);
-const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
-const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
-const ease = x => x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
-const seg = (p, a, b) => ease(clamp((p - a) / (b - a)));
-const S = {g: G_NAMES[0], t: 0, playing: true, idx: -1, cur: null, W: 0, H: 0, freeze: false, last: 0};
-
-// ───────── 数据访问 ─────────
-const grp = () => D.组[S.g];
-const R = () => grp().结果;
-const people = () => grp().人物.人;
-const names = () => people().map(p => p.名);
-const PAL = ["#5b9dff", "#a78bfa", "#f472b6", "#22d3ee", "#c9b89c"];
-const color = n => PAL[names().indexOf(n)] || "#888";
-const short = n => n.length > 2 ? n.slice(-2) : n;
-const reading = k => grp().读数[k];
-const kind = e => !e ? "none" : e.startsWith("unsure") ? "maybe" : e;
-// 极性：act 对这道题是好事（+1）还是坏事（-1），只决定颜色
-function tone(exit, pol){ const k = kind(exit); if (k === "maybe") return "maybe"; if (k === "act") return pol > 0 ? "good" : "bad"; if (k === "ignore") return pol > 0 ? "bad" : "good"; return "none"; }
-const CV = {good: "var(--good)", bad: "var(--bad)", maybe: "var(--maybe)", none: "var(--ink3)"};
-const same = (p, a, b) => (p[0] === a && p[1] === b) || (p[0] === b && p[1] === a);
-const hanLen = s => [...String(s)].filter(c => !/\s/.test(c)).length;
-const CN = ["零","一","二","三","四","五","六","七","八","九","十"];
-const shortTime = l => { const m = String(l).match(/（(周.)）\s*(\d+:\d+)/); return m ? [m[1], m[2]] : [l, ""]; };
-const selfOf = n => people().find(x => x.名 === n)?.自述 || "";
-function pairSay(a, b){ const xs = grp().人物.关系.filter(s => s.涉及.length > 1 && s.涉及.every(x => x === a || x === b)); return xs.map(s => s.说法).join(" ") || "没有直接提到两人关系的说法。"; }
-
-// ───────── 浮层（点开才有字） ─────────
-const pop = $("pop");
-function showPop(html, ev){
-  pause();
-  pop.innerHTML = `<button class="x" aria-label="关闭">×</button>` + html; pop.classList.add("show");
-  pop.querySelector(".x").onclick = hidePop;
-  const vw = innerWidth, vh = innerHeight, r = pop.getBoundingClientRect();
-  let x = (ev?.clientX ?? vw / 2) + 14, y = (ev?.clientY ?? vh / 2) + 14;
-  if (x + r.width > vw - 12) x = Math.max(12, (ev?.clientX ?? vw) - r.width - 14);
-  if (y + r.height > vh - 12) y = Math.max(12, vh - r.height - 12);
-  pop.style.left = clamp(x, 12, Math.max(12, vw - r.width - 12)) + "px"; pop.style.top = y + "px";
-}
-function hidePop(){ pop.classList.remove("show"); }
-document.addEventListener("pointerdown", e => { if (pop.classList.contains("show") && !pop.contains(e.target) && !e.target.closest("[data-pop]")) hidePop(); });
-const EXW = {act: "是", ignore: "否", maybe: "拿不准", none: "—"};
-function chip(exit, pol, words){ const k = kind(exit); return `<span class="chip ${tone(exit, pol)}">${esc((words && words[k]) || EXW[k] || exit)}</span>`; }
-function judgePop(j){
-  const r = j.key ? reading(j.key) : null;
-  let g = "";
-  if (r && typeof r.读数 === "number") g = `<div class="gauge"><div class="band"></div><div class="nd" style="left:calc(${r.读数 * 100}% - 1px)"></div></div><div class="row note"><span>0 否</span><span>读数 <b style="color:var(--ink);font-family:var(--mono)">${r.读数.toFixed(2)}</b> · 线 0.3 / 0.7</span><span>是 1</span></div>`;
-  else if (r && Array.isArray(r.读数)){ const mx = Math.max(...r.读数); g = `<div class="dist">${r.读数.map((x, k) => `<span>${esc((j.scale || [])[k] ?? "档 " + k)}</span><i style="width:${x / mx * 100}%"></i><span style="font-family:var(--mono)">${x.toFixed(2)}</span>`).join("")}</div>`; }
-  else if (j.noReading) g = `<p class="note">${esc(j.noReading)}</p>`;
-  return `<h4>${esc(j.title || "语义判断")}</h4><p class="q">「${esc(j.q)}」</p>${g}
-    ${j.exit ? `<p style="margin:8px 0 0">出口 ${chip(j.exit, j.pol, j.words)}</p>` : ""}
-    ${j.extra ? `<p class="mat">${j.extra}</p>` : ""}
-    ${j.mat ? `<p class="mat">材料：${esc(j.mat)}</p>` : ""}
-    ${r ? `<p class="note" style="margin:8px 0 0">${r.token} token · $${r.花费.toFixed(6)} · 账本键 ${esc(j.key)}</p>` : ""}`;
-}
-function personPop(n){ const p = people().find(x => x.名 === n); const rel = grp().人物.关系.filter(s => s.涉及.includes(n)); return `<h4>${esc(n)} · 住 ${esc(p.住处站)} 站</h4><p class="q">${esc(p.自述)}</p>${rel.length ? `<p class="mat">关系说法：${rel.map(s => esc(s.说法)).join("<br>")}</p>` : ""}`; }
-function packetText(b){ return b.补了 && b.补了.length ? b.补了.map(x => `补进「${esc(x.类)}」：${esc(x.内容)}`).join("<br>") : "「最缺哪一类」这道选择题没选出来，没补成信息。"; }
-
-// ───────── SVG 小件 ─────────
-function personNode(n, x, y, r, extra = ""){
-  return `<g class="hit" data-pop="person" data-n="${esc(n)}" ${extra}><circle cx="${x}" cy="${y}" r="${r}" fill="${color(n)}"/><text x="${x}" y="${y + r * .36}" text-anchor="middle" font-size="${Math.round(r * .78)}" font-weight="700" fill="#0d0f13">${esc(short(n))}</text></g>`;
-}
-function poly(n, cx, cy, r, rot = -Math.PI / 2){ return Array.from({length: n}, (_, i) => { const a = rot + i * 2 * Math.PI / n; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; }); }
-function wedge(cx, cy, r0, r1, a0, a1){
-  const p = (r, a) => [cx + r * Math.cos(a), cy + r * Math.sin(a)], L = a1 - a0 > Math.PI ? 1 : 0;
-  const [x0, y0] = p(r1, a0), [x1, y1] = p(r1, a1), [x2, y2] = p(r0, a1), [x3, y3] = p(r0, a0);
-  return `M${x0.toFixed(1)} ${y0.toFixed(1)}A${r1} ${r1} 0 ${L} 1 ${x1.toFixed(1)} ${y1.toFixed(1)}L${x2.toFixed(1)} ${y2.toFixed(1)}A${r0} ${r0} 0 ${L} 0 ${x3.toFixed(1)} ${y3.toFixed(1)}Z`;
-}
-// 五人环：第 i 块永远是第 i 个人（从正上方顺时针）
-function donut(cx, cy, r, tones, t0, dt, attrs = ""){
-  const n = tones.length, gap = .07;
-  return `<g ${attrs}>${tones.map((tn, i) => { const a0 = -Math.PI / 2 + i * 2 * Math.PI / n + gap / 2, a1 = a0 + 2 * Math.PI / n - gap; return `<path class="f" data-t="${(t0 + i * dt).toFixed(4)}" style="--c1:${CV[tn]}" d="${wedge(cx, cy, r * .5, r, a0, a1)}"/>`; }).join("")}</g>`;
-}
-const L = {
-  line: (st, l) => `<span><svg width="26" height="8"><line x1="1" y1="4" x2="25" y2="4" style="${st}"/></svg>${l}</span>`,
-  dot: (c, l, dash) => `<span><svg width="10" height="10"><circle cx="5" cy="5" r="4" fill="${dash ? "none" : c}" stroke="${c}" stroke-width="${dash ? 1.5 : 0}" ${dash ? 'stroke-dasharray="2 1.5"' : ""}/></svg>${l}</span>`,
-  ring: () => `<span><svg width="14" height="14" viewBox="-7 -7 14 14">${names().map((n, i) => { const a0 = -Math.PI / 2 + i * 2 * Math.PI / 5 + .05, a1 = a0 + 2 * Math.PI / 5 - .1; return `<path d="${wedge(0, 0, 3, 7, a0, a1)}" fill="${color(n)}"/>`; }).join("")}</svg>圆环每块一人（人物色）</span>`,
-  txt: l => `<span>${l}</span>`,
-};
-const STATUS = (good, bad) => L.line("stroke:var(--good);stroke-width:3", good) + L.line("stroke:var(--bad);stroke-width:3", bad) + L.line("stroke:var(--maybe);stroke-width:3;stroke-dasharray:5 4", "拿不准");
-
-// ───────── 地图（步骤 3、4 共用） ─────────
-const KX = Math.cos(30.25 * Math.PI / 180);
-function mapBase(){
-  if (mapBase.c) return mapBase.c;
-  const la = D.餐厅.map(z => z[2]), lo = D.餐厅.map(z => z[3]);
-  const b = {la0: Math.min(...la), la1: Math.max(...la), lo0: Math.min(...lo), lo1: Math.max(...lo)};
-  const X = v => (v - b.lo0) * KX * 1000, Y = v => (b.la1 - v) * 1000; // 基准坐标：1 单位 ≈ 0.001°
-  return mapBase.c = {b, X, Y, w: X(b.lo1), h: Y(b.la0)};
-}
-function bboxOf(pts, padFrac){
-  const B = mapBase(), xs = pts.map(p => B.X(p[1])), ys = pts.map(p => B.Y(p[0]));
-  let x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
-  const px = (x1 - x0) * padFrac + 4, py = (y1 - y0) * padFrac + 4; return {x: x0 - px, y: y0 - py, w: x1 - x0 + 2 * px, h: y1 - y0 + 2 * py};
-}
-function fitView(rect, W, H){ const s = Math.min(W / rect.w, H / rect.h); return {s, tx: W / 2 - (rect.x + rect.w / 2) * s, ty: H / 2 - (rect.y + rect.h / 2) * s}; }
-const lerpRect = (a, b, k) => ({x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k, w: a.w * Math.pow(b.w / a.w, k), h: a.h * Math.pow(b.h / a.h, k)});
-function mapLayers(){
-  const r = R().餐厅, B = mapBase();
-  const cand = r.候选.map(c => { const z = D.餐厅.find(x => x[0] === c.id); return {...c, la: z[2], lo: z[3]}; });
-  const target = bboxOf(r.家.map(h => h.坐标).concat(cand.map(c => [c.la, c.lo])), .12);
-  const full = {x: 0, y: 0, w: B.w, h: B.h};
-  return {r, B, cand, target, full};
-}
-function mapSkeleton(W, H){
-  const {B} = mapLayers();
-  const path = ring => ring.map((p, i) => (i ? "L" : "M") + B.X(p[1]).toFixed(1) + " " + B.Y(p[0]).toFixed(1)).join("");
-  const lake = D.地图.西湖.map(rg => `<path d="${path(rg)}Z" fill="var(--lake)" stroke="var(--lake-ink)" stroke-width="1" vector-effect="non-scaling-stroke"/>`).join("");
-  const river = D.地图.钱塘江.map(rg => `<path d="${path(rg)}" fill="none" stroke="var(--lake)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>`).join("");
-  return `<rect width="${W}" height="${H}" fill="var(--stage)"/><g id="geo">${river}${lake}</g>`;
-}
-function placeMap(view, sel){ // 把基准坐标按当前视窗投到屏幕
-  document.getElementById("geo").setAttribute("transform", `translate(${view.tx},${view.ty}) scale(${view.s})`);
-  const B = mapBase();
-  sel.forEach(el => { const la = +el.dataset.la, lo = +el.dataset.lo; const x = B.X(lo) * view.s + view.tx, y = B.Y(la) * view.s + view.ty; if (el.tagName === "circle"){ el.setAttribute("cx", x.toFixed(1)); el.setAttribute("cy", y.toFixed(1)); } else el.setAttribute("transform", `translate(${x.toFixed(1)},${y.toFixed(1)})`); });
-}
-function homesSvg(r, rad){ return r.家.map(h => `<g class="home" data-la="${h.坐标[0]}" data-lo="${h.坐标[1]}">${personNode(h.名, 0, 0, rad)}</g>`).join(""); }
-
-// ───────── 各步 ─────────
-// 每一步：title()、nums()、legend()、build(W,H) → 返回 update(p)。画面里带 data-t 的元素在 p ≥ t 时加 on，带 data-t2 的加 on2。
-const STEPS = [
-{ dur: 6, title(){ return `${CN[names().length] || names().length}个人，一桌说不清的关系`; },
-  nums(){ return [[names().length, "人"], [grp().人物.关系.filter(s => s.涉及.length > 1).length, "条关系说法"]]; },
-  legend(){ const ty = new Set(grp().人物.关系.map(s => s.类型.线)); const m = {前任: L.line("stroke:var(--ink);stroke-width:4;stroke-dasharray:10 4", "前任"), 喜欢: L.line("stroke:var(--ink2);stroke-width:2.5;stroke-dasharray:1 5;stroke-linecap:round", "喜欢 →"), 亲近: L.line("stroke:var(--ink);stroke-width:3", "亲近"), 冲突: L.line("stroke:var(--ink2);stroke-width:2.5;stroke-dasharray:8 3 2 3", "冲突"), 疏远: L.line("stroke:var(--ink3);stroke-width:2;stroke-dasharray:3 5", "疏远")}; return [...ty].map(t => m[t]).filter(Boolean).slice(0, 4).join("") + L.line("stroke:var(--ink3);stroke-width:8;stroke-opacity:.5", "说法矛盾") + L.txt("线型是作者标的"); },
-  build(W, H){
-    const M = Math.min(W, H), nr = clamp(M * .07, 22, 46), pos = poly(5, W / 2, H / 2 + nr * .2, M * .34), P = Object.fromEntries(names().map((n, i) => [n, pos[i]]));
-    const ST = {前任: "stroke:var(--ink);stroke-width:5;stroke-dasharray:14 6", 喜欢: "stroke:var(--ink2);stroke-width:3;stroke-dasharray:1 7;stroke-linecap:round", 亲近: "stroke:var(--ink);stroke-width:4", 冲突: "stroke:var(--ink2);stroke-width:3;stroke-dasharray:10 4 2 4", 疏远: "stroke:var(--ink3);stroke-width:2.5;stroke-dasharray:3 6", 其他: "stroke:var(--ink3);stroke-width:1.5"};
-    const rels = grp().人物.关系.map((s, i) => [s, i]).filter(([s]) => s.涉及.length > 1);
-    let e = "";
-    rels.forEach(([s, i], k) => {
-      const [a, b] = s.类型.方向 || s.涉及, A = P[a], Bp = P[b], doubt = /？|传闻/.test(s.类型.标签), t = (.35 + k * .08).toFixed(2);
-      const dx = Bp[0] - A[0], dy = Bp[1] - A[1], d = Math.hypot(dx, dy), ux = dx / d, uy = dy / d, x1 = A[0] + ux * (nr + 6), y1 = A[1] + uy * (nr + 6), x2 = Bp[0] - ux * (nr + 8), y2 = Bp[1] - uy * (nr + 8);
-      e += `<g class="fade hit" data-t="${t}" data-pop="rel" data-i="${i}">${doubt ? `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--ink3)" stroke-opacity=".35" stroke-width="18" stroke-linecap="round"/>` : ""}<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="${ST[s.类型.线] || ST.其他}"/>${s.类型.方向 ? `<path d="M${x2} ${y2} l${(-ux * 12 - uy * 6).toFixed(1)} ${(-uy * 12 + ux * 6).toFixed(1)} M${x2} ${y2} l${(-ux * 12 + uy * 6).toFixed(1)} ${(-uy * 12 - ux * 6).toFixed(1)}" stroke="var(--ink2)" stroke-width="2.5" fill="none" stroke-linecap="round"/>` : ""}<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="transparent" stroke-width="22"/></g>`;
-    });
-    const nodes = names().map((n, i) => `<g class="pop-in" data-t="${(.02 + i * .06).toFixed(2)}">${personNode(n, P[n][0], P[n][1], nr)}</g>`).join("");
-    return {svg: e + nodes};
-  }},
-{ dur: 7, title(){ return "逐人判能不能来，定下时间"; },
-  nums(p){ const T = R().时间, all = T.各时段.flatMap(s => s.逐人), k = Math.round(seg(p, .05, .66) * all.length), u = all.slice(0, k).filter(c => kind(c.出口) === "maybe").length, [d, h] = shortTime(T.选); return [[k, "次判断"], [u, "拿不准", "maybe"], p > .75 ? [h, d] : ["—", "时间"]]; },
-  legend(){ return L.dot("var(--good)", "能来") + L.dot("var(--bad)", "来不了") + L.dot("var(--maybe)", "拿不准"); },
-  build(W, H){
-    const T = R().时间, rows = T.各时段.length, cols = names().length;
-    const cell = Math.min((W * .8) / (cols + 1.8), (H * .84) / (rows + 1.2)), gw = cell * (cols + 1.8), gh = cell * (rows + 1), x0 = (W - gw) / 2 + cell * 1.8, y0 = (H - gh) / 2 + cell;
-    let s = names().map((n, j) => personNode(n, x0 + (j + .5) * cell, y0 - cell * .45, cell * .26)).join("");
-    let k = 0;
-    T.各时段.forEach((row, i) => {
-      const y = y0 + (i + .5) * cell, pick = row.标签 === T.选, [d, h] = shortTime(row.标签);
-      s += `<g class="dimmable ${pick ? "" : "rowdim"}">`;
-      if (pick) s += `<rect class="glow" data-t=".76" x="${x0 - cell * 1.75}" y="${y - cell * .46}" width="${cell * (cols + 1.7)}" height="${cell * .92}" rx="${cell * .46}" fill="none" stroke="var(--hi)" stroke-width="2"/>`;
-      s += `<text x="${x0 - cell * .25}" y="${y - 2}" text-anchor="end" font-size="${Math.round(cell * .2)}" fill="var(--ink2)">${esc(d)}</text><text x="${x0 - cell * .25}" y="${y + cell * .22}" text-anchor="end" font-size="${Math.round(cell * .2)}" font-family="var(--mono)" fill="var(--ink)">${esc(h)}</text>`;
-      row.逐人.forEach((c, j) => { const t = .05 + k * (.6 / (rows * cols)); k++; s += `<circle class="f hit" data-t="${t.toFixed(3)}" style="--c1:${CV[tone(c.出口, 1)]}" cx="${x0 + (j + .5) * cell}" cy="${y}" r="${cell * .3}" data-pop="judge" data-j='${esc(JSON.stringify({title: c.名 + " · " + row.标签, q: T.题, key: c.键, exit: c.出口, pol: 1, words: {act: "能来", ignore: "来不了"}, mat: c.名 + "的自述：" + selfOf(c.名)}))}'/>`; });
-      s += `</g>`;
-    });
-    return {svg: s, update(p, root){ root.querySelectorAll(".rowdim").forEach(g => g.classList.toggle("off", p >= .78)); }};
-  }},
-{ dur: 10, title(){ const f = R().餐厅.漏斗; return `${f.全部}家店，代码筛到${f.交给判断}家`; },
-  nums(p){ const f = R().餐厅.漏斗, L6 = [f.全部, f.有名字, f.正餐, R().餐厅.各层.可去.length, f.最远一小时内, f.去重, f.交给判断]; const k = mapStep.layerAt(p); return [[L6[k], "家店"], [0, "次语义判断"]]; },
-  legend(){ return L.dot("var(--ink)", "餐厅（OSM）") + L.txt("熄灭 = 被代码筛掉") + L.dot(PAL[0], "住处"); },
-  credit: true,
-  build(W, H){ return mapStep.build(W, H); }},
-{ dur: 8, title(){ return "谁会撞忌口？逐店逐人判"; },
-  nums(p){ const c = R().餐厅.候选, all = c.flatMap(x => x.判), k = Math.round(seg(p, .04, .6) * all.length), got = all.slice(0, k); return [[k, "次判断"], [got.filter(x => kind(x.出口) === "maybe").length, "拿不准", "maybe"], [got.filter(x => kind(x.出口) === "act").length, "撞忌口", "bad"]]; },
-  legend(){ return L.ring() + L.dot("var(--bad)", "撞") + L.dot("var(--good)", "不撞") + L.dot("var(--maybe)", "拿不准"); },
-  credit: true,
-  build(W, H){ return restStep(W, H); }},
-{ dur: 8, title(){ return `逐道判谁不愿吃，挑出${R().菜.选中.length}道`; },
-  nums(p){ const m = R().菜, n = m.逐道.length * names().length + m.够不够.length; return [[Math.round(seg(p, .03, .9) * n), "次判断"], [p > .64 ? m.选中.length : "—", "道入选"]]; },
-  legend(){ return L.ring() + L.dot("var(--bad)", "不愿吃") + L.dot("var(--good)", "能吃 / 够") + L.dot("var(--maybe)", "拿不准") + L.txt("菜单是生成模型拟的示例"); },
-  build(W, H){ return menuStep(W, H); }},
-{ dur: 7, title(){ const t = R().题树; return t.失败 ? "题树没生成出来" : `${t.对[0]}和${t.对[1]}：沿题树追问`; },
-  nums(p){ const t = R().题树; if (t.失败) return [[0, "道题"]]; const path = t.路径[0] || []; return [[Math.min(path.length, Math.floor(seg(p, .1, .7) * (path.length + .999))), "道题走过"], [t.批数, "批发出"]]; },
-  legend(){ return L.dot("var(--hi)", "走到的节点") + L.dot("var(--maybe)", "拿不准") + L.txt("◆ 叶：交给排座的规则") + L.txt("题树由生成模型出"); },
-  build(W, H){ return treeStep(W, H); }},
-{ dur: 9, title(){ return "挨着坐尴不尴尬？两两判"; },
-  nums(p){ const s = R().座位, k = Math.round(seg(p, .04, .42) * s.边.length), ad = s.补了.filter(b => b.采用), res = ad.filter(b => kind(b.结论) !== "maybe").length; return [[k, "次判断"], [s.首判.slice(0, k).filter(x => kind(x) === "maybe").length, "拿不准", "maybe"], [p > .82 ? `${res}/${ad.length}` : "—", "补信息后已决"]]; },
-  legend(){ return STATUS("不尴尬", "尴尬") + L.line("stroke:var(--hi);stroke-width:8;stroke-opacity:.3", "会改变座位"); },
-  build(W, H){ return pairStep(W, H, "seat"); }},
-{ dur: 6, title(){ return `穷举${seatCount(names().length)}种坐法，入座`; },
-  nums(){ const s = R().座位, n = s.顺时针.length; let bad = 0; for (let i = 0; i < n; i++){ const e = s.边.find(e => same(e.对, s.顺时针[i], s.顺时针[(i + 1) % n])); if (e && kind(e.出口) === "act") bad++; } return [[seatCount(n), "种坐法"], [bad, "对尴尬相邻", bad ? "bad" : "good"]]; },
-  legend(){ return STATUS("不尴尬", "尴尬") + L.line("stroke:var(--hi);stroke-width:2;stroke-dasharray:2 4", "题树：隔开"); },
-  build(W, H){ return tableStep(W, H); }},
-{ dur: 10, title(){ return "在「自在」图上找团分组"; },
-  nums(p){ const h = R().饭后, n = h.逐项.length * names().length + h.边.length, ad = h.补了.filter(b => b.采用), res = ad.filter(b => kind(b.结论) !== "maybe").length; return [[Math.round(seg(p, .03, .4) * n), "次判断"], [p > .5 ? `${res}/${ad.length}` : "—", "补信息后已决"], [p > .84 ? h.分组.length : "—", "组"]]; },
-  legend(){ const h = R().饭后; return STATUS("自在", "不自在") + (h.分组依据 === "已决边" ? L.dot("var(--ink)", "按已决边成组", true) : L.dot("var(--maybe)", "乐观团：拿不准当自在", true)) + L.txt("下排：生成模型提的活动"); },
-  build(W, H){ return pairStep(W, H, "group"); }},
-{ dur: 7, title(){ const q = R().气氛; return q.紧张源.length ? `去掉${q.紧张源.join("、")}，气氛升得最多` : "逐个去掉一人，比气氛"; },
-  nums(p){ return [[Math.round(seg(p, .05, .7) * R().气氛.键.length), "份材料，同一道题"]]; },
-  legend(){ return L.dot("var(--good)", "去掉后气氛更好") + L.dot("var(--bad)", "去掉后更差") + L.line("stroke:var(--ink2);stroke-width:2", "全员"); },
-  build(W, H){ return moodStep(W, H); }},
-{ dur: 7, title(){ const k = kind(R().整体.整体.出口); return `整份安排再判一次：${{act: "有人难受", ignore: "没人难受", maybe: "拿不准"}[k] || "—"}`; },
-  nums(p){ const w = R().整体, r = reading(w.整体.键); return [[Math.round(seg(p, .1, .85) * (1 + w.逐人.length)), "次判断"], [p > .5 && r ? r.读数.toFixed(2) : "—", "整体读数", tone(w.整体.出口, -1)]]; },
-  legend(){ return L.dot("var(--good)", "不会难受") + L.dot("var(--bad)", "会难受") + L.dot("var(--maybe)", "拿不准"); },
-  build(W, H){ return finalStep(W, H); }},
-{ dur: 7, title(){ return `一顿饭，${grp().花费.calls}次调用`; },
-  nums(p){ const c = grp().花费, k = seg(p, .05, .8), rs = Object.keys(grp().读数), ex = exitMap(), N = rs.length; const shown = Math.round(k * N); return [[shown, "次判断"], ["$" + (k * c.usd).toFixed(4), "花费"], [rs.slice(0, shown).filter(x => kind(ex[x]) === "maybe").length, "拿不准", "maybe"]]; },
-  legend(){ return L.dot("var(--ink2)", "已决") + L.dot("var(--maybe)", "拿不准") + L.dot("var(--ink2)", "补信息、题树、打分", true) + L.txt("点任一格看账"); },
-  build(W, H){ return costStep(W, H); }},
-];
-// 账本键 → 程序报告里的出口（座位、分组的边取首判，因为这个键的读数是首判的）；没有出口的键（补信息的选择题、题树节点、打分）留空
-function exitMap(){
-  const G = grp(); if (exitMap.c && exitMap.c.g === S.g) return exitMap.c.m;
-  const m = {};
-  (function w(o){ if (Array.isArray(o)) return o.forEach(w); if (o && typeof o === "object"){ if (typeof o.键 === "string" && typeof o.出口 === "string") m[o.键] = o.出口; for (const k in o) w(o[k]); } })(G.结果);
-  [G.结果.座位, G.结果.饭后].forEach(src => src.边.forEach((e, k) => { m[e.键] = src.首判[k]; }));
-  exitMap.c = {g: S.g, m}; return m;
-}
-function seatCount(n){ let f = 1; for (let i = 2; i < n; i++) f *= i; return n >= 3 ? f / 2 : 1; }
-
-// 步骤 3：576 家一层层熄灭，然后地图收拢
-const mapStep = {
-  TH: [0, .12, .2, .28, .38, .5, .6],
-  layerAt(p){ let k = 0; this.TH.forEach((t, i) => { if (p >= t) k = i; }); return k; },
-  build(W, H){
-    const {r, cand, target, full} = mapLayers();
-    const L6 = r.各层, sets = ["有名字", "正餐", "可去", "最远一小时内", "去重"].map(k => new Set(L6[k] || []));
-    const candSet = new Set(cand.map(c => c.id));
-    const stage = id => { if (candSet.has(id)) return 6; for (let k = 4; k >= 0; k--) if (sets[k].has(id)) return k + 1; return 0; };
-    const rad = clamp(Math.min(W, H) * .028, 11, 20);
-    const dots = D.餐厅.map(z => `<circle class="d" data-s="${stage(z[0])}" data-la="${z[2]}" data-lo="${z[3]}" r="2.4" fill="var(--ink)"/>`).join("");
-    const css = []; for (let k = 1; k <= 6; k++) for (let s = 0; s < k; s++) css.push(`.dots[data-layer="${k}"] .d[data-s="${s}"]`);
-    const svg = mapSkeleton(W, H) + `<style>${css.join(",")}{opacity:0}</style><g class="dots" id="dots">${dots}</g><g id="homes">${homesSvg(r, rad)}</g>`;
-    const vFull = fitView(full, W, H), vT = fitView(target, W, H);
-    let lastK = -1;
-    return {svg, update(p, root){
-      const k = this_layer(p); if (k !== lastK){ root.querySelector("#dots").setAttribute("data-layer", k); lastK = k; }
-      const z = seg(p, .42, .9), rect = lerpRect(full, target, z), v = fitView(rect, W, H);
-      placeMap(v, root.querySelectorAll("[data-la]"));
-      const dr = (2 + z * 2.2).toFixed(2); root.querySelectorAll(".d").forEach(d => d.setAttribute("r", d.dataset.s === "6" && p > .6 ? (+dr + 1.5).toFixed(2) : dr));
-      root.querySelector("#homes").style.opacity = String(.35 + .65 * z);
-    }};
-    function this_layer(p){ return mapStep.layerAt(p); }
-  }
-};
-function restStep(W, H){
-  // 地图收拢到候选店 → 20 家店升起排成一片、逐人判 → 撞的划掉 → 选中的落回地图，连上各人的通勤线
-  const {r, cand, target} = mapLayers(), near = bboxOf(cand.map(c => [c.la, c.lo]), .18), vN = fitView(near, W, H), B = mapBase();
-  const wide = W >= H, cols = wide ? 10 : 4, rows = Math.ceil(cand.length / cols);
-  const cw = W * .9 / cols, ch = H * .78 / rows, dr = Math.min(cw, ch) * .33, gx = (W - cw * cols) / 2, gy = (H - ch * rows) / 2;
-  const rad = clamp(Math.min(W, H) * .028, 11, 20), n = names().length, dt = .5 / (cand.length * n);
-  let s = mapSkeleton(W, H) + `<rect class="veil" width="${W}" height="${H}" fill="var(--stage)" opacity="0" style="transition:opacity .6s"/>`, k = 0;
-  const sel = cand.find(c => c.id === r.选.id);
-  s += `<g id="lines">${sel ? r.家.map((h, i) => `<line class="fade" data-t="${(.8 + i * .02).toFixed(2)}" data-la2="${sel.la}" data-lo2="${sel.lo}" data-hla="${h.坐标[0]}" data-hlo="${h.坐标[1]}" stroke="${color(h.名)}" stroke-width="2" stroke-dasharray="5 5"/>`).join("") : ""}</g>`;
-  s += `<g id="homes">${homesSvg(r, rad)}</g>`;
-  cand.forEach((c, ci) => {
-    const tones = c.判.map(x => tone(x.出口, -1)), hit = c.撞.length > 0, isSel = c.id === r.选.id;
-    const mx = B.X(c.lo) * vN.s + vN.tx, my = B.Y(c.la) * vN.s + vN.ty, tx = gx + (ci % cols + .5) * cw, ty = gy + (Math.floor(ci / cols) + .5) * ch;
-    s += `<g class="cand" data-la="${c.la}" data-lo="${c.lo}"><g class="mv lift ${isSel ? "selc" : ""}" data-dx="${tx - mx}" data-dy="${ty - my}"><g class="dimmable ${isSel ? "" : "notsel"} ${hit ? "hitx" : ""} hit" data-pop="rest" data-i="${ci}"><circle r="${dr * 1.08}" fill="var(--panel)"/>${donut(0, 0, dr, tones, .12 + k * dt, dt)}${hit ? `<path class="fade" data-t=".64" d="M${-dr} ${-dr}L${dr} ${dr}M${dr} ${-dr}L${-dr} ${dr}" stroke="var(--bad)" stroke-width="3"/>` : ""}</g></g>${isSel ? `<circle class="glow" data-t=".8" r="${dr * 1.6}" fill="none" stroke="var(--hi)" stroke-width="2.5"/><text class="fade" data-t=".8" y="${-dr * 1.95}" text-anchor="middle" font-size="${Math.round(clamp(dr * .5, 12, 16))}" font-weight="600" fill="var(--ink)" style="paint-order:stroke;stroke:var(--stage);stroke-width:4px">${esc(c.名.split(" / ")[0])}</text>` : ""}</g>`;
-    k += n;
-  });
-  const m = rad + 6, pin = (x, y) => [clamp(x, m, W - m), clamp(y, m, H - m)];
-  return {svg: s, update(p, root){
-    const v = fitView(lerpRect(target, near, seg(p, 0, .08)), W, H), scr = (la, lo) => [B.X(lo) * v.s + v.tx, B.Y(la) * v.s + v.ty];
-    placeMap(v, root.querySelectorAll(".cand"));
-    document.getElementById("geo").setAttribute("transform", `translate(${v.tx},${v.ty}) scale(${v.s})`);
-    root.querySelectorAll(".home").forEach(g => { const [x, y] = pin(...scr(+g.dataset.la, +g.dataset.lo)); g.setAttribute("transform", `translate(${x.toFixed(1)},${y.toFixed(1)})`); });
-    root.querySelectorAll("#lines line").forEach(l => { const [x1, y1] = pin(...scr(+l.dataset.hla, +l.dataset.hlo)), [x2, y2] = scr(+l.dataset.la2, +l.dataset.lo2); l.setAttribute("x1", x1); l.setAttribute("y1", y1); l.setAttribute("x2", x2); l.setAttribute("y2", y2); });
-    root.querySelector(".veil").setAttribute("opacity", p >= .09 && p < .74 ? ".85" : "0");
-    root.querySelectorAll(".lift").forEach(g => { const up = p >= .09 && !(g.classList.contains("selc") && p >= .74); g.style.transform = up ? `translate(${g.dataset.dx}px,${g.dataset.dy}px)` : "translate(0px,0px)"; });
-    root.querySelectorAll(".hitx").forEach(g => g.classList.toggle("off", p >= .66));
-    root.querySelectorAll(".notsel").forEach(g => g.classList.toggle("off", p >= .74 || (g.classList.contains("hitx") && p >= .66)));
-    root.querySelectorAll(".lift:not(.selc)").forEach(g => g.style.opacity = p >= .78 ? "0" : "");
-  }};
-}
-function menuStep(W, H){
-  const m = R().菜, n = names().length, dishes = m.逐道, wide = W >= H;
-  const cols = wide ? 6 : 3, rows = Math.ceil(dishes.length / cols);
-  const gridH = wide ? H * .4 : H * .44, cw = W * .9 / cols, ch = gridH / rows, dr = Math.min(cw, ch) * .3;
-  const gx = (W - cw * cols) / 2, gy = H * .02;
-  const chosen = dishes.map(d => m.选中.includes(d.菜));
-  const nC = chosen.filter(Boolean).length, ring = Math.max(dr * 1.2 / Math.sin(Math.PI / Math.max(3, nC)), dr * 1.5), tr = ring + dr * 1.25;
-  const tcx = W / 2, tcy = Math.min(H - tr - (wide ? 4 : 60), gy + gridH + tr + 16);
-  const tpos = poly(nC, tcx, tcy, ring);
-  let s = `<circle class="fade" data-t=".6" cx="${tcx}" cy="${tcy}" r="${tr}" fill="none" stroke="var(--line)" stroke-width="2"/><text class="fade" data-t=".62" x="${tcx}" y="${tcy + 5}" text-anchor="middle" font-size="13" fill="var(--ink3)">示例菜单</text>`;
-  const dt = .55 / (dishes.length * n); let ci = 0;
-  dishes.forEach((d, i) => {
-    const x = gx + (i % cols + .5) * cw, y = gy + (Math.floor(i / cols) + .5) * ch;
-    const tones = d.判.map(x => tone(x.出口, -1));
-    let tx = 0, ty = 0; if (chosen[i]){ const [px, py] = tpos[ci++]; tx = px - x; ty = py - y; }
-    s += `<g class="${chosen[i] ? "mv chosen" : "dimmable unch"}" data-tx="${tx}" data-ty="${ty}"><g class="hit" data-pop="dish" data-i="${i}"><circle cx="${x}" cy="${y}" r="${dr * 1.08}" fill="var(--panel)"/>${donut(x, y, dr, tones, .03 + i * n * dt, dt)}</g></g>`;
-  });
-  const ay = wide ? tcy : tcy + tr + 34, ar = clamp(Math.min(W, H) * .03, 12, 20);
-  const apos = wide ? names().map((_, i) => [tcx + tr + 50 + i * ar * 2.6, ay]) : names().map((_, i) => [W / 2 + (i - 2) * ar * 2.8, ay]);
-  if (wide && apos[4][0] + ar > W - 10) apos.forEach((a, i) => { a[0] = tcx + tr + 30 + i * ((W - tcx - tr - 50) / 5); });
-  m.够不够.forEach((x, i) => { const [ax, ay2] = apos[i]; s += `<g class="fade" data-t="${(.8 + i * .03).toFixed(2)}"><circle class="e hit" data-t="${(.82 + i * .03).toFixed(2)}" style="--c1:${CV[tone(x.出口, 1)]}" cx="${ax}" cy="${ay2}" r="${ar + 5}" fill="none" stroke-width="4" data-pop="judge" data-j='${esc(JSON.stringify({title: "这桌菜够 " + x.名 + " 吃好吗", q: m.题[1], key: x.键, exit: x.出口, pol: 1, words: {act: "够", ignore: "不够"}, mat: "选中的 " + m.选中.length + " 道（示例菜单）+ " + x.名 + " 的自述"}))}'/>${personNode(x.名, ax, ay2, ar)}</g>`; });
-  return {svg: s, update(p, root){
-    root.querySelectorAll(".chosen").forEach(g => { const k = p >= .64 ? 1 : 0; g.style.transform = `translate(${g.dataset.tx * k}px,${g.dataset.ty * k}px)`; });
-    root.querySelectorAll(".unch").forEach(g => g.classList.toggle("off", p >= .62));
-  }};
-}
-function treeStep(W, H){
-  const t = R().题树;
-  if (t.失败) return {svg: `<text x="${W / 2}" y="${H / 2}" text-anchor="middle" font-size="18" fill="var(--ink3)" class="hit" data-pop="treefail">生成失败，点这里看原因</text>`};
-  const path = t.路径[0] || [], wide = W >= H;
-  // 布局：叶子均分，内部节点居中；深度沿 x（宽屏）或 y（竖屏）
-  const nodes = [], edges = []; let leafN = 0;
-  (function walk(node, depth, br, parent, live){
-    const me = {node, depth, br, parent, isLeaf: node.leaf !== undefined, live};
-    nodes.push(me);
-    if (me.isLeaf){ me.pos = leafN++; }
-    else {
-      const step = path.findIndex(x => x.q === node.q), pe = live ? path[step] : null;
-      me.pe = pe; me.stepIdx = step;
-      const kids = ["act", "ignore", "unsure"].filter(b => node[b]).map(b => walk(node[b], depth + 1, b, me, !!pe && pe.支 === b));
-      me.pos = (kids[0].pos + kids[kids.length - 1].pos) / 2;
-      kids.forEach(k => edges.push([me, k]));
-    }
-    if (me.isLeaf) me.reached = live && JSON.stringify(node.leaf) === JSON.stringify(t.叶);
-    return me;
-  })(t.树, 0, "根", null, true);
-  const maxD = Math.max(...nodes.map(n => n.depth)), padA = wide ? W * .1 : H * .12, padEnd = wide ? W * .22 : H * .2, padB = wide ? H * .1 : W * .08;
-  const spanA = (wide ? W : H) - padA - padEnd, spanB = (wide ? H : W) - padB * 2;
-  nodes.forEach(n => { const a = padA + (maxD ? n.depth / maxD : 0) * spanA, b = padB + (leafN > 1 ? n.pos / (leafN - 1) : .5) * spanB; [n.x, n.y] = wide ? [a, b] : [b, a]; });
-  const nr = clamp(Math.min(spanB / leafN * .28, 18), 7, 18);
-  const tOf = n => n.isLeaf ? .1 + (path.length) * .18 + .05 : .1 + n.stepIdx * .18;
-  let s = "";
-  edges.forEach(([a, b]) => { const on = b.live; const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
-    const d = wide ? `M${a.x} ${a.y}C${mx} ${a.y} ${mx} ${b.y} ${b.x} ${b.y}` : `M${a.x} ${a.y}C${a.x} ${my} ${b.x} ${my} ${b.x} ${b.y}`;
-    s += `<path d="${d}" fill="none" stroke="var(--line)" stroke-width="2"/>${on ? `<path class="e" data-t="${tOf(b).toFixed(2)}" style="--c1:var(--hi)" d="${d}" fill="none" stroke-width="3.5"/>` : ""}`;
-    const lx = wide ? b.x - (b.x - a.x) * .22 : b.x + 10, ly = wide ? b.y - 8 : b.y - (b.y - a.y) * .25;
-    s += `<text x="${lx}" y="${ly}" text-anchor="middle" font-size="11" fill="${on ? "var(--ink2)" : "var(--ink3)"}">${{act: "是", ignore: "否", unsure: "?"}[b.br]}</text>`;
-  });
-  nodes.forEach((n, i) => {
-    if (n.isLeaf){ const r = nr * 1.1; s += `<g class="hit" data-pop="tleaf" data-i="${i}"><path d="M${n.x} ${n.y - r}L${n.x + r} ${n.y}L${n.x} ${n.y + r}L${n.x - r} ${n.y}Z" fill="var(--panel)" stroke="var(--ink3)" stroke-width="1.5"/>${n.reached ? `<path class="f" data-t="${tOf(n).toFixed(2)}" style="--c1:var(--hi)" d="M${n.x} ${n.y - r}L${n.x + r} ${n.y}L${n.x} ${n.y + r}L${n.x - r} ${n.y}Z"/><circle class="glow" data-t="${tOf(n).toFixed(2)}" cx="${n.x}" cy="${n.y}" r="${r * 2}" fill="none" stroke="var(--hi)" stroke-width="2"/>` : ""}</g>`; return; }
-    s += `<g class="hit" data-pop="tnode" data-i="${i}"><circle cx="${n.x}" cy="${n.y}" r="${nr}" fill="var(--panel)" stroke="var(--ink3)" stroke-width="1.5"/>${n.pe ? `<circle class="f" data-t="${tOf(n).toFixed(2)}" style="--c1:${kind(n.pe.出口) === "maybe" ? "var(--maybe)" : "var(--hi)"}" cx="${n.x}" cy="${n.y}" r="${nr}"/>` : ""}</g>`;
-    if (n.node.add){ const ar = nr * .75; s += personNode(n.node.add, n.x + (wide ? 0 : nr * 1.9), n.y + (wide ? -nr * 1.9 : 0), ar); }
-  });
-  // 根：这一对人
-  const root = nodes[0], pr = clamp(nr * 1.4, 14, 26);
-  s += wide ? personNode(t.对[0], root.x - pr * 2.2, root.y - pr * 1.2, pr) + personNode(t.对[1], root.x - pr * 2.2, root.y + pr * 1.2, pr) : personNode(t.对[0], root.x - pr * 1.3, root.y - pr * 2.1, pr) + personNode(t.对[1], root.x + pr * 1.3, root.y - pr * 2.1, pr);
-  // 叶给出的规则：两人之间一道隔断，或第三人坐中间
-  const lf = nodes.find(n => n.reached);
-  if (lf && t.叶){ const rr = clamp(nr * 1.1, 12, 20), ox = clamp(wide ? lf.x + Math.max(nr * 4, rr * 3.4 + 8) : lf.x, rr * 3, W - rr * 3), oy = wide ? lf.y : lf.y + nr * 4.2;
-    let g = "";
-    if (t.叶.隔开){ g += personNode(t.叶.隔开[0], ox - rr * 1.6, oy, rr) + personNode(t.叶.隔开[1], ox + rr * 1.6, oy, rr) + `<line x1="${ox}" y1="${oy - rr * 1.2}" x2="${ox}" y2="${oy + rr * 1.2}" stroke="var(--hi)" stroke-width="3" stroke-dasharray="3 3"/>`; }
-    else if (t.叶.中间){ const [a, b] = t.对; g += personNode(a, ox - rr * 2.3, oy, rr) + personNode(t.叶.中间, ox, oy, rr) + personNode(b, ox + rr * 2.3, oy, rr); }
-    s += `<g class="fade hit" data-t="${(tOf(lf) + .06).toFixed(2)}" data-pop="tleaf" data-i="${nodes.indexOf(lf)}">${g}</g>`;
-  }
-  treeStep.nodes = nodes;
-  return {svg: s};
-}
-// 步骤 7 与 9：五边形上的两两判断，补信息的「信息包」飞到关键边上
-function pairStep(W, H, mode){
-  const isSeat = mode === "seat", src = isSeat ? R().座位 : R().饭后, pol = isSeat ? -1 : 1;
-  const words = isSeat ? {act: "尴尬", ignore: "不尴尬"} : {act: "自在", ignore: "不自在"};
-  const M = Math.min(W, H), wide = W >= H;
-  const actH = isSeat ? 0 : (wide ? H * .16 : H * .15);
-  const gH = H - actH, nr = clamp(M * .065, 20, 42), cx = W / 2, cy = gH / 2 + nr * .3, R0 = Math.min(W, gH) * .34;
-  const pos = poly(5, cx, cy, R0), P = Object.fromEntries(names().map((n, i) => [n, pos[i]]));
-  const dec = isSeat ? src.补了.map(b => b.对) : src.会改分组的边;
-  const T1 = isSeat ? [.04, .42] : [.04, .28], TP = isSeat ? [.5, .72] : [.3, .44], TF = isSeat ? .8 : .5, TM = .72;
-  const box = [W - 40, 34];
-  let s = `<g class="fade" data-t="${TP[0] - .05}"><rect x="${box[0] - 18}" y="${box[1] - 14}" width="36" height="28" rx="5" fill="var(--panel)" stroke="var(--ink3)"/><path d="M${box[0] - 10} ${box[1] - 5}h20M${box[0] - 10} ${box[1] + 1}h20M${box[0] - 10} ${box[1] + 7}h12" stroke="var(--ink2)" stroke-width="2"/></g>`;
-  let e = "", pk = "", rg = "";
-  src.边.forEach((ed, k) => {
-    const [a, b] = ed.对, A = P[a], B = P[b], t1 = (T1[0] + k * (T1[1] - T1[0]) / src.边.length).toFixed(3);
-    const c1 = tone(src.首判[k], pol), c2 = tone(ed.出口, pol), isDec = dec.some(d => same(d, a, b));
-    const bp = src.补了.find(x => same(x.对, a, b));
-    const mx = (A[0] + B[0]) / 2, my = (A[1] + B[1]) / 2;
-    const j = {title: `${a} — ${b}`, q: isSeat ? src.题 : src.题[1], key: ed.键, exit: ed.出口, pol, words, mat: `${a}：${selfOf(a)} ｜ ${b}：${selfOf(b)} ｜ 两人之间：${pairSay(a, b)}`, extra: bp ? `首判 ${EXW[kind(src.首判[k])]}（读数是首判的）。${packetText(bp)} 重判后 ${EXW[kind(bp.结论)]}${bp.采用 ? "" : "，没采用"}。` : (isDec ? "会改变结果的边。" : "")};
-    e += `<g class="hit" data-pop="judge" data-j='${esc(JSON.stringify(j))}'>${isDec ? `<line class="fade keyhl" data-t="${TP[0] - .06}" x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}" stroke="var(--hi)" stroke-opacity=".22" stroke-width="16" stroke-linecap="round"/>` : ""}<line class="e ${c1 === "maybe" ? "maybe1" : ""} ${c2 === "maybe" ? "maybe2" : ""}" data-t="${t1}" data-t2="${TF}" style="--c1:${CV[c1]};--c2:${CV[c2]}" x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}" stroke-width="4" stroke-linecap="round"/>${kind(src.首判[k]) !== kind(ed.出口) ? `<line class="glow keyhl" data-t="${TF}" x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}" stroke="${CV[c2]}" stroke-opacity=".45" stroke-width="18" stroke-linecap="round"/>` : ""}<line x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}" stroke="transparent" stroke-width="22"/></g>`;
-    if (bp && bp.采用){ const tp = (TP[0] + (src.补了.indexOf(bp) / Math.max(1, src.补了.length)) * (TP[1] - TP[0]) * .6).toFixed(3);
-      pk += `<g class="pk" data-t="${tp}" data-t2="${(+tp + .1).toFixed(3)}" data-x0="${box[0]}" data-y0="${box[1]}" data-x1="${mx}" data-y1="${my}"><rect x="-7" y="-9" width="14" height="18" rx="2" fill="var(--hi)"/></g>`;
-      rg += `<circle class="ring" data-t="${(+tp + .1).toFixed(3)}" cx="${mx}" cy="${my}" r="${nr * .5}" fill="none" stroke="${CV[c2]}" stroke-width="3" style="transform-box:fill-box;transform-origin:center"/>`; }
-  });
-  s += e + rg + pk;
-  // 人：分组步骤会移动到各自的团里
-  let groupsSvg = "", target = {};
-  if (!isSeat){
-    const gs = src.分组, ng = gs.length, cs = wide ? gs.map((_, i) => [W * (i + 1) / (ng + 1), cy]) : gs.map((_, i) => [cx, gH * (i + 1) / (ng + 1)]);
-    const dashed = src.分组依据 !== "已决边";
-    gs.forEach((g, i) => { const m = g.人.length, rr = m === 1 ? 0 : nr * (m <= 2 ? 1.25 : 1.55), ps = m === 1 ? [cs[i]] : poly(m, cs[i][0], cs[i][1], rr); g.人.forEach((n, k) => target[n] = ps[k]);
-      const hr = rr + nr * 1.5; groupsSvg += `<circle class="fade hit" data-t=".84" data-pop="grp" data-i="${i}" cx="${cs[i][0]}" cy="${cs[i][1]}" r="${hr}" fill="rgba(255,255,255,.03)" stroke="${dashed ? "var(--maybe)" : "var(--ink)"}" stroke-width="2.5" ${dashed ? 'stroke-dasharray="10 7"' : ""}/>`; });
-    // 活动：生成模型提的 6 个，每个一圈五人判断
-    const acts = src.逐项, ar = Math.min(W / (acts.length + 1) * .3, actH * .34), ay = H - actH / 2 - 6;
-    const dt = .26 / (acts.length * 5);
-    acts.forEach((a, i) => { const ax = W * (i + 1) / (acts.length + 1), used = src.分组.some(g => g.活动 === a.活动);
-      groupsSvg += `<g class="dimmable ${used ? "" : "actun"}"><g class="hit" data-pop="act" data-i="${i}"><circle cx="${ax}" cy="${ay}" r="${ar * 1.1}" fill="var(--panel)"/>${donut(ax, ay, ar, a.判.map(x => tone(x.出口, -1)), .04 + i * 5 * dt, dt)}</g>${used ? `<circle class="glow" data-t=".88" cx="${ax}" cy="${ay}" r="${ar * 1.5}" fill="none" stroke="var(--hi)" stroke-width="2"/>` : ""}</g>`; });
-  }
-  s = groupsSvg + s;
-  s += names().map(n => `<g class="mv pnode" data-dx="${target[n] ? target[n][0] - P[n][0] : 0}" data-dy="${target[n] ? target[n][1] - P[n][1] : 0}">${personNode(n, P[n][0], P[n][1], nr)}</g>`).join("");
-  return {svg: s, update(p, root){
-    root.querySelectorAll(".pk").forEach(g => { const k = p >= +g.dataset.t ? 1 : 0; g.style.transform = `translate(${k ? g.dataset.x1 : g.dataset.x0}px,${k ? g.dataset.y1 : g.dataset.y0}px)`; });
-    if (!isSeat){
-      const m = p >= TM ? 1 : 0;
-      root.querySelectorAll(".pnode").forEach(g => g.style.transform = `translate(${g.dataset.dx * m}px,${g.dataset.dy * m}px)`);
-      root.querySelectorAll(".e, .keyhl").forEach(l => l.style.opacity = m ? "0" : "");
-      root.querySelectorAll(".actun").forEach(g => g.classList.toggle("off", p >= .86));
-    }
-  }};
-}
-function tableStep(W, H){
-  const s0 = R().座位, t = R().题树, order = s0.顺时针, n = order.length, M = Math.min(W, H);
-  const nr = clamp(M * .065, 20, 42), cx = W / 2, cy = H / 2 + nr * .2, R0 = M * .34;
-  const pent = Object.fromEntries(names().map((nm, i) => [nm, poly(5, cx, cy, R0)[i]]));
-  const seats = poly(n, cx, cy, M * .3);
-  let s = `<circle class="fade" data-t=".05" cx="${cx}" cy="${cy}" r="${M * .3 - nr * 1.05}" fill="var(--panel)" stroke="var(--line)" stroke-width="2"/>`;
-  for (let i = 0; i < n; i++){ const a = order[i], b = order[(i + 1) % n], e = s0.边.find(e => same(e.对, a, b)), tn = tone(e.出口, -1), [x1, y1] = seats[i], [x2, y2] = seats[(i + 1) % n];
-    s += `<g class="hit" data-pop="judge" data-j='${esc(JSON.stringify({title: `${a} 挨着 ${b}`, q: s0.题, key: e.键, exit: e.出口, pol: -1, words: {act: "尴尬", ignore: "不尴尬"}, mat: `两人自述与两人之间的说法：${pairSay(a, b)}`}))}'><line class="e ${tn === "maybe" ? "maybe1" : ""}" data-t="${(.5 + i * .05).toFixed(2)}" style="--c1:${CV[tn]}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-width="6" stroke-linecap="round"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="transparent" stroke-width="22"/></g>`; }
-  const rules = (t && t.规则 && t.规则.隔开) || [];
-  rules.forEach(pr => { const i = order.indexOf(pr[0]), j = order.indexOf(pr[1]); if (i < 0 || j < 0) return; const [x1, y1] = seats[i], [x2, y2] = seats[j];
-    s += `<line class="fade hit" data-t=".8" data-pop="rule" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--hi)" stroke-width="2.5" stroke-dasharray="2 6" stroke-linecap="round"/>`; });
-  order.forEach((nm, i) => { const [x, y] = seats[i], [px, py] = pent[nm]; s += `<g class="mv seat" data-t="${(.1 + i * .07).toFixed(2)}" data-dx="${px - x}" data-dy="${py - y}">${personNode(nm, x, y, nr)}</g>`; });
-  return {svg: s, update(p, root){ root.querySelectorAll(".seat").forEach(g => { const k = p >= +g.dataset.t ? 0 : 1; g.style.transform = `translate(${g.dataset.dx * k}px,${g.dataset.dy * k}px)`; }); }};
-}
-function moodStep(W, H){
-  const q = R().气氛, ks = q.键, labels = ["全员", ...names().map(n => "去掉" + n)];
-  const scale = ["很僵", "有点别扭", "还算自在", "很融洽"];
-  const ex = k => { const r = reading(k); return r ? r.读数.reduce((a, x, i) => a + x * i, 0) : 0; };
-  const rows = q.档.flat(), base = ex(ks[0]);
-  const rh = Math.min(H * .8 / rows.length, 90), y0 = (H - rh * rows.length) / 2, lx = clamp(W * .12, 60, 180), bw = W - lx - clamp(W * .1, 30, 140);
-  const vmax = Math.max(...ks.map(ex)) * 1.08, xb = lx + base / vmax * bw, ar = clamp(rh * .32, 12, 26);
-  let s = "";
-  rows.forEach((l, r) => { const i = labels.indexOf(l), v = ex(ks[i]), y = y0 + (r + .5) * rh, who = i ? names()[i - 1] : null, tn = i === 0 ? "none" : v > base ? "good" : v < base ? "bad" : "none";
-    const av = who ? `<g opacity=".5">${personNode(who, lx - ar * 1.6, y, ar)}</g><circle cx="${lx - ar * .75}" cy="${y - ar * .75}" r="${ar * .38}" fill="var(--ink)"/><line x1="${lx - ar * .95}" y1="${y - ar * .75}" x2="${lx - ar * .55}" y2="${y - ar * .75}" stroke="var(--bg)" stroke-width="2.2" stroke-linecap="round"/>` : names().map((n, k) => `<circle cx="${lx - ar * 3 + k * ar * .6}" cy="${y}" r="${ar * .26}" fill="${color(n)}"/>`).join("");
-    s += `<g class="hit" data-pop="judge" data-j='${esc(JSON.stringify({title: l, q: q.题, key: ks[i], scale, mat: i === 0 ? "所有人的自述与全部关系说法" : "去掉 " + who + " 的自述与涉及他的关系说法"}))}'>${av}<rect class="bar" data-w="${v / vmax * bw}" data-r="${r}" x="${lx}" y="${y - rh * .26}" width="0" height="${rh * .52}" rx="${rh * .12}" fill="${CV[tn]}" ${i === 0 ? 'fill-opacity=".45"' : ""}/>${r === 0 && i ? `<rect class="glow" data-t=".8" x="${lx - 4}" y="${y - rh * .34}" width="${v / vmax * bw + 8}" height="${rh * .68}" rx="${rh * .16}" fill="none" stroke="var(--hi)" stroke-width="2"/>` : ""}</g>`; });
-  s += `<line x1="${xb}" y1="${y0 - 6}" x2="${xb}" y2="${y0 + rh * rows.length + 6}" stroke="var(--ink2)" stroke-width="2" stroke-dasharray="4 4"/>`;
-  return {svg: s, update(p, root){ root.querySelectorAll(".bar").forEach(b => { const r = +b.dataset.r, k = seg(p, .05 + r * .09, .25 + r * .09); b.setAttribute("width", Math.max(0, b.dataset.w * k).toFixed(1)); }); }};
-}
-function finalStep(W, H){
-  const w = R().整体, order = R().座位.顺时针, M = Math.min(W, H), cx = W / 2, cy = H / 2 + M * .04;
-  const nr = clamp(M * .06, 18, 40), seats = poly(order.length, cx, cy, M * .36), gr = M * .2;
-  const r = reading(w.整体.键), val = r && typeof r.读数 === "number" ? r.读数 : null;
-  const arc = (a0, a1, rad) => { const p = a => [cx + rad * Math.cos(Math.PI + a * Math.PI), cy + rad * Math.sin(Math.PI + a * Math.PI)]; const [x0, y0] = p(a0), [x1, y1] = p(a1); return `M${x0} ${y0}A${rad} ${rad} 0 0 1 ${x1} ${y1}`; };
-  let s = `<g class="hit" data-pop="judge" data-j='${esc(JSON.stringify({title: "整体复核", q: w.题[0], key: w.整体.键, exit: w.整体.出口, pol: -1, words: {act: "会", ignore: "不会"}, mat: "整份安排：时间 " + w.安排.时间 + "；餐厅 " + w.安排.餐厅 + "；座位 " + w.安排["座位（顺时针，首尾相接）"] + "；饭后 " + w.安排.饭后 + "；这桌菜（示例菜单）" + w.安排["这桌菜（示例菜单）"]}))}'>
-    <path d="${arc(0, 1, gr)}" fill="none" stroke="var(--dim)" stroke-width="${gr * .16}"/>
-    <path d="${arc(.3, .7, gr)}" fill="none" stroke="var(--maybe)" stroke-opacity=".35" stroke-width="${gr * .16}"/>
-    <g id="needle"><line x1="${cx}" y1="${cy}" x2="${cx - gr * .92}" y2="${cy}" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/></g><circle cx="${cx}" cy="${cy}" r="${gr * .06}" fill="var(--ink)"/>
-    <text x="${cx - gr}" y="${cy + gr * .2}" text-anchor="middle" font-size="12" fill="var(--ink3)">没人难受</text><text x="${cx + gr}" y="${cy + gr * .2}" text-anchor="middle" font-size="12" fill="var(--ink3)">有人难受</text></g>`;
-  order.forEach((n, i) => { const x = w.逐人.find(z => z.名 === n); const [px, py] = seats[i]; if (!x) return;
-    s += `<circle class="e hit" data-t="${(.55 + i * .06).toFixed(2)}" style="--c1:${CV[tone(x.出口, -1)]}" cx="${px}" cy="${py}" r="${nr + 7}" fill="none" stroke-width="5" data-pop="judge" data-j='${esc(JSON.stringify({title: "对 " + n, q: w.题[1], key: x.键, exit: x.出口, pol: -1, words: {act: "难受", ignore: "没事"}, mat: "整份安排 + 这个人：" + n}))}'/>${personNode(n, px, py, nr)}`; });
-  return {svg: s, update(p, root){ if (val == null) return; const k = seg(p, .08, .5), ang = (k * val) * 180; const n = root.querySelector("#needle"); n.setAttribute("transform", `rotate(${ang.toFixed(1)} ${cx} ${cy})`); n.querySelector("line").setAttribute("stroke", p > .5 ? CV[tone(w.整体.出口, -1)] : "var(--ink)"); }};
-}
-function costStep(W, H){
-  const rs = Object.entries(grp().读数), N = rs.length;
-  const ratio = W / H; let cols = Math.max(8, Math.round(Math.sqrt(N * ratio))), rows = Math.ceil(N / cols);
-  const cell = Math.min(W * .9 / cols, H * .84 / rows), x0 = (W - cell * cols) / 2, y0 = (H - cell * rows) / 2;
-  const ex = exitMap();
-  const s = rs.map(([k, r], i) => { const e = ex[k], fill = !e ? "none" : kind(e) === "maybe" ? "var(--maybe)" : "var(--ink2)";
-    return `<rect class="cd hit" data-i="${i}" data-pop="cost" data-k="${esc(k)}" x="${x0 + (i % cols) * cell + cell * .14}" y="${y0 + Math.floor(i / cols) * cell + cell * .14}" width="${cell * .72}" height="${cell * .72}" rx="${cell * .2}" fill="${fill}" ${e ? "" : `stroke="var(--ink2)" stroke-width="1.5"`} opacity="0"/>`; }).join("");
-  return {svg: s, update(p, root){ const k = Math.round(seg(p, .05, .8) * N); root.querySelectorAll(".cd").forEach(r => r.setAttribute("opacity", +r.dataset.i < k ? "1" : "0")); }};
-}
-
-// ───────── 浮层内容分派 ─────────
-document.getElementById("svg").addEventListener("click", ev => {
-  const el = ev.target.closest("[data-pop]"); if (!el) return;
-  const kind_ = el.dataset.pop, i = +el.dataset.i;
-  let h = "";
-  if (kind_ === "person") h = personPop(el.dataset.n);
-  else if (kind_ === "judge") h = judgePop(JSON.parse(el.dataset.j));
-  else if (kind_ === "rel"){ const s = grp().人物.关系[i]; h = `<h4>${esc(s.涉及.join(" 与 "))}</h4><p class="q">${esc(s.说法)}</p><p class="note">线型是作者标的「${esc(s.类型.标签)}」，只给页面画线用；程序不读它，语义判断模型看到的只有原话。</p>`; }
-  else if (kind_ === "rest"){ const {cand, r} = mapLayers(), c = cand[i]; h = `<h4>${esc(c.名)}</h4><p class="note">OSM ${esc(c.id)} · 菜系标签 ${esc(c.菜系 || "无")} · 营业时间 ${esc(c.营业时间 || "未标")}（${esc(c.营业)}）</p><p class="q">「${esc(r.题)}」</p>${c.判.map((x, k) => `<div class="row"><span>${esc(names()[k])} · ${c.通勤[k]} 分钟</span><span>${reading(x.键) ? reading(x.键).读数.toFixed(2) : ""} ${chip(x.出口, -1, {act: "撞", ignore: "不撞"})}</span></div>`).join("")}${c.id === r.选.id ? `<p class="mat">选中。选店规则写在代码里：没人判「撞」的店里，先挑营业时间已知且营业的，再挑拿不准少的，再挑最远那人通勤短的。通勤是估算。</p>` : ""}`; }
-  else if (kind_ === "dish"){ const m = R().菜, d = m.逐道[i]; h = `<h4>${esc(d.菜.split("：")[0])} <span class="chip none">示例菜单</span></h4><p class="note">${esc(d.菜.split("：").slice(1).join("："))}</p><p class="q">「${esc(m.题[0])}」</p>${d.判.map((x, k) => `<div class="row"><span>${esc(names()[k])}</span><span>${reading(x.键) ? reading(x.键).读数.toFixed(2) : ""} ${chip(x.出口, -1, {act: "不愿吃", ignore: "能吃"})}</span></div>`).join("")}<p class="mat">${esc(m.注)}。${m.选中.includes(d.菜) ? "代码选中了这道。" : "代码没选这道。"}</p>`; }
-  else if (kind_ === "tnode"){ const n = treeStep.nodes[i]; h = `<h4>题树节点</h4><p class="q">「${esc(n.node.q)}」</p>${n.pe ? `<p>出口 ${chip(n.pe.出口, 0, {act: "是", ignore: "否"})}</p>` : `<p class="note">这次没走到这个节点。</p>`}${n.node.add ? `<p class="mat">这一问请 ${esc(n.node.add)} 到场。</p>` : ""}${n.node.need ? `<p class="mat">可能缺的信息：${n.node.need.map(esc).join("；")}</p>` : ""}<p class="note">节点读数没有随报告输出（walk 只给整体证据），这里只显示出口。题树由生成模型出。</p>`; }
-  else if (kind_ === "tleaf"){ const n = treeStep.nodes[i], l = n.node.leaf; h = `<h4>叶${n.reached ? "（这次落到这里）" : ""}</h4><p class="q">${esc(typeof l === "string" ? l : l.说明)}</p>${l.隔开 ? `<p class="mat">规则：${esc(l.隔开.join(" 和 "))} 隔开坐</p>` : ""}${l.中间 ? `<p class="mat">规则：${esc(l.中间)} 坐中间</p>` : ""}`; }
-  else if (kind_ === "treefail") h = `<h4>题树生成失败</h4><p class="q">${esc(R().题树.失败)}</p>`;
-  else if (kind_ === "rule"){ const t = R().题树; h = `<h4>题树给的规则</h4><p class="q">${esc(t.叶 ? t.叶.说明 : "")}</p><p class="note">5 人圆桌只有 ${seatCount(5)} 种本质不同的坐法，代码全部穷举：违反题树规则记 10 分，挨着尴尬记 2 分，挨着拿不准记 1 分，取最低分。</p>`; }
-  else if (kind_ === "grp"){ const h9 = R().饭后, g = h9.分组[i]; h = `<h4>第 ${i + 1} 组：${esc(g.人.join("、"))}</h4><p class="q">${esc(g.活动 || "自由活动")}</p><p class="mat">分组依据：${esc(h9.分组依据)}。${h9.并列团.length ? "另有同样大的团：" + h9.并列团.map(x => esc(x.join("、"))).join("；") + "。这个分组的依据很弱。" : "没有同样大的并列团。"}</p><p class="note">活动由生成模型提；代码在判出来的「自在」图上跑最大团（graph:max_clique）。</p>`; }
-  else if (kind_ === "act"){ const h9 = R().饭后, a = h9.逐项[i]; h = `<h4>${esc(a.活动.split("：")[0])}</h4><p class="note">${esc(a.活动.split("：").slice(1).join("："))}</p><p class="q">「${esc(h9.题[0])}」</p>${a.判.map((x, k) => `<div class="row"><span>${esc(names()[k])}</span><span>${reading(x.键) ? reading(x.键).读数.toFixed(2) : ""} ${chip(x.出口, -1, {act: "不舒服", ignore: "没问题"})}</span></div>`).join("")}<p class="note">候选活动由生成模型提。</p>`; }
-  else if (kind_ === "cost"){ const r = reading(el.dataset.k); const e = exitMap()[el.dataset.k]; h = `<h4>账本里的一次判断</h4><p class="note">${e ? "出口 " + chip(e, 0, {act: "是", ignore: "否"}) + " · " : "这个键在报告里没有对应的出口 · "}类型 ${esc(r.型)} · 读数 ${esc(Array.isArray(r.读数) ? r.读数.join(" / ") : r.读数)} · ${r.token} token · $${r.花费.toFixed(6)}</p><p class="note">账本键 ${esc(el.dataset.k)}</p><p class="mat">这一组：账本判断 ${grp().账本.判断条数} 条、生成 ${grp().账本.生成} 次（本机订阅，不计价）、代码动作 ${grp().账本.动作} 次；报告新调用 ${grp().花费.calls} 次、$${grp().花费.usd.toFixed(4)}；全程未决 ${R().未决条数} 条都随返回值交出。</p>`; }
-  if (h) showPop(h, ev);
-});
-$("info").onclick = ev => showPop(`<h4>这页怎么看</h4><p class="q">一次真机运行的十二步，自动播放。画面上的圆点、连线、座位、餐厅都能点开，看题面、材料、读数和出口。</p><p class="mat">红、绿、琥珀只表示语义判断的结果：绿是好的一侧，红是坏的一侧，琥珀虚线是拿不准（读数在 0.3–0.7 之间）。人物用各自的颜色；作者标的关系线型、题树给的规则用灰白线。</p><p class="mat">餐厅、地铁站、西湖与钱塘江轮廓：${esc(D.来源.OSM)}，${esc(D.来源.实例)}，查询于 ${esc(D.来源.查询时间)}。</p><p class="mat">「示例菜单」「饭后活动」「题树」由生成模型拟，不是事实。所有读数、出口、花费取自 真机/ 下的报告与账本，由 脚本/网页数据.py 搬进 data.js；页面不调接口。</p><p class="note">键盘：← → 换步，空格 播放 / 暂停。链接 #甲组/7 直接打开某组某步。</p>`, ev);
-
-// ───────── 时间线 ─────────
-const TOTAL = STEPS.reduce((a, s) => a + s.dur, 0);
-const START = STEPS.map((_, i) => STEPS.slice(0, i).reduce((a, s) => a + s.dur, 0));
-function locate(t){ let i = STEPS.length - 1; for (let k = 0; k < STEPS.length; k++) if (t < START[k] + STEPS[k].dur){ i = k; break; } return [i, clamp((t - START[i]) / STEPS[i].dur)]; }
-function renderGroups(){ $("groups").innerHTML = G_NAMES.map(g => `<button class="gbtn" aria-pressed="${g === S.g}" data-g="${esc(g)}">${esc((D.组[g].人物.组 || g).split("·").pop())}</button>`).join(""); $("groups").querySelectorAll(".gbtn").forEach(b => b.onclick = () => { S.g = b.dataset.g; renderGroups(); S.idx = -1; frame(); }); }
-function setNums(arr){
-  const box = $("nums");
-  if (box.children.length !== arr.length) box.innerHTML = arr.map(() => `<div class="num"><b></b><span></span></div>`).join("");
-  arr.forEach(([v, l, c], i) => { const el = box.children[i]; el.className = "num " + (c || ""); const b = el.firstChild, sp = el.lastChild; if (b.textContent !== String(v)) b.textContent = v; if (sp.textContent !== l) sp.textContent = l; });
-}
-function buildStep(i){
-  const st = STEPS[i], svg = $("svg"), W = Math.max(1, $("stage").clientWidth), H = Math.max(1, $("stage").clientHeight);
-  S.W = W; S.H = H; hidePop();
-  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-  $("legend").innerHTML = st.legend();
-  const out = st.build(W, H - $("legend").offsetHeight - 14);
-  svg.innerHTML = out.svg;
-  S.cur = {update: out.update || null, timed: [...svg.querySelectorAll("[data-t],[data-t2]")]};
-  const title = st.title();
-  $("title").innerHTML = `<span class="in">${esc(title)}</span>`;
-  svg.setAttribute("aria-label", title);
-  $("credit").textContent = st.credit ? "© OpenStreetMap contributors" : "";
-  $("stepno").textContent = `${i + 1} / ${STEPS.length}`;
-  try { if (!S.freeze) history.replaceState(null, "", "#" + encodeURIComponent(S.g) + "/" + (i + 1)); } catch (e) {}
-}
-function frame(){
-  const [i, p] = locate(S.t);
-  if (i !== S.idx){ S.idx = i; buildStep(i); }
-  const root = $("svg");
-  S.cur.timed.forEach(el => { const t1 = el.dataset.t, t2 = el.dataset.t2; if (t1 !== undefined) el.classList.toggle("on", p >= +t1); if (t2 !== undefined) el.classList.toggle("on2", p >= +t2); });
-  if (S.cur.update) S.cur.update(p, root);
-  setNums(STEPS[i].nums(p));
-  const f = S.t / TOTAL * 100; $("fill").style.width = f + "%"; $("knob").style.left = f + "%";
-}
-function loop(ts){
-  const dt = S.last ? Math.min(.1, (ts - S.last) / 1000) : 0; S.last = ts;
-  if (S.playing){ S.t = Math.min(TOTAL, S.t + dt); if (S.t >= TOTAL) pause(); frame(); }
-  requestAnimationFrame(loop);
-}
-const ICON = {play: `<svg viewBox="0 0 14 14"><path d="M3 1.5v11l9-5.5z" fill="currentColor"/></svg>`, pause: `<svg viewBox="0 0 14 14"><rect x="2.5" y="1.5" width="3.2" height="11" rx="1" fill="currentColor"/><rect x="8.3" y="1.5" width="3.2" height="11" rx="1" fill="currentColor"/></svg>`};
-function syncPP(){ $("pp").innerHTML = S.playing ? ICON.pause : ICON.play; $("pp").setAttribute("aria-label", S.playing ? "暂停" : "播放"); }
-function pause(){ S.playing = false; syncPP(); }
-function play(){ if (S.t >= TOTAL - .01) S.t = 0; S.playing = true; syncPP(); }
-$("pp").onclick = () => S.playing ? pause() : play();
-function seekStep(i){ S.t = START[clamp(i, 0, STEPS.length - 1)] + .001; frame(); }
-document.addEventListener("keydown", e => { const [i] = locate(S.t); if (e.key === "ArrowRight"){ seekStep(i + 1); } else if (e.key === "ArrowLeft"){ seekStep(S.t - START[i] > 1.5 ? i : i - 1); } else if (e.key === " "){ e.preventDefault(); S.playing ? pause() : play(); } else if (e.key === "Escape") hidePop(); });
-(function(){ // 细进度条：点、拖
-  const tr = $("track"); let drag = false;
-  const at = e => { const r = tr.getBoundingClientRect(); S.t = clamp((e.clientX - r.left) / r.width) * TOTAL; if (S.t >= TOTAL) S.t = TOTAL - .001; frame(); };
-  tr.addEventListener("pointerdown", e => { drag = true; tr.setPointerCapture(e.pointerId); S.wasPlaying = S.playing; S.playing = false; at(e); });
-  tr.addEventListener("pointermove", e => { if (drag) at(e); });
-  tr.addEventListener("pointerup", () => { drag = false; S.playing = S.wasPlaying; syncPP(); });
-  $("ticks").innerHTML = START.slice(1).map(s => `<div class="tick" style="left:${s / TOTAL * 100}%"></div>`).join("");
-})();
-let rz; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { S.idx = -1; frame(); }, 120); });
-
-// 深链：#甲组/7 打开某组某步并从那里播；#甲组/7@0.9 停在那一步的 90% 处（截图用，关掉过渡）
-(function(){
-  const raw = decodeURIComponent(location.hash.slice(1)), [gs, rest = ""] = raw.split("/"), [ns, ps] = rest.split("@");
-  if (gs && D.组[gs]) S.g = gs;
-  const n = parseInt(ns, 10); if (n > 0) S.t = START[Math.min(n, STEPS.length) - 1] + .001;
-  if (ps !== undefined){ S.freeze = true; document.documentElement.classList.add("freeze"); S.playing = false; S.t = START[Math.min(n || 1, STEPS.length) - 1] + clamp(parseFloat(ps) || 0) * STEPS[Math.min(n || 1, STEPS.length) - 1].dur * .9999; }
-  renderGroups(); syncPP(); frame(); requestAnimationFrame(loop);
-})();
-
-// 自查：?check 时把尺寸、滚动、字数、标题长度写进 #check
-if (/[?&]check/.test(location.search)) setTimeout(() => {
-  const vw = innerWidth, vh = innerHeight, de = document.documentElement, st = $("stage").getBoundingClientRect();
-  const visText = () => { let n = 0; document.querySelectorAll("#title, #nums, #legend, #credit, #groups, #stepno").forEach(e => n += hanLen(e.textContent)); $("svg").querySelectorAll("text").forEach(t => { let o = 1, el = t; while (el && el !== $("svg")){ o *= +getComputedStyle(el).opacity; el = el.parentElement; } if (o > .05) n += hanLen(t.textContent); }); return n; };
-  const titles = []; const g0 = S.g;
-  for (const g of G_NAMES){ S.g = g; STEPS.forEach((s, i) => { const t = s.title(); titles.push({g, i: i + 1, t, len: hanLen(t)}); }); }
-  S.g = g0;
-  const out = {vw, vh, scrollW: de.scrollWidth, scrollH: de.scrollHeight, bodyScrollH: document.body.scrollHeight, stageRatio: +(st.width * st.height / (vw * vh)).toFixed(3), stageInView: st.top >= 0 && st.left >= 0 && st.right <= vw + .5 && st.bottom <= vh + .5, visibleChars: visText(), titleMax: Math.max(...titles.map(x => x.len)), titlesOver20: titles.filter(x => x.len > 20), errors: window.__errs};
-  $("check").textContent = JSON.stringify(out);
-}, 400);
-</script>
+<script src="app.js"></script>
 </body>
 </html>
