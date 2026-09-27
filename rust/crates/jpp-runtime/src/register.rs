@@ -488,8 +488,8 @@ impl<'a> Interp<'a> {
             .collect();
         let mut items = vec![];
         for (q, k) in qs.iter().zip(&keys) {
-            // 账本里已经有 = 不用推
-            if self.账本查(k).is_some() {
+            // 账本里已经有 = 不用推；按缓存键能复用 = 也不用推（真站点走到时当场取回，不发请求）
+            if self.账本查(k).is_some() || self.判断可复用(k) {
                 continue;
             }
             // 这一层已经登记过同一个键 = 不重复推
