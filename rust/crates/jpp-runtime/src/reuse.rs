@@ -156,6 +156,23 @@ impl<'a> Interp<'a> {
         }
     }
 
+    /// 这把账本键按缓存键能不能复用（只查，不填答案、不记账）。推测发出前用它：能复用的判断不推测，
+    /// 等真站点走到时由 `判断复用` 当场取回——否则推测先把请求发出去，缓存命中省不下调用与费用（说话 v2 实测，2026-09-27）。
+    pub(crate) fn 判断可复用(&self, key: &str) -> bool {
+        if self.audit.on {
+            return false;
+        }
+        let Some((d, ck)) = self.判断缓存键(key) else {
+            return false;
+        };
+        self.复用.judges.contains_key(&d)
+            || self
+                .复用
+                .cross
+                .and_then(|c| c.get(&ck))
+                .is_some_and(|hit| 判断记录的答案(&hit).is_some())
+    }
+
     /// 判断登记时账本按账本键没有命中：按缓存键查本运行表与跨运行缓存。命中即填答案、写复用条目，返回 `true`。
     pub(crate) fn 判断复用(
         &mut self,
