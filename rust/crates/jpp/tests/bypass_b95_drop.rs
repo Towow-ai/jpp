@@ -167,3 +167,49 @@ handle(cut(judge(state(mat("甲")), test("行吗", "k"))),
         o.trace.warnings
     );
 }
+
+/// issue #56：`consume(u, "branch")` 说的是「没丢，候选都留下各自跟进」。同样算消费（不报 J-05），
+/// 不报 W-drop-vs-escalate；跟进的项出现在返回值里也不报 W-drop-then-return。同一段程序换成 drop 仍照旧告警。
+#[test]
+fn branch跟进_不当丢弃() {
+    let src = r#"
+budget {calls: 4, cost: 0, depth: 16};
+let o = sieve(["甲", "乙"], test("行吗", "k"));
+let d = map(undecided(o), fn(p) { consume(p.exit, "branch") });
+{names: map(undecided(o), fn(p) { p.item }), n: len(accepted(o))}
+"#;
+    let o = 跑(src).unwrap_or_else(|e| panic!("branch 是合法去向：{e:?}"));
+    assert!(
+        告警(&o, "W-drop-then-return").is_empty(),
+        "{:?}",
+        o.trace.warnings
+    );
+    assert!(
+        告警(&o, "W-drop-vs-escalate").is_empty(),
+        "{:?}",
+        o.trace.warnings
+    );
+    let o = 跑(&src.replace("\"branch\"", "\"drop\"")).unwrap_or_else(|e| panic!("{e:?}"));
+    assert_eq!(
+        告警(&o, "W-drop-then-return").len(),
+        1,
+        "{:?}",
+        o.trace.warnings
+    );
+}
+
+/// 不认识的去向照旧报错，报文列出两种去向
+#[test]
+fn consume未知去向报错() {
+    let src = r#"
+budget {calls: 4, cost: 0, depth: 16};
+let e = cut(judge(state(mat("甲")), test("行吗", "k")));
+consume(e, "keep");
+1
+"#;
+    let Err((rule, msg)) = 跑(src) else {
+        panic!("未知去向应当报错")
+    };
+    assert_eq!(rule.as_deref(), Some("E-rt-arg"), "{msg}");
+    assert!(msg.contains("\"branch\""), "{msg}");
+}

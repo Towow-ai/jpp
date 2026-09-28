@@ -329,15 +329,26 @@ impl<'a> Interp<'a> {
         };
         arity(2)?;
         let Value::Text(how, _) = &args[1] else {
-            return err(Some("E-rt-arg"), "consume(exit | [exits], \"drop\")", sp);
-        };
-        if how.as_ref() != "drop" {
             return err(
                 Some("E-rt-arg"),
-                "consume 目前只支持 \"drop\"；升级用 ask",
+                "consume(exit | [exits], \"drop\" | \"branch\")",
                 sp,
             );
-        }
+        };
+        // "branch"（issue #56）：程序没有丢掉这次未决，而是把候选都留下、各自跟进（J-05 的细化去向）。
+        // 与 drop 一样算消费、一样按账本键解除，但不进丢弃表：不报 W-drop-vs-escalate，跟进的项
+        // 出现在返回值里也不报 W-drop-then-return
+        let branch = match how.as_ref() {
+            "drop" => false,
+            "branch" => true,
+            _ => {
+                return err(
+                    Some("E-rt-arg"),
+                    "consume 只支持 \"drop\"（显式丢弃）与 \"branch\"（留下候选各自跟进）；升级用 ask",
+                    sp,
+                );
+            }
+        };
         // B95（步 21）：契约值不能整份 drop——一行丢掉整份未决清单（含预算未观察项）比转交还短，
         // 正是非设计者程序绕过 J-05 的写法。依据：B95、`12` §3 J-05 注
         if is_outcome(&args[0]) {
@@ -384,17 +395,26 @@ impl<'a> Interp<'a> {
             if let Value::Exit(e) | Value::Duty(e) = v {
                 // 被 compose、tally 吸收过的分量仍可按边处理：责任在合成出口里，这里按账本键解除（B162）
                 if e.is_unsure() && (!e.consumed.get() || crate::duty::已被吸收(e)) {
-                    // drop 是合法去向（12 §6「unsure 显式丢弃并记账」），但要留痕
-                    self.trace.warn(format!(
+                    if branch {
+                        self.登记解除(&e.clone(), "consume(…, \"branch\")", sp);
+                    } else {
+                        // drop 是合法去向（12 §6「unsure 显式丢弃并记账」），但要留痕
+                        self.trace.warn(format!(
                             "W-drop-vs-escalate: 显式丢弃了未决责任 {}（题 {}）；drop 合法且已记账，但只有 escalate 会把它交给人",
                             e.label(),
                             头(&e.q_hash, 8)
                         ));
-                    self.dropped.push(e.clone());
-                    self.登记解除(&e.clone(), "consume(…, \"drop\")", sp);
+                        self.dropped.push(e.clone());
+                        self.登记解除(&e.clone(), "consume(…, \"drop\")", sp);
+                    }
                 }
                 e.consumed.set(true);
-                *e.consumed_by.borrow_mut() = "consume:drop".into();
+                *e.consumed_by.borrow_mut() = if branch {
+                    "consume:branch"
+                } else {
+                    "consume:drop"
+                }
+                .into();
             }
         }
         Ok(Value::Unit)

@@ -151,6 +151,7 @@ pub type Env = Rc<EnvNode>;
 | --- | --- |
 | `handle(exit, {act, ignore, pick, at, unsure, otherwise}) -> Value` | 按题型穷尽：test 要 `act`/`ignore`/`unsure`，select 要 `pick`/`unsure`，measure 要 `at`/`unsure`；`otherwise` 兜底。臂可以是值，也可以是方法（`pick`/`at` 的方法收一个 Int，`unsure` 的收一个 Text 原因） |
 | `consume(exit \| [exit…], "drop") -> Unit` | 显式丢弃并记账 |
+| `consume(exit \| [exit…], "branch") -> Unit` | 没有丢掉：程序把候选都留下、各自跟进（J-05 的细化去向，issue #56）。同样算消费、按账本键解除；不报 `W-drop-vs-escalate`，跟进的项出现在返回值里也不报 `W-drop-then-return` |
 | `exit_kind(exit) -> Text` | `act` / `ignore` / `pick(k)` / `at(l)` / `unsure(cause)` |
 | `unsure(cause: Text) -> Exit` | 源码自己造一个未决出口 |
 | `pending(reason: Text)` | 程序级挂起，整个程序停在这里 |
