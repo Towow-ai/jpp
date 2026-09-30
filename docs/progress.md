@@ -1,6 +1,16 @@
 # J++ progress / 项目进度
 
-Updated: 2026-09-27. This is a dated report, not an automatically updated dashboard.
+Updated: 2026-09-30. This is a dated report, not an automatically updated dashboard.
+
+## 2026-09-30: research 18 occurrence-rate correction / 研究 18 出现率修正
+
+Research 18 §3.2 now agrees with all 12 categories in the published CSVs in both languages. Four hand-picked rates change: call loops 67.9% → 71.6%, handling uncertainty 29.6% → 35.8%, result feedback 3.7% → 21.0%, and combining judgments 3.7% → 4.9%; their ecosystem-minus-hand-picked differences and dependent conclusions are corrected too. The original 81/100 record denominators are retained, including the four unclassifiable zero-line records on the hand-picked side. / 中英文研究 18 的 3.2 节已按公开 CSV 核对全部 12 类，修正调用循环、拿不准处理、结果回流、多判断合成四项出现率、生态减精选的百分点差及相关结论。保留原有 81/100 条记录分母，含精选侧 4 条无法分类的零行记录，并说明局限。
+
+Verification / 验证：`python3 -m pytest -q tests/test_research_repetition.py` — **8 passed** on Python 3.12; both original document tables failed the new check before correction, while the four stale-value regression cases confirm each old rate/difference is rejected. Independent CSV recomputation and `git diff --check` passed. The test joins the existing offline pytest suite without a workflow change. / Python 3.12 下 8 项通过；修正前两份表均未通过新检查，另有四项回归用例确认旧数值会被拒绝；独立复算和 diff 检查通过，沿用现有 offline pytest 流程。
+
+Scope and next step / 范围及后续：this is arithmetic verification of published CSVs, not a rerun of source classification or model annotation; the source corpus is unpublished. The ecosystem calibration/labeling row remains incomparable because of its known false positive. Review this correction as a draft PR; no language/runtime change or release is included. / 仅核验公开 CSV 的算术，未重跑源码分类或模型标注；语料尚未公开，生态侧校准与标注的已知假阳性未消除，该行仍不可比。下一步为 draft PR 审查，不涉及语言运行时变更或发行。
+
+Change / 改动：[dfe8318](https://github.com/Towow-ai/jpp/commit/dfe831882c6f9d1f8cb05239684231b5587a155f).
 
 ## 2026-09-27 (daily sync): the judge is trusted by default; judgment-division law, question trees, declared lines everywhere, call reuse, field-stability fixes, five PR #37 review fixes / 每日同步：默认相信判断器；判断分工定律、题树、声明线全面接入、调用结果复用、现场稳定性修复、PR #37 五条评审修复
 
